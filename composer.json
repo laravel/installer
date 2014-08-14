@@ -13,9 +13,8 @@
 		"classmap": ["src"]
 	},
 	"require": {
-		"illuminate/support": "~4.2",
 		"guzzlehttp/guzzle": "~4.0",
-		"symfony/console": "~2.5"
+		"symfony/console": "~2.3"
 	},
 	"bin": [
 		"laravel"
