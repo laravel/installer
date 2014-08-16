@@ -34,7 +34,7 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 				$directory = getcwd().'/'.$input->getArgument('name')
 			);
 		} catch (\Exception $ex) {
-			$this->output->writeln($ex->getMessage());
+			$output->writeln($ex->getMessage());
 			exit(1);
 		}
 
