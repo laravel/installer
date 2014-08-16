@@ -29,9 +29,14 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output)
 	{
-		$this->verifyApplicationDoesntExist(
-			$directory = getcwd().'/'.$input->getArgument('name')
-		);
+		try{
+			$this->verifyApplicationDoesntExist(
+				$directory = getcwd().'/'.$input->getArgument('name')
+			);
+		} catch (\Exception $ex) {
+			$this->output->writeln($ex->getMessage());
+			exit(1);
+		}
 
 		$output->writeln('<info>Crafting application...</info>');
 
@@ -52,9 +57,7 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 	{
 		if (is_dir($directory))
 		{
-			$output->writeln('<error>Application already exists!</error>');
-
-			exit(1);
+			throw new \Exception('<error>Application already exists!</error>');
 		}
 	}
 
