@@ -30,7 +30,8 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 	protected function execute(InputInterface $input, OutputInterface $output)
 	{
 		$this->verifyApplicationDoesntExist(
-			$directory = getcwd().'/'.$input->getArgument('name')
+			$directory = getcwd().'/'.$input->getArgument('name'),
+			$output
 		);
 
 		$output->writeln('<info>Crafting application...</info>');
@@ -48,7 +49,7 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 	 * @param  string  $directory
 	 * @return void
 	 */
-	protected function verifyApplicationDoesntExist($directory)
+	protected function verifyApplicationDoesntExist($directory, $output)
 	{
 		if (is_dir($directory))
 		{
