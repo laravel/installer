@@ -76,7 +76,7 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 	 */
 	protected function download($zipFile)
 	{
-		$response = \GuzzleHttp\get('http://192.241.224.13/laravel-craft.zip')->getBody();
+		$response = \GuzzleHttp\get('http://cabinet.laravel.com/latest.zip')->getBody();
 
 		file_put_contents($zipFile, $response);
 
