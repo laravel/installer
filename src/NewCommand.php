@@ -1,7 +1,7 @@
 <?php namespace Laravel\Installer\Console;
 
 use ZipArchive;
-use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Process\Process;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -39,6 +39,18 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 		$this->download($zipFile = $this->makeFilename())
              ->extract($zipFile, $directory)
              ->cleanUp($zipFile);
+
+		$commands = array(
+			'composer run-script post-install-cmd',
+			'composer run-script post-create-project-cmd',
+		);
+
+		$process = new Process(implode(' && ', $commands), $directory, null, null, null);
+
+		$process->run(function($type, $line) use ($output)
+		{
+			$output->write($line);
+		});
 
 		$output->writeln('<comment>Application ready! Build something amazing.</comment>');
 	}
