@@ -17,7 +17,8 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 	{
 		$this->setName('new')
 				->setDescription('Create a new Laravel application.')
-				->addArgument('name', InputArgument::REQUIRED);
+				->addArgument('name', InputArgument::REQUIRED)
+				->addOption('nightly', null, InputOption::VALUE_NONE, 'Download the latest develop branch of Laravel from GitHub');
 	}
 
 	/**
@@ -29,14 +30,17 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output)
 	{
+		$this->nightly = $input->getOption('nightly') != null;
+		$this->applicationName = $input->getArgument('name');
+
 		$this->verifyApplicationDoesntExist(
-			$directory = getcwd().'/'.$input->getArgument('name'),
+			$directory = getcwd().'/'.$this->applicationName,
 			$output
 		);
 
 		$output->writeln('<info>Crafting application...</info>');
 
-		$this->download($zipFile = $this->makeFilename())
+		$this->download($this->getDownloadUrl(), $zipFile = $this->makeFilename())
              ->extract($zipFile, $directory)
              ->cleanUp($zipFile);
 
@@ -70,14 +74,28 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 	}
 
 	/**
+	 * Generate the correct url based on the nightly flag
+	 *
+	 * @return string
+	 */
+	protected function getDownloadUrl()
+	{
+		if ($this->nightly)
+		{
+			return 'https://github.com/laravel/laravel/archive/develop.zip';
+		}
+		return 'http://cabinet.laravel.com/latest.zip';
+	}
+
+	/**
 	 * Download the temporary Zip to the given file.
 	 *
 	 * @param  string  $zipFile
 	 * @return $this
 	 */
-	protected function download($zipFile)
+	protected function download($downloadUrl, $zipFile)
 	{
-		$response = \GuzzleHttp\get('http://cabinet.laravel.com/latest.zip')->getBody();
+		$response = \GuzzleHttp\get($downloadUrl)->getBody();
 
 		file_put_contents($zipFile, $response);
 
@@ -97,7 +115,18 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 
 		$archive->open($zipFile);
 
-		$archive->extractTo($directory);
+		if ($this->nightly)
+		{
+			// GitHub packages the zip archive into a folder.  That folder name is the first item of the archive.
+			// We will extract the archive to the current working direcory and then rename the folder to our new application name.
+			$originalName = trim($archive->getNameIndex(0), '/');
+			$archive->extractTo(getcwd());
+			rename($originalName, $this->applicationName);
+		}
+		else
+		{
+			$archive->extractTo($directory);
+		}
 
 		$archive->close();
 
