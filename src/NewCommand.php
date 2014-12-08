@@ -1,11 +1,12 @@
 <?php namespace Laravel\Installer\Console;
 
+use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use ZipArchive;
 
-class NewCommand extends \Symfony\Component\Console\Command\Command
+class NewCommand extends Command
 {
 
     /**
@@ -34,10 +35,12 @@ class NewCommand extends \Symfony\Component\Console\Command\Command
             $output
         );
 
+        $version = $this->choice('What version of laravel do you use? (default: develop)', ['develop', 'master'], 0);
+
         $output->writeln('<info>Crafting application...</info>');
 
-        $this->download($zipFile = $this->makeFilename())
-            ->extract($zipFile, $directory)
+        $this->download($zipFile = $this->makeFilename(), $version)
+            ->extract($zipFile, $version, $input->getArgument('name'))
             ->cleanUp($zipFile);
 
         $output->writeln('<comment>Application ready! Build something amazing.</comment>');
@@ -71,12 +74,13 @@ class NewCommand extends \Symfony\Component\Console\Command\Command
     /**
      * Download the temporary Zip to the given file.
      *
-     * @param  string $zipFile
+     * @param string $zipFile
+     * @param string $version
      * @return $this
      */
-    protected function download($zipFile)
+    protected function download($zipFile, $version)
     {
-        $response = \GuzzleHttp\get('http://cabinet.laravel.com/latest.zip')->getBody();
+        $response = \GuzzleHttp\get("https://github.com/laravel/laravel/archive/$version.zip")->getBody();
 
         file_put_contents($zipFile, $response);
 
@@ -86,19 +90,22 @@ class NewCommand extends \Symfony\Component\Console\Command\Command
     /**
      * Extract the zip file into the given directory.
      *
-     * @param  string $zipFile
-     * @param  string $directory
+     * @param string $zipFile
+     * @param string $version
+     * @param string $name
      * @return $this
      */
-    protected function extract($zipFile, $directory)
+    protected function extract($zipFile, $version, $name)
     {
         $archive = new ZipArchive;
 
         $archive->open($zipFile);
 
-        $archive->extractTo($directory);
+        $archive->extractTo(getcwd());
 
         $archive->close();
+
+        @rename('laravel-' . $version, $name);
 
         return $this;
     }
@@ -106,7 +113,7 @@ class NewCommand extends \Symfony\Component\Console\Command\Command
     /**
      * Clean-up the Zip file.
      *
-     * @param  string $zipFile
+     * @param string $zipFile
      * @return $this
      */
     protected function cleanUp($zipFile)
