@@ -9,6 +9,10 @@ use ZipArchive;
 class NewCommand extends Command
 {
 
+    protected $appName;
+
+    protected $laravelVersion;
+
     /**
      * Configure the command options.
      *
@@ -30,18 +34,24 @@ class NewCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $this->appName = $input->getArgument('name');
+
         $this->verifyApplicationDoesntExist(
-            $directory = getcwd() . '/' . $input->getArgument('name'),
+            $directory = getcwd() . '/' . $this->appName,
             $output
         );
 
-        $version = $this->choice('What version of laravel do you use? (default: develop)', ['develop', 'master'], 0);
+        $this->laravelVersion = $this->choice('What version of laravel do you use?', ['master', 'develop']);
 
         $output->writeln('<info>Crafting application...</info>');
 
-        $this->download($zipFile = $this->makeFilename(), $version)
-            ->extract($zipFile, $version, $input->getArgument('name'))
+        $this->download($zipFile = $this->makeFilename())
+            ->extract($zipFile)
             ->cleanUp($zipFile);
+
+        $output->writeln('<comment>Configuration...</comment>');
+
+        // Here will go all the recipes to make a custom laravel application
 
         $output->writeln('<comment>Application ready! Build something amazing.</comment>');
     }
@@ -49,7 +59,8 @@ class NewCommand extends Command
     /**
      * Verify that the application does not already exist.
      *
-     * @param  string $directory
+     * @param string $directory
+     * @param OutputInterface $output
      * @return void
      */
     protected function verifyApplicationDoesntExist($directory, OutputInterface $output)
@@ -75,12 +86,11 @@ class NewCommand extends Command
      * Download the temporary Zip to the given file.
      *
      * @param string $zipFile
-     * @param string $version
      * @return $this
      */
-    protected function download($zipFile, $version)
+    protected function download($zipFile)
     {
-        $response = \GuzzleHttp\get("https://github.com/laravel/laravel/archive/$version.zip")->getBody();
+        $response = \GuzzleHttp\get("https://github.com/laravel/laravel/archive/$this->laravelVersion.zip")->getBody();
 
         file_put_contents($zipFile, $response);
 
@@ -91,11 +101,9 @@ class NewCommand extends Command
      * Extract the zip file into the given directory.
      *
      * @param string $zipFile
-     * @param string $version
-     * @param string $name
      * @return $this
      */
-    protected function extract($zipFile, $version, $name)
+    protected function extract($zipFile)
     {
         $archive = new ZipArchive;
 
@@ -105,7 +113,7 @@ class NewCommand extends Command
 
         $archive->close();
 
-        @rename('laravel-' . $version, $name);
+        @rename('laravel-' . $this->laravelVersion, $this->appName);
 
         return $this;
     }
