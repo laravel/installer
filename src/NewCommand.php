@@ -1,6 +1,8 @@
 <?php namespace Laravel\Installer\Console;
 
 use Illuminate\Console\Command;
+use Laravel\Installer\Receipe\Receipe;
+use Laravel\Installer\Receipe\TestFrameworkReceipe;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -9,9 +11,38 @@ use ZipArchive;
 class NewCommand extends Command
 {
 
+    /**
+     * @var string $name The application name
+     */
     protected $appName;
 
+    /**
+     * @var string $directory The application absolute path
+     */
+    protected $directory;
+
+    /**
+     * @var string $laravelVersion The laravel version chose
+     */
     protected $laravelVersion;
+
+    /**
+     * @var array $composer The future content of composer.json
+     */
+    protected $composer;
+
+    /**
+     * @var Receipe[] $receipes The receipes to be used
+     */
+    protected $receipes;
+
+    /**
+     * @return mixed
+     */
+    public function getDirectory()
+    {
+        return $this->directory;
+    }
 
     /**
      * Configure the command options.
@@ -37,7 +68,7 @@ class NewCommand extends Command
         $this->appName = $input->getArgument('name');
 
         $this->verifyApplicationDoesntExist(
-            $directory = getcwd() . '/' . $this->appName,
+            $this->directory = getcwd() . '/' . $this->appName,
             $output
         );
 
@@ -52,8 +83,52 @@ class NewCommand extends Command
         $output->writeln('<comment>Configuration...</comment>');
 
         // Here will go all the recipes to make a custom laravel application
+        if ($this->confirm('Do you want to configure the application yourself? [yes/no]')) {
+            $this->removeDefaultConfiguration();
+            $this->initializeReceipes();
+            $this->runReceipes();
+            $this->loadConfiguration();
+        }
 
-        $output->writeln('<comment>Application ready! Build something amazing.</comment>');
+        $output->writeln('<comment>Run `composer create-project` in ' . $this->directory . ', and enjoy building something amazing!</comment>');
+    }
+
+    /**
+     * Remove the composer.json file in the application directory
+     */
+    protected function removeDefaultConfiguration()
+    {
+        $this->composer = \GuzzleHttp\json_decode(file_get_contents($this->directory . '/composer.json'), true);
+
+        unlink($this->directory . '/composer.json');
+    }
+
+    /**
+     * Run every receipe in $this->receipes
+     */
+    protected function runReceipes()
+    {
+        foreach ($this->receipes as $receipe) {
+            $receipe->run($this->composer);
+        }
+    }
+
+    /**
+     * Load the configuration into the application's composer.json
+     */
+    protected function loadConfiguration()
+    {
+        file_put_contents($this->directory . '/composer.json', $this->formatComposer());
+    }
+
+    /**
+     * Format the composer.json file
+     *
+     * @return string
+     */
+    protected function formatComposer()
+    {
+        return json_encode($this->composer, JSON_PRETTY_PRINT);
     }
 
     /**
@@ -131,6 +206,14 @@ class NewCommand extends Command
         @unlink($zipFile);
 
         return $this;
+    }
+
+    /**
+     * Set up the receipes to be used
+     */
+    protected function initializeReceipes()
+    {
+        $this->receipes[] = new TestFrameworkReceipe($this);
     }
 
 }
