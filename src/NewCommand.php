@@ -4,8 +4,6 @@ use Illuminate\Console\Command;
 use Laravel\Installer\Recipe\Recipe;
 use Laravel\Installer\Recipe\TestFrameworkRecipe;
 use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use ZipArchive;
 
 class NewCommand extends Command {
@@ -68,28 +66,25 @@ class NewCommand extends Command {
 	/**
 	 * Execute the command.
 	 *
-	 * @param  InputInterface  $input
-	 * @param  OutputInterface $output
 	 * @return void
 	 */
-	protected function execute(InputInterface $input, OutputInterface $output)
+	public function fire()
 	{
-		$this->appName = $input->getArgument('name');
+		$this->appName = $this->argument('name');
 
 		$this->verifyApplicationDoesntExist(
-			   $this->directory = getcwd() . '/' . $this->appName,
-			   $output
+			   $this->directory = getcwd() . '/' . $this->appName
 		);
 
 		$this->laravelVersion = $this->choice('What version of laravel do you use?', ['master', 'develop']);
 
-		$output->writeln('<info>Crafting application...</info>');
+		$this->info('Crafting application...');
 
 		$this->download($zipFile = $this->makeFilename())
 			   ->extract($zipFile)
 			   ->cleanUp($zipFile);
 
-		$output->writeln('<comment>Configuration...</comment>');
+		$this->comment('Configuration...');
 
 		if ($this->confirm('Do you want to configure the application yourself? [yes/no]'))
 		{
@@ -99,10 +94,7 @@ class NewCommand extends Command {
 			$this->loadConfiguration();
 		}
 
-		$output->writeln(
-			   "<comment>Run `composer create-project` in $this->directory," .
-			   "and enjoy building something amazing!</comment>"
-		);
+		$this->comment("Run `composer create-project` in $this->directory, and enjoy building something amazing!");
 	}
 
 	/**
@@ -147,15 +139,14 @@ class NewCommand extends Command {
 	/**
 	 * Verify that the application does not already exist.
 	 *
-	 * @param string          $directory
-	 * @param OutputInterface $output
+	 * @param string $directory
 	 * @return void
 	 */
-	protected function verifyApplicationDoesntExist($directory, OutputInterface $output)
+	protected function verifyApplicationDoesntExist($directory)
 	{
 		if (is_dir($directory))
 		{
-			$output->writeln('<error>Application already exists!</error>');
+			$this->error('Application already exists!');
 
 			exit(1);
 		}
