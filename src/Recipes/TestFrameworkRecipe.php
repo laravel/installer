@@ -1,10 +1,10 @@
 <?php
-namespace Laravel\Installer\Receipe;
+namespace Laravel\Installer\Recipe;
 
-class TestFrameworkReceipe extends Receipe {
+class TestFrameworkRecipe extends Recipe {
 
 	/**
-	 * Run the receipe updating $config
+	 * Run the recipe updating $config
 	 *
 	 * @param &array $config
 	 * @return mixed
@@ -16,7 +16,7 @@ class TestFrameworkReceipe extends Receipe {
 		switch ($framework)
 		{
 			case 'PHPSpec':
-				$this->phpspecReceipe($config);
+				$this->phpspecRecipe($config);
 				break;
 			case 'PHPUnit':
 			default:
@@ -29,7 +29,7 @@ class TestFrameworkReceipe extends Receipe {
 	 *
 	 * @param &array $config
 	 */
-	protected function phpspecReceipe(&$config)
+	protected function phpspecRecipe(&$config)
 	{
 		$this->updateConfig($config);
 		$this->updateFiles($this->command->getDirectory());

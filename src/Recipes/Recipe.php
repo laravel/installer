@@ -1,9 +1,9 @@
 <?php
-namespace Laravel\Installer\Receipe;
+namespace Laravel\Installer\Recipe;
 
 use Laravel\Installer\Console\NewCommand;
 
-abstract class Receipe {
+abstract class Recipe {
 
 	/**
 	 * @var NewCommand $command
@@ -11,6 +11,8 @@ abstract class Receipe {
 	protected $command;
 
 	/**
+	 * Create a new recipe.
+	 *
 	 * @param NewCommand $command
 	 */
 	public function __construct(NewCommand $command)
@@ -19,7 +21,7 @@ abstract class Receipe {
 	}
 
 	/**
-	 * Run the receipe updating $config
+	 * Run the recipe updating $config.
 	 *
 	 * @param $config
 	 * @return mixed

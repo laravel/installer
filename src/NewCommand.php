@@ -1,8 +1,8 @@
 <?php namespace Laravel\Installer\Console;
 
 use Illuminate\Console\Command;
-use Laravel\Installer\Receipe\Receipe;
-use Laravel\Installer\Receipe\TestFrameworkReceipe;
+use Laravel\Installer\Recipe\Recipe;
+use Laravel\Installer\Recipe\TestFrameworkRecipe;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -11,29 +11,39 @@ use ZipArchive;
 class NewCommand extends Command {
 
 	/**
-	 * @var string $name The application name
+	 * The application name
+	 *
+	 * @var string
 	 */
 	protected $appName;
 
 	/**
-	 * @var string $directory The application absolute path
+	 * The application absolute path
+	 *
+	 * @var string
 	 */
 	protected $directory;
 
 	/**
-	 * @var string $laravelVersion The laravel version chose
+	 * The laravel version chose
+	 *
+	 * @var string
 	 */
 	protected $laravelVersion;
 
 	/**
-	 * @var array $composer The future content of composer.json
+	 * The future content of composer.json
+	 *
+	 * @var array
 	 */
 	protected $composer;
 
 	/**
-	 * @var Receipe[] $receipes The receipes to be used
+	 * The recipes to be used
+	 *
+	 * @var Recipe[] $recipes
 	 */
-	protected $receipes;
+	protected $recipes;
 
 	/**
 	 * @return mixed
@@ -58,7 +68,7 @@ class NewCommand extends Command {
 	/**
 	 * Execute the command.
 	 *
-	 * @param  InputInterface $input
+	 * @param  InputInterface  $input
 	 * @param  OutputInterface $output
 	 * @return void
 	 */
@@ -85,8 +95,8 @@ class NewCommand extends Command {
 		if ($this->confirm('Do you want to configure the application yourself? [yes/no]'))
 		{
 			$this->removeDefaultConfiguration();
-			$this->initializeReceipes();
-			$this->runReceipes();
+			$this->initializeRecipes();
+			$this->runRecipes();
 			$this->loadConfiguration();
 		}
 
@@ -107,13 +117,13 @@ class NewCommand extends Command {
 	}
 
 	/**
-	 * Run every receipe in $this->receipes
+	 * Run every recipe in $this->recipes
 	 */
-	protected function runReceipes()
+	protected function runRecipes()
 	{
-		foreach ($this->receipes as $receipe)
+		foreach ($this->recipes as $recipe)
 		{
-			$receipe->run($this->composer);
+			$recipe->run($this->composer);
 		}
 	}
 
@@ -138,7 +148,7 @@ class NewCommand extends Command {
 	/**
 	 * Verify that the application does not already exist.
 	 *
-	 * @param string $directory
+	 * @param string          $directory
 	 * @param OutputInterface $output
 	 * @return void
 	 */
@@ -214,11 +224,11 @@ class NewCommand extends Command {
 	}
 
 	/**
-	 * Set up the receipes to be used
+	 * Set up the recipes to be used
 	 */
-	protected function initializeReceipes()
+	protected function initializeRecipes()
 	{
-		$this->receipes[] = new TestFrameworkReceipe($this);
+		$this->recipes[] = new TestFrameworkRecipe($this);
 	}
 
 }
