@@ -1,5 +1,4 @@
-<?php
-namespace Laravel\Installer\Recipe;
+<?php namespace Laravel\Installer\Recipe;
 
 use Laravel\Installer\Console\NewCommand;
 
