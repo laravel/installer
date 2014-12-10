@@ -91,7 +91,6 @@ class NewCommand extends Command {
 
 		$output->writeln('<comment>Configuration...</comment>');
 
-		// Here will go all the recipes to make a custom laravel application
 		if ($this->confirm('Do you want to configure the application yourself? [yes/no]'))
 		{
 			$this->removeDefaultConfiguration();
