@@ -9,47 +9,39 @@ use ZipArchive;
 class NewCommand extends Command {
 
 	/**
-	 * The application name
+	 * The application name.
 	 *
 	 * @var string
 	 */
 	protected $appName;
 
 	/**
-	 * The application absolute path
+	 * The application absolute path.
 	 *
 	 * @var string
 	 */
 	protected $directory;
 
 	/**
-	 * The laravel version chose
+	 * The laravel version chose.
 	 *
 	 * @var string
 	 */
 	protected $laravelVersion;
 
 	/**
-	 * The future content of composer.json
+	 * The future content of composer.json.
 	 *
 	 * @var array
 	 */
 	protected $composer;
 
 	/**
-	 * The recipes to be used
+	 * The recipes to be used.
 	 *
-	 * @var Recipe[] $recipes
+	 * @var Recipe[]
 	 */
 	protected $recipes;
-
-	/**
-	 * @return mixed
-	 */
-	public function getDirectory()
-	{
-		return $this->directory;
-	}
 
 	/**
 	 * Configure the command options.
@@ -98,7 +90,7 @@ class NewCommand extends Command {
 	}
 
 	/**
-	 * Remove the composer.json file in the application directory
+	 * Remove the composer.json file in the application directory.
 	 */
 	protected function removeDefaultConfiguration()
 	{
@@ -108,7 +100,7 @@ class NewCommand extends Command {
 	}
 
 	/**
-	 * Run every recipe in $this->recipes
+	 * Run every recipe registered in $this->recipes.
 	 */
 	protected function runRecipes()
 	{
@@ -119,7 +111,7 @@ class NewCommand extends Command {
 	}
 
 	/**
-	 * Load the configuration into the application's composer.json
+	 * Load the configuration into the application's composer.json.
 	 */
 	protected function loadConfiguration()
 	{
@@ -139,7 +131,7 @@ class NewCommand extends Command {
 	/**
 	 * Verify that the application does not already exist.
 	 *
-	 * @param string $directory
+	 * @param  string $directory
 	 * @return void
 	 */
 	protected function verifyApplicationDoesntExist($directory)
@@ -165,7 +157,7 @@ class NewCommand extends Command {
 	/**
 	 * Download the temporary Zip to the given file.
 	 *
-	 * @param string $zipFile
+	 * @param  string $zipFile
 	 * @return $this
 	 */
 	protected function download($zipFile)
@@ -180,7 +172,7 @@ class NewCommand extends Command {
 	/**
 	 * Extract the zip file into the given directory.
 	 *
-	 * @param string $zipFile
+	 * @param  string $zipFile
 	 * @return $this
 	 */
 	protected function extract($zipFile)
@@ -201,7 +193,7 @@ class NewCommand extends Command {
 	/**
 	 * Clean-up the Zip file.
 	 *
-	 * @param string $zipFile
+	 * @param  string $zipFile
 	 * @return $this
 	 */
 	protected function cleanUp($zipFile)
@@ -214,11 +206,20 @@ class NewCommand extends Command {
 	}
 
 	/**
-	 * Set up the recipes to be used
+	 * Set up the recipes to be used.
 	 */
 	protected function initializeRecipes()
 	{
 		$this->recipes[] = new TestFrameworkRecipe($this);
 	}
 
+	/**
+	 * Get the directory of the new application.
+	 *
+	 * @return string
+	 */
+	public function getDirectory()
+	{
+		return $this->directory;
+	}
 }

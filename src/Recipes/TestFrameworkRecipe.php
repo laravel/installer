@@ -3,9 +3,9 @@
 class TestFrameworkRecipe extends Recipe {
 
 	/**
-	 * Run the recipe updating $config
+	 * Run the recipe updating $config.
 	 *
-	 * @param &array $config
+	 * @param  &array  $config
 	 * @return mixed
 	 */
 	public function run(&$config)
@@ -24,9 +24,10 @@ class TestFrameworkRecipe extends Recipe {
 	}
 
 	/**
-	 * Ran when the user choose PHPSpec
+	 * Ran when the user choose PHPSpec.
 	 *
-	 * @param &array $config
+	 * @param  &array  $config
+	 * @return void
 	 */
 	protected function phpspecRecipe(&$config)
 	{
@@ -35,9 +36,10 @@ class TestFrameworkRecipe extends Recipe {
 	}
 
 	/**
-	 * Remove PHPUnit from dependencies and add PHPSpec
+	 * Remove PHPUnit from dependencies and add PHPSpec.
 	 *
-	 * @param &array $config
+	 * @param  &array  $config
+	 * @return void
 	 */
 	protected function updateConfig(&$config)
 	{
@@ -46,9 +48,10 @@ class TestFrameworkRecipe extends Recipe {
 	}
 
 	/**
-	 * Remove default PHPUnit files
+	 * Remove default PHPUnit files.
 	 *
-	 * @param string $directory
+	 * @param  string  $directory
+	 * @return void
 	 */
 	protected function updateFiles($directory)
 	{

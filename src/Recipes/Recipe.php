@@ -5,14 +5,17 @@ use Laravel\Installer\Console\NewCommand;
 abstract class Recipe {
 
 	/**
-	 * @var NewCommand $command
+	 * The console command new.
+	 *
+	 * @var NewCommand
 	 */
 	protected $command;
 
 	/**
 	 * Create a new recipe.
 	 *
-	 * @param NewCommand $command
+	 * @param  NewCommand  $command
+	 * @return Recipe
 	 */
 	public function __construct(NewCommand $command)
 	{
@@ -22,7 +25,7 @@ abstract class Recipe {
 	/**
 	 * Run the recipe updating $config.
 	 *
-	 * @param $config
+	 * @param  &array  $config
 	 * @return mixed
 	 */
 	abstract public function run(&$config);
