@@ -27,10 +27,10 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 				->setDescription('Create a new Laravel application.')
 				->addArgument('name', InputArgument::REQUIRED)
 				->addOption(
-               		'dev',
+               		'b',
                		null,
-               		InputOption::VALUE_NONE,
-               		'If set, the installer will install Laravel 5 instead of 4.'
+               		InputOption::VALUE_OPTIONAL,
+               		'Which branch of laravel should be installed.'
            		);
 	}
 
@@ -51,7 +51,7 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 		);
 
 		$output->writeln('<info>Crafting application...</info>');
-		if ($this->input->getOption('dev')) {
+		if ($this->input->getOption('b')) {
 			$output->writeln('<error>Laravel 5 is still being built and may have bugs.</error>');
 			$output->writeln('<error>Laravel is not responsible for any damages that may occur.</error>');
 		}
@@ -112,8 +112,8 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 
 	protected function determineDownload()
 	{
-		if ($this->input->getOption('dev'))
-			return 'http://rweas.github.io/installer/laravel-develop.zip';
+		if ($branch = $this->input->getOption('b'))
+			return 'http://rweas.github.io/installer/laravel-' . $branch . '.zip';
 		return 'http://cabinet.laravel.com/latest.zip';
 	}
 
