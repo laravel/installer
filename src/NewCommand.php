@@ -8,6 +8,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class NewCommand extends \Symfony\Component\Console\Command\Command {
 
+
+	protected $input;
+
 	/**
 	 * Configure the command options.
 	 *
@@ -17,7 +20,13 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 	{
 		$this->setName('new')
 				->setDescription('Create a new Laravel application.')
-				->addArgument('name', InputArgument::REQUIRED);
+				->addArgument('name', InputArgument::REQUIRED)
+				->addOption(
+               		'dev',
+               		null,
+               		InputOption::VALUE_NONE,
+               		'If set, the installer will install Laravel 5 instead of 4.'
+           		);
 	}
 
 	/**
@@ -29,6 +38,8 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output)
 	{
+		$this->input = $input;
+
 		$this->verifyApplicationDoesntExist(
 			$directory = getcwd().'/'.$input->getArgument('name'),
 			$output
@@ -77,11 +88,25 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 	 */
 	protected function download($zipFile)
 	{
-		$response = \GuzzleHttp\get('http://cabinet.laravel.com/latest.zip')->getBody();
+
+		$response = \GuzzleHttp\get($this->determineDownload())->getBody();
 
 		file_put_contents($zipFile, $response);
 
 		return $this;
+	}
+
+	/**
+	 * Determine which file to download, 4 or 5 
+	 * 
+	 * @return string
+	 */
+
+	protected function determineDownload()
+	{
+		if ($this->input->getOption('dev'))
+			return 'http://rweas.github.io/installer/develop.zip';
+		return 'http://cabinet.laravel.com/latest.zip';
 	}
 
 	/**
