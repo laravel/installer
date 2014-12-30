@@ -105,7 +105,7 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 	protected function determineDownload()
 	{
 		if ($this->input->getOption('dev'))
-			return 'http://rweas.github.io/installer/develop.zip';
+			return 'http://rweas.github.io/installer/laravel-develop.zip';
 		return 'http://cabinet.laravel.com/latest.zip';
 	}
 
