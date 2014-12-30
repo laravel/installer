@@ -13,7 +13,6 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 	 * 
 	 * A variable containing the input passed into the command.
 	 */
-
 	protected $input;
 
 	/**
@@ -51,13 +50,19 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 		);
 
 		$output->writeln('<info>Crafting application...</info>');
+
 		if ($this->input->getOption('dev')) {
 			$output->writeln('<error>Laravel 5 is still being built and may have bugs.</error>');
 			$output->writeln('<error>Laravel is not responsible for any damages that may occur.</error>');
 		}
+
 		$this->download($zipFile = $this->makeFilename())
              ->extract($zipFile, $directory)
              ->cleanUp($zipFile);
+
+        $output->writeln('<info>Application unpacked, dependencies are now being installed</info>');
+
+        $this->installDependencies($input->getArgument('name'));
 
 		$output->writeln('<comment>Application ready! Build something amazing.</comment>');
 	}
@@ -150,6 +155,17 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 		@unlink($zipFile);
 
 		return $this;
+	}
+
+	/**
+	 * Install Laravel's dependencies
+	 * 
+	 * @param string $name
+	 * @return $this
+	 */
+	protected function installDependencies($name)
+	{
+        exec('cd ' . $name . '; composer install;');
 	}
 
 }
