@@ -7,7 +7,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class NewCommand extends \Symfony\Component\Console\Command\Command {
-	
+
 	/**
 	 * @var input
 	 * 
@@ -51,7 +51,10 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 		);
 
 		$output->writeln('<info>Crafting application...</info>');
-
+		if ($this->input->getOption('dev')) {
+			$output->writeln('<error>Laravel 5 is still being built and may have bugs.</error>');
+			$output->writeln('<error>Laravel is not responsible for any damages that may occur.</error>');
+		}
 		$this->download($zipFile = $this->makeFilename())
              ->extract($zipFile, $directory)
              ->cleanUp($zipFile);
