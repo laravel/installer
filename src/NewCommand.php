@@ -7,7 +7,12 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class NewCommand extends \Symfony\Component\Console\Command\Command {
-
+	
+	/**
+	 * @var input
+	 * 
+	 * A variable containing the input passed into the command.
+	 */
 
 	protected $input;
 
