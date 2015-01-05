@@ -105,7 +105,7 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 	}
 
 	/**
-	 * Determine which file to download, 4 or 5
+	 * Determine which branch to download.
 	 *
 	 * @return string
 	 */
