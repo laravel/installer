@@ -10,7 +10,7 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 
 	/**
 	 * @var input
-	 * 
+	 *
 	 * A variable containing the input passed into the command.
 	 */
 
@@ -27,10 +27,10 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 				->setDescription('Create a new Laravel application.')
 				->addArgument('name', InputArgument::REQUIRED)
 				->addOption(
-               		'b',
-               		null,
-               		InputOption::VALUE_OPTIONAL,
-               		'Which branch of laravel should be installed.'
+		               		'b',
+		               		null,
+		               		InputOption::VALUE_OPTIONAL,
+		               		'Which branch of laravel should be installed.'
            		);
 	}
 
@@ -51,7 +51,7 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 		);
 
 		$output->writeln('<info>Crafting application...</info>');
-		if ($this->input->getOption('b')) {
+		if ($this->input->getOption('b') == 'develop') {
 			$output->writeln('<error>Laravel 5 is still being built and may have bugs.</error>');
 			$output->writeln('<error>Laravel is not responsible for any damages that may occur.</error>');
 		}
@@ -105,15 +105,15 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 	}
 
 	/**
-	 * Determine which file to download, 4 or 5 
-	 * 
+	 * Determine which file to download, 4 or 5
+	 *
 	 * @return string
 	 */
 
 	protected function determineDownload()
 	{
 		if ($branch = $this->input->getOption('b'))
-			return 'http://rweas.github.io/installer/laravel-' . $branch . '.zip';
+			return 'https://codeload.github.com/laravel/laravel/zip/' . $branch;
 		return 'http://cabinet.laravel.com/latest.zip';
 	}
 
