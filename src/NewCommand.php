@@ -40,6 +40,8 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
              ->extract($zipFile, $directory)
              ->cleanUp($zipFile);
 
+		copy($directory.'/.env.example', $directory.'/.env');
+
 		$output->writeln('<comment>Application ready! Build something amazing.</comment>');
 	}
 
