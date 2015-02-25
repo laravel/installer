@@ -9,6 +9,14 @@ use Symfony\Component\Console\Output\OutputInterface;
 class NewCommand extends \Symfony\Component\Console\Command\Command {
 
 	/**
+	 * @var input
+	 *
+	 * A variable containing the input passed into the command.
+	 */
+
+	protected $input;
+
+	/**
 	 * Configure the command options.
 	 *
 	 * @return void
@@ -17,7 +25,13 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 	{
 		$this->setName('new')
 				->setDescription('Create a new Laravel application.')
-				->addArgument('name', InputArgument::REQUIRED);
+				->addArgument('name', InputArgument::REQUIRED)
+				->addOption(
+		               		'b',
+		               		null,
+		               		InputOption::VALUE_OPTIONAL,
+		               		'Which branch of laravel should be installed.'
+           		);
 	}
 
 	/**
@@ -29,13 +43,18 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 	 */
 	protected function execute(InputInterface $input, OutputInterface $output)
 	{
+		$this->input = $input;
+
 		$this->verifyApplicationDoesntExist(
 			$directory = getcwd().'/'.$input->getArgument('name'),
 			$output
 		);
 
 		$output->writeln('<info>Crafting application...</info>');
-
+		if ($this->input->getOption('b') == 'develop') {
+			$output->writeln('<error>Laravel 5 is still being built and may have bugs.</error>');
+			$output->writeln('<error>Laravel is not responsible for any damages that may occur.</error>');
+		}
 		$this->download($zipFile = $this->makeFilename())
              ->extract($zipFile, $directory)
              ->cleanUp($zipFile);
@@ -79,11 +98,25 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 	 */
 	protected function download($zipFile)
 	{
-		$response = \GuzzleHttp\get('http://cabinet.laravel.com/latest.zip')->getBody();
+
+		$response = \GuzzleHttp\get($this->determineDownload())->getBody();
 
 		file_put_contents($zipFile, $response);
 
 		return $this;
+	}
+
+	/**
+	 * Determine which branch to download.
+	 *
+	 * @return string
+	 */
+
+	protected function determineDownload()
+	{
+		if ($branch = $this->input->getOption('b'))
+			return 'https://codeload.github.com/laravel/laravel/zip/' . $branch;
+		return 'http://cabinet.laravel.com/latest.zip';
 	}
 
 	/**
