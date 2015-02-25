@@ -1,7 +1,7 @@
 <?php namespace Laravel\Installer\Console;
 
 use ZipArchive;
-use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Process\Process;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -40,7 +40,19 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
              ->extract($zipFile, $directory)
              ->cleanUp($zipFile);
 
-		copy($directory.'/.env.example', $directory.'/.env');
+		$composer = $this->findComposer();
+
+		$commands = array(
+			$composer.' run-script post-install-cmd',
+			$composer.' run-script post-create-project-cmd',
+		);
+
+		$process = new Process(implode(' && ', $commands), $directory, null, null, null);
+
+		$process->run(function($type, $line) use ($output)
+		{
+			$output->write($line);
+		});
 
 		$output->writeln('<comment>Application ready! Build something amazing.</comment>');
 	}
@@ -121,4 +133,23 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 		return $this;
 	}
 
+<<<<<<< HEAD
 }
+=======
+	/**
+	 * Get the composer command for the environment.
+	 *
+	 * @return string
+	 */
+	protected function findComposer()
+	{
+		if (file_exists(getcwd().'/composer.phar'))
+		{
+			return '"'.PHP_BINARY.'" composer.phar';
+		}
+
+		return 'composer';
+	}
+
+}
+>>>>>>> fe5fac4ab635b3194a15572b93cbe6136d1850ef
