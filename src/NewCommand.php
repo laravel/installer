@@ -35,7 +35,9 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 		);
 
 		$output->writeln('<info>Crafting application...</info>');
-
+		
+		$directory = $input->getArgument('name');
+		
 		$this->download($zipFile = $this->makeFilename())
              ->extract($zipFile, $directory)
              ->cleanUp($zipFile);
