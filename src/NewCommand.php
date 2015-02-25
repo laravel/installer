@@ -133,9 +133,6 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 		return $this;
 	}
 
-<<<<<<< HEAD
-}
-=======
 	/**
 	 * Get the composer command for the environment.
 	 *
@@ -152,4 +149,3 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
 	}
 
 }
->>>>>>> fe5fac4ab635b3194a15572b93cbe6136d1850ef

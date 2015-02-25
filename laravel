@@ -4,7 +4,7 @@
 require __DIR__.'/../../autoload.php';
 //require __DIR__.'/vendor/autoload.php';
 
-$app = new Symfony\Component\Console\Application('Laravel Installer', '1.1');
+$app = new Symfony\Component\Console\Application('Laravel Installer', '1.2.0');
 $app->add(new Laravel\Installer\Console\NewCommand);
 
 $app->run();
