@@ -1,14 +1,14 @@
 {
-    "name": "laravel/installer",
-    "description": "Laravel application installer.",
-    "keywords": ["laravel"],
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Taylor Otwell",
-            "email": "taylorotwell@gmail.com"
-        }
-    ],
+	"name": "laravel/installer",
+	"description": "Laravel application installer.",
+	"keywords": ["laravel"],
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Taylor Otwell",
+			"email": "taylorotwell@gmail.com"
+		}
+	],
 	"autoload": {
 		"classmap": ["src"]
 	},
@@ -18,6 +18,5 @@
 	},
 	"bin": [
 		"laravel"
-	],
-	"minimum-stability": "stable"
+	]
 }
