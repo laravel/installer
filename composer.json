@@ -1,12 +1,16 @@
 {
-	"name": "laravel/installer",
-	"description": "Laravel application installer.",
-	"keywords": ["laravel"],
+	"name": "nukacode/installer",
+	"description": "NukaCode Laravel application installer.",
+	"keywords": ["laravel", "nukacode"],
 	"license": "MIT",
 	"authors": [
 		{
 			"name": "Taylor Otwell",
 			"email": "taylorotwell@gmail.com"
+		},
+		{
+			"name": "RiDdLeS",
+			"email": "riddles@dev-toolbox.com"
 		}
 	],
 	"autoload": {
