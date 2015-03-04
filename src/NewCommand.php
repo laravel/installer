@@ -6,6 +6,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use GuzzleHttp\Event\ProgressEvent;
 
 class NewCommand extends \Symfony\Component\Console\Command\Command
 {
@@ -97,9 +98,21 @@ class NewCommand extends \Symfony\Component\Console\Command\Command
         } else {
             $url = 'http://builds.nukacode.com/full/latest.zip';
         }
-        $response = \GuzzleHttp\get($url)->getBody();
+//        $response = \GuzzleHttp\get($url)->getBody();
+//
+//        file_put_contents($zipFile, $response);
 
-        file_put_contents($zipFile, $response);
+
+        $client = new \GuzzleHttp\Client();
+        $request = $client->createRequest('GET', $url);
+        $request->getEmitter()->on('progress', function (ProgressEvent $e) {
+            echo 'Downloaded ' . $e->downloaded . ' of ' . $e->downloadSize . ' '
+                 . 'Uploaded ' . $e->uploaded . ' of ' . $e->uploadSize . "\r";
+        });
+
+        $response = $client->send($request);
+
+        file_put_contents($zipFile, $response->getBody());
 
         return $this;
     }
