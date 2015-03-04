@@ -1,2 +1,4 @@
 /vendor
 .DS_Store
+.idea/
+atlassian-ide-plugin.xml
