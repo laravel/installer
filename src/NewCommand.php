@@ -3,6 +3,7 @@
 use ZipArchive;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -18,7 +19,8 @@ class NewCommand extends \Symfony\Component\Console\Command\Command
     {
         $this->setName('new')
                 ->setDescription('Create a new Laravel application.')
-                ->addArgument('name', InputArgument::REQUIRED);
+                ->addArgument('name', InputArgument::REQUIRED)
+                ->addOption('fresh', InputOption::VALUE_NONE);
     }
 
     /**
@@ -46,6 +48,7 @@ class NewCommand extends \Symfony\Component\Console\Command\Command
         $commands = array(
             $composer.' run-script post-install-cmd',
             $composer.' run-script post-create-project-cmd',
+            'php artisan fresh',
         );
 
         $process = new Process(implode(' && ', $commands), $directory, null, null, null);
