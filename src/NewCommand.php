@@ -27,8 +27,8 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
         $this->setName('new')
              ->setDescription('Create a new Laravel application.')
              ->addArgument('name', InputArgument::REQUIRED)
-             ->addOption('slim', false, InputOption::VALUE_NONE)
-             ->addOption('force', false, InputOption::VALUE_NONE);
+             ->addOption('slim', null, InputOption::VALUE_NONE)
+             ->addOption('force', null, InputOption::VALUE_NONE);
     }
 
     /**
@@ -44,7 +44,7 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
         $this->input     = $input;
         $this->output    = $output;
         $this->directory = getcwd() . '/' . $input->getArgument('name');
-        $this->zipFile   = $this->makeFilename($input->getOption('slim'));
+        $this->zipFile   = $this->makeFilename();
 
         $output->writeln('<info>Crafting NukaCode application...</info>');
 
@@ -159,7 +159,6 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
     protected function cleanUp()
     {
         @chmod($this->zipFile, 0777);
-
         @unlink($this->zipFile);
 
         return $this;
@@ -194,6 +193,8 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
     }
 
     /**
+     * Get the build file location based on the flags passed in.
+     *
      * @return string
      */
     protected function getBuildFileLocation()
@@ -206,6 +207,8 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
     }
 
     /**
+     * Download the nukacode build files and display progress bar.
+     *
      * @param $buildUrl
      */
     protected function downloadFileWithProgressBar($buildUrl)
@@ -237,6 +240,11 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
         $this->output->writeln("\n<info>File download complete...</info>");
     }
 
+    /**
+     * Check if the server has a newer version of the nukacode build.
+     *
+     * @return bool
+     */
     protected function checkIfServerHasNewerBuild()
     {
         if (file_exists($this->zipFile)) {
