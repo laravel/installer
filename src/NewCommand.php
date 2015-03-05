@@ -225,7 +225,7 @@ class NewCommand extends \Symfony\Component\Console\Command\Command {
                 $localProgress = floor(($e->downloaded / $e->downloadSize * 100));
 
                 if ($localProgress != $this->progress) {
-                    $this->progress = $localProgress;
+                    $this->progress = (integer) $localProgress;
                     $progressBar->advance();
                 }
             }
