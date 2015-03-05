@@ -17,9 +17,9 @@
 		"classmap": ["src"]
 	},
 	"require": {
-		"guzzlehttp/guzzle": "~4.0",
-		"symfony/console": "~2.3",
-		"symfony/process": "~2.3"
+		"guzzlehttp/guzzle": "~5.0",
+		"symfony/console": "~2.6",
+		"symfony/process": "~2.6"
 	},
 	"bin": [
 		"laravel"
