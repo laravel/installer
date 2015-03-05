@@ -1,15 +1,21 @@
 <?php namespace Laravel\Installer\Console;
 
-use ZipArchive;
-use Symfony\Component\Process\Process;
+use GuzzleHttp\Event\ProgressEvent;
+use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use GuzzleHttp\Event\ProgressEvent;
+use Symfony\Component\Process\Process;
+use ZipArchive;
 
-class NewCommand extends \Symfony\Component\Console\Command\Command
-{
+class NewCommand extends \Symfony\Component\Console\Command\Command {
+
+    private $input;
+    private $output;
+    private $directory;
+    private $zipFile;
+    private $progress = 0;
 
     /**
      * Configure the command options.
@@ -19,43 +25,37 @@ class NewCommand extends \Symfony\Component\Console\Command\Command
     protected function configure()
     {
         $this->setName('new')
-                ->setDescription('Create a new Laravel application.')
-                ->addArgument('name', InputArgument::REQUIRED)
-                ->addOption('slim', false, InputOption::VALUE_NONE);
+             ->setDescription('Create a new Laravel application.')
+             ->addArgument('name', InputArgument::REQUIRED)
+             ->addOption('slim', false, InputOption::VALUE_NONE)
+             ->addOption('force', false, InputOption::VALUE_NONE);
     }
 
     /**
      * Execute the command.
      *
      * @param  InputInterface  $input
-     * @param  OutputInterface  $output
+     * @param  OutputInterface $output
+     *
      * @return void
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->verifyApplicationDoesntExist(
-            $directory = getcwd().'/'.$input->getArgument('name'),
-            $output
-        );
+        $this->input     = $input;
+        $this->output    = $output;
+        $this->directory = getcwd() . '/' . $input->getArgument('name');
+        $this->zipFile   = $this->makeFilename($input->getOption('slim'));
 
-        $output->writeln('<info>Crafting application...</info>');
+        $output->writeln('<info>Crafting NukaCode application...</info>');
 
-        $this->download($zipFile = $this->makeFilename(), $input->getOption('slim'))
-             ->extract($zipFile, $directory)
-             ->cleanUp($zipFile);
 
-        $composer = $this->findComposer();
+        $this->verifyApplicationDoesntExist();
 
-        $commands = array(
-            $composer.' run-script post-install-cmd',
-            $composer.' run-script post-create-project-cmd',
-        );
+        $this->download();
 
-        $process = new Process(implode(' && ', $commands), $directory, null, null, null);
+        $this->extract();
 
-        $process->run(function ($type, $line) use ($output) {
-            $output->write($line);
-        });
+        $this->runComposerCommands();
 
         $output->writeln('<comment>Application ready! Build something amazing.</comment>');
     }
@@ -63,56 +63,42 @@ class NewCommand extends \Symfony\Component\Console\Command\Command
     /**
      * Verify that the application does not already exist.
      *
-     * @param  string  $directory
      * @return void
      */
-    protected function verifyApplicationDoesntExist($directory, OutputInterface $output)
+    protected function verifyApplicationDoesntExist()
     {
-        if (is_dir($directory)) {
-            $output->writeln('<error>Application already exists!</error>');
+        $this->output->writeln('<info>Checking application path for existing site...</info>');
+
+        if (is_dir($this->directory)) {
+            $this->output->writeln('<error>Application already exists!</error>');
 
             exit(1);
         }
-    }
 
-    /**
-     * Generate a random temporary filename.
-     *
-     * @return string
-     */
-    protected function makeFilename()
-    {
-        return getcwd().'/laravel_'.md5(time().uniqid()).'.zip';
+        $this->output->writeln('<info>Check complete...</info>');
     }
 
     /**
      * Download the temporary Zip to the given file.
      *
-     * @param  string  $zipFile
      * @return $this
      */
-    protected function download($zipFile, $slim = false)
+    protected function download()
     {
-        if ($slim) {
-            $url = 'http://builds.nukacode.com/slim/latest.zip';
-        } else {
-            $url = 'http://builds.nukacode.com/full/latest.zip';
+        $buildUrl = $this->getBuildFileLocation();
+
+        if ($this->input->getOption('force')) {
+            $this->output->writeln('<info>--force command given. Deleting old build files...</info>');
+
+            $this->cleanUp();
+
+            $this->output->writeln('<info>complete...</info>');
         }
-//        $response = \GuzzleHttp\get($url)->getBody();
-//
-//        file_put_contents($zipFile, $response);
 
-
-        $client = new \GuzzleHttp\Client();
-        $request = $client->createRequest('GET', $url);
-        $request->getEmitter()->on('progress', function (ProgressEvent $e) {
-            echo 'Downloaded ' . $e->downloaded . ' of ' . $e->downloadSize . ' '
-                 . 'Uploaded ' . $e->uploaded . ' of ' . $e->uploadSize . "\r";
-        });
-
-        $response = $client->send($request);
-
-        file_put_contents($zipFile, $response->getBody());
+        if ($this->checkIfServerHasNewerBuild()) {
+            $this->cleanUp();
+            $this->downloadFileWithProgressBar($buildUrl);
+        }
 
         return $this;
     }
@@ -120,34 +106,61 @@ class NewCommand extends \Symfony\Component\Console\Command\Command
     /**
      * Extract the zip file into the given directory.
      *
-     * @param  string  $zipFile
-     * @param  string  $directory
+     *
      * @return $this
      */
-    protected function extract($zipFile, $directory)
+    protected function extract()
     {
+        $this->output->writeln('<info>Extracting files...</info>');
+
         $archive = new ZipArchive;
 
-        $archive->open($zipFile);
+        $archive->open($this->zipFile);
 
-        $archive->extractTo($directory);
+        $archive->extractTo($this->directory);
 
         $archive->close();
+
+        $this->output->writeln('<info>Extracting complete...</info>');
 
         return $this;
     }
 
     /**
+     * Run post install composer commands
+     *
+     * @return void
+     */
+    protected function runComposerCommands()
+    {
+        $this->output->writeln('<info>Running post install scripts...</info>');
+
+        $composer = $this->findComposer();
+
+        $commands = [
+            $composer . ' run-script post-install-cmd',
+            $composer . ' run-script post-create-project-cmd',
+        ];
+
+        $process = new Process(implode(' && ', $commands), $this->directory, null, null, null);
+
+        $process->run(function ($type, $line) {
+            $this->output->write($line);
+        });
+
+        $this->output->writeln('<info>Scripts complete...</info>');
+    }
+
+    /**
      * Clean-up the Zip file.
      *
-     * @param  string  $zipFile
      * @return $this
      */
-    protected function cleanUp($zipFile)
+    protected function cleanUp()
     {
-        @chmod($zipFile, 0777);
+        @chmod($this->zipFile, 0777);
 
-        @unlink($zipFile);
+        @unlink($this->zipFile);
 
         return $this;
     }
@@ -159,10 +172,83 @@ class NewCommand extends \Symfony\Component\Console\Command\Command
      */
     protected function findComposer()
     {
-        if (file_exists(getcwd().'/composer.phar')) {
-            return '"'.PHP_BINARY.'" composer.phar';
+        if (file_exists(getcwd() . '/composer.phar')) {
+            return '"' . PHP_BINARY . '" composer.phar';
         }
 
         return 'composer';
+    }
+
+    /**
+     * Generate a random temporary filename.
+     *
+     * @return string
+     */
+    protected function makeFilename()
+    {
+        if ($this->input->getOption('slim')) {
+            return getcwd() . '/laravel_slim.zip';
+        }
+
+        return getcwd() . '/laravel_full.zip';
+    }
+
+    /**
+     * @return string
+     */
+    protected function getBuildFileLocation()
+    {
+        if ($this->input->getOption('slim')) {
+            return 'http://builds.nukacode.com/slim/latest.zip';
+        }
+
+        return 'http://builds.nukacode.com/full/latest.zip';
+    }
+
+    /**
+     * @param $buildUrl
+     */
+    protected function downloadFileWithProgressBar($buildUrl)
+    {
+        $this->output->writeln('<info>Begin file download...</info>');
+
+        $progressBar = new ProgressBar($this->output, 100);
+        $progressBar->start();
+
+        $client  = new \GuzzleHttp\Client();
+        $request = $client->createRequest('GET', $buildUrl);
+        $request->getEmitter()->on('progress', function (ProgressEvent $e) use ($progressBar) {
+            if ($e->downloaded > 0) {
+                $localProgress = floor(($e->downloaded / $e->downloadSize * 100));
+
+                if ($localProgress != $this->progress) {
+                    $this->progress = $localProgress;
+                    $progressBar->advance();
+                }
+            }
+        });
+
+        $response = $client->send($request);
+
+        $progressBar->finish();
+
+        file_put_contents($this->zipFile, $response->getBody());
+
+        $this->output->writeln("\n<info>File download complete...</info>");
+    }
+
+    protected function checkIfServerHasNewerBuild()
+    {
+        if (file_exists($this->zipFile)) {
+            $client  = new \GuzzleHttp\Client();
+            $response = $client->get('http://builds.nukacode.com/files.php');
+
+            // The downloaded copy is the same as the one on the server.
+            if (in_array(md5_file($this->zipFile), $response->json())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
