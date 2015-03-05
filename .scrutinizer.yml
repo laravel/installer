@@ -1,0 +1,15 @@
+tools:
+  php_analyzer:
+      enabled: true
+      config:
+          symfony_request_injection:
+              enabled: false
+  php_mess_detector: true
+  php_sim: false
+  sensiolabs_security_checker: true
+  php_changetracking: true
+  php_cs_fixer:
+      config: { level: psr2 }
+checks:
+  php:
+    code_rating: true
