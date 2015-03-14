@@ -68,7 +68,7 @@ class NewCommand extends Command
     protected function verifyApplicationDoesntExist($directory, OutputInterface $output)
     {
         if (is_dir($directory)) {
-            throw new RuntimeException('Application already exists!</error>');
+            throw new RuntimeException('Application already exists!');
         }
     }
 
