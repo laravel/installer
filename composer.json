@@ -10,10 +10,12 @@
 		}
 	],
 	"autoload": {
-		"classmap": ["src"]
+		"psr-4": {
+			"Laravel\\Installer\\Console\\": "src/"
+		}
 	},
 	"require": {
-		"guzzlehttp/guzzle": "~4.0",
+		"guzzlehttp/guzzle": "~5.0",
 		"symfony/console": "~2.3",
 		"symfony/process": "~2.3"
 	},

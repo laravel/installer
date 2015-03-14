@@ -1,6 +1,7 @@
 <?php namespace Laravel\Installer\Console;
 
 use ZipArchive;
+use GuzzleHttp\Client;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -90,9 +91,9 @@ class NewCommand extends \Symfony\Component\Console\Command\Command
      */
     protected function download($zipFile)
     {
-        $response = \GuzzleHttp\get('http://cabinet.laravel.com/latest.zip')->getBody();
+        $response = (new Client)->get('http://cabinet.laravel.com/latest.zip');
 
-        file_put_contents($zipFile, $response);
+        file_put_contents($zipFile, $response->getBody());
 
         return $this;
     }
