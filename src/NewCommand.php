@@ -1,6 +1,7 @@
 <?php namespace Laravel\Installer\Console;
 
 use ZipArchive;
+use RuntimeException;
 use GuzzleHttp\Client;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Console\Command\Command;
@@ -67,9 +68,7 @@ class NewCommand extends Command
     protected function verifyApplicationDoesntExist($directory, OutputInterface $output)
     {
         if (is_dir($directory)) {
-            $output->writeln('<error>Application already exists!</error>');
-
-            exit(1);
+            throw new RuntimeException('Application already exists!</error>');
         }
     }
 
