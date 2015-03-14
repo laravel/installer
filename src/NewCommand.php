@@ -3,13 +3,13 @@
 use ZipArchive;
 use GuzzleHttp\Client;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class NewCommand extends \Symfony\Component\Console\Command\Command
+class NewCommand extends Command
 {
-
     /**
      * Configure the command options.
      *
@@ -18,8 +18,8 @@ class NewCommand extends \Symfony\Component\Console\Command\Command
     protected function configure()
     {
         $this->setName('new')
-                ->setDescription('Create a new Laravel application.')
-                ->addArgument('name', InputArgument::REQUIRED);
+             ->setDescription('Create a new Laravel application.')
+             ->addArgument('name', InputArgument::REQUIRED);
     }
 
     /**
