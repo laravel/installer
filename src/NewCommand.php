@@ -1,14 +1,16 @@
 <?php namespace Laravel\Installer\Console;
 
 use ZipArchive;
+use RuntimeException;
+use GuzzleHttp\Client;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class NewCommand extends \Symfony\Component\Console\Command\Command
+class NewCommand extends Command
 {
-
     /**
      * Configure the command options.
      *
@@ -17,8 +19,8 @@ class NewCommand extends \Symfony\Component\Console\Command\Command
     protected function configure()
     {
         $this->setName('new')
-                ->setDescription('Create a new Laravel application.')
-                ->addArgument('name', InputArgument::REQUIRED);
+             ->setDescription('Create a new Laravel application.')
+             ->addArgument('name', InputArgument::REQUIRED);
     }
 
     /**
@@ -66,9 +68,7 @@ class NewCommand extends \Symfony\Component\Console\Command\Command
     protected function verifyApplicationDoesntExist($directory, OutputInterface $output)
     {
         if (is_dir($directory)) {
-            $output->writeln('<error>Application already exists!</error>');
-
-            exit(1);
+            throw new RuntimeException('Application already exists!');
         }
     }
 
@@ -90,9 +90,9 @@ class NewCommand extends \Symfony\Component\Console\Command\Command
      */
     protected function download($zipFile)
     {
-        $response = \GuzzleHttp\get('http://cabinet.laravel.com/latest.zip')->getBody();
+        $response = (new Client)->get('http://cabinet.laravel.com/latest.zip');
 
-        file_put_contents($zipFile, $response);
+        file_put_contents($zipFile, $response->getBody());
 
         return $this;
     }
