@@ -26,8 +26,9 @@ class NewCommand extends Command
     /**
      * Execute the command.
      *
-     * @param  InputInterface  $input
-     * @param  OutputInterface  $output
+     * @param InputInterface  $input
+     * @param OutputInterface $output
+     *
      * @return void
      */
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -45,10 +46,10 @@ class NewCommand extends Command
 
         $composer = $this->findComposer();
 
-        $commands = array(
+        $commands = [
             $composer.' run-script post-install-cmd',
             $composer.' run-script post-create-project-cmd',
-        );
+        ];
 
         $process = new Process(implode(' && ', $commands), $directory, null, null, null);
 
@@ -62,7 +63,8 @@ class NewCommand extends Command
     /**
      * Verify that the application does not already exist.
      *
-     * @param  string  $directory
+     * @param string $directory
+     *
      * @return void
      */
     protected function verifyApplicationDoesntExist($directory, OutputInterface $output)
@@ -85,7 +87,8 @@ class NewCommand extends Command
     /**
      * Download the temporary Zip to the given file.
      *
-     * @param  string  $zipFile
+     * @param string $zipFile
+     *
      * @return $this
      */
     protected function download($zipFile)
@@ -100,8 +103,9 @@ class NewCommand extends Command
     /**
      * Extract the zip file into the given directory.
      *
-     * @param  string  $zipFile
-     * @param  string  $directory
+     * @param string $zipFile
+     * @param string $directory
+     *
      * @return $this
      */
     protected function extract($zipFile, $directory)
@@ -120,7 +124,8 @@ class NewCommand extends Command
     /**
      * Clean-up the Zip file.
      *
-     * @param  string  $zipFile
+     * @param string $zipFile
+     *
      * @return $this
      */
     protected function cleanUp($zipFile)
