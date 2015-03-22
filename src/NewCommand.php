@@ -45,10 +45,10 @@ class NewCommand extends Command
 
         $composer = $this->findComposer();
 
-        $commands = array(
+        $commands = [
             $composer.' run-script post-install-cmd',
             $composer.' run-script post-create-project-cmd',
-        );
+        ];
 
         $process = new Process(implode(' && ', $commands), $directory, null, null, null);
 
