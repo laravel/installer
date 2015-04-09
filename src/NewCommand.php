@@ -3,6 +3,7 @@
 use ZipArchive;
 use RuntimeException;
 use GuzzleHttp\Client;
+use FilesystemIterator;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -67,7 +68,7 @@ class NewCommand extends Command
      */
     protected function verifyApplicationDoesntExist($directory, OutputInterface $output)
     {
-        if (is_dir($directory)) {
+        if (is_dir($directory) && (new FilesystemIterator($directory))->valid()) {
             throw new RuntimeException('Application already exists!');
         }
     }
