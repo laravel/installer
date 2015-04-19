@@ -140,7 +140,7 @@ class NewCommand extends Command
     protected function findComposer()
     {
         if (file_exists(getcwd().'/composer.phar')) {
-            return '"'.PHP_BINARY.'" composer.phar';
+            return '"'.PHP_BINARY.'" '.getcwd().'/composer.phar';
         }
 
         return 'composer';
