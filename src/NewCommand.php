@@ -9,8 +9,25 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use Symfony\Component\Console\Question\ConfirmationQuestion;
+
 class NewCommand extends Command
 {
+
+    /**
+     * The input interface implementation.
+     *
+     * @var \Symfony\Component\Console\Input\InputInterface
+     */
+    protected $input;
+
+    /**
+     * The output interface implementation.
+     *
+     * @var \Symfony\Component\Console\Output\OutputInterface
+     */
+    protected $output;
+
     /**
      * Configure the command options.
      *
@@ -32,6 +49,10 @@ class NewCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
+        $this->input = $input;
+        $this->output = $output;
+        
         $this->verifyApplicationDoesntExist(
             $directory = getcwd().'/'.$input->getArgument('name'),
             $output
@@ -68,7 +89,11 @@ class NewCommand extends Command
     protected function verifyApplicationDoesntExist($directory, OutputInterface $output)
     {
         if (is_dir($directory)) {
-            throw new RuntimeException('Application already exists!');
+
+            $confirmed = $this->confirm('Application already exists! Do you really wish to run this command? [y/N]');
+            
+            if(!$confirmed)
+            throw new RuntimeException('Application already exists! Cancelled by the user.');
         }
     }
 
@@ -140,9 +165,25 @@ class NewCommand extends Command
     protected function findComposer()
     {
         if (file_exists(getcwd().'/composer.phar')) {
-            return '"'.PHP_BINARY.'" composer.phar';
+            return '"'.PHP_BINARY.'" '.getcwd().'/composer.phar';
         }
 
         return 'composer';
+    }
+
+    /**
+     * Confirm a question with the user.
+     *
+     * @param  string  $question
+     * @param  bool    $default
+     * @return bool
+     */
+    public function confirm($question, $default = false)
+    {
+        $helper = $this->getHelperSet()->get('question');
+
+        $question = new ConfirmationQuestion("<question>{$question}</question> ", $default);
+
+        return $helper->ask($this->input, $this->output, $question);
     }
 }
