@@ -1,4 +1,6 @@
-<?php namespace Laravel\Installer\Console;
+<?php
+
+namespace Laravel\Installer\Console;
 
 use ZipArchive;
 use RuntimeException;
