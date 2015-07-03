@@ -2,7 +2,7 @@
 
 namespace Laravel\Installer\Console;
 
-use ZipArchive;
+use Archive_Tar;
 use RuntimeException;
 use GuzzleHttp\Client;
 use Symfony\Component\Process\Process;
@@ -93,7 +93,7 @@ class NewCommand extends Command
      */
     protected function download($zipFile)
     {
-        $response = (new Client)->get('http://cabinet.laravel.com/latest.zip');
+        $response = (new Client)->get('http://cabinet.laravel.com/latest.tar.gz');
 
         file_put_contents($zipFile, $response->getBody());
 
@@ -109,13 +109,11 @@ class NewCommand extends Command
      */
     protected function extract($zipFile, $directory)
     {
-        $archive = new ZipArchive;
+        $archive = new Archive_Tar($zipFile);
 
-        $archive->open($zipFile);
+        $archive->setErrorHandling(PEAR_ERROR_DIE, "error: %s\n");
 
-        $archive->extractTo($directory);
-
-        $archive->close();
+        $archive->extractModify($directory, '.');
 
         return $this;
     }
