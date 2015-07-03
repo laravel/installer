@@ -17,7 +17,8 @@
     "require": {
         "guzzlehttp/guzzle": "~4.0|~5.0",
         "symfony/console": "~2.3",
-        "symfony/process": "~2.3"
+        "symfony/process": "~2.3",
+        "pear/Archive_Tar": "^1.3"
     },
     "bin": [
         "laravel"
