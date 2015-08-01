@@ -20,9 +20,10 @@ class NewCommand extends Command
      */
     protected function configure()
     {
-        $this->setName('new')
-             ->setDescription('Create a new Laravel application.')
-             ->addArgument('name', InputArgument::REQUIRED);
+        $this
+            ->setName('new')
+            ->setDescription('Create a new Laravel application.')
+            ->addArgument('name', InputArgument::REQUIRED);
     }
 
     /**
