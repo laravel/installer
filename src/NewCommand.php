@@ -54,7 +54,7 @@ class NewCommand extends Command
             $composer.' run-script post-create-project-cmd',
         ];
 
-        $process = new Process(implode(' && ', $commands), $directory, null, null, null);
+        $process = new Process(implode(' && ', $commands), $directory);
 
         $process->run(function ($type, $line) use ($output) {
             $output->write($line);
