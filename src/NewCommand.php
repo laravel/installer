@@ -65,6 +65,7 @@ class NewCommand extends Command
 
     /**
      * Verify that the application does not already exist.
+     * Check if given directory is not empty.
      *
      * @param  string  $directory
      * @return void
@@ -72,7 +73,9 @@ class NewCommand extends Command
     protected function verifyApplicationDoesntExist($directory, OutputInterface $output)
     {
         if (is_dir($directory)) {
-            throw new RuntimeException('Application already exists!');
+            if (array_diff(scandir($directory), ['.', '..'])) {
+                throw new RuntimeException('Application already exists!');
+            }
         }
     }
 
