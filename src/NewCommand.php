@@ -7,6 +7,7 @@ use RuntimeException;
 use GuzzleHttp\Client;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -23,7 +24,8 @@ class NewCommand extends Command
         $this
             ->setName('new')
             ->setDescription('Create a new Laravel application.')
-            ->addArgument('name', InputArgument::REQUIRED);
+            ->addArgument('name', InputArgument::REQUIRED)
+            ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release');
     }
 
     /**
@@ -42,7 +44,9 @@ class NewCommand extends Command
 
         $output->writeln('<info>Crafting application...</info>');
 
-        $this->download($zipFile = $this->makeFilename())
+        $version = $this->getVersion($input);
+
+        $this->download($zipFile = $this->makeFilename(), $version)
              ->extract($zipFile, $directory)
              ->cleanUp($zipFile);
 
@@ -91,11 +95,21 @@ class NewCommand extends Command
      * Download the temporary Zip to the given file.
      *
      * @param  string  $zipFile
+     * @param  string  $version
      * @return $this
      */
-    protected function download($zipFile)
+    protected function download($zipFile, $version = 'master')
     {
-        $response = (new Client)->get('http://cabinet.laravel.com/latest.zip');
+        switch ($version) {
+            case 'master':
+                $filename = 'latest.zip';
+                break;
+            case 'develop':
+                $filename = 'latest-develop.zip';
+                break;
+        }
+
+        $response = (new Client)->get('http://cabinet.laravel.com/'.$filename);
 
         file_put_contents($zipFile, $response->getBody());
 
@@ -135,6 +149,21 @@ class NewCommand extends Command
         @unlink($zipFile);
 
         return $this;
+    }
+
+    /**
+     * Get the version that should be downloaded.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface
+     * @return string
+     */
+    protected function getVersion($input)
+    {
+        if ($input->getOption('dev')) {
+            return 'develop';
+        }
+
+        return 'master';
     }
 
     /**
