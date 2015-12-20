@@ -154,7 +154,7 @@ class NewCommand extends Command
     /**
      * Get the version that should be downloaded.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @return string
      */
     protected function getVersion($input)
