@@ -2,7 +2,7 @@
 
 namespace Laravel\Installer\Console;
 
-use ZipArchive;
+use Alchemy\Zippy\Zippy;
 use RuntimeException;
 use GuzzleHttp\Client;
 use Symfony\Component\Process\Process;
@@ -125,13 +125,13 @@ class NewCommand extends Command
      */
     protected function extract($zipFile, $directory)
     {
-        $archive = new ZipArchive;
+        $zippy = Zippy::load();
 
-        $archive->open($zipFile);
+        $archive = $zippy->open($zipFile);
 
-        $archive->extractTo($directory);
+        mkdir($directory);
 
-        $archive->close();
+        $archive->extract($directory);
 
         return $this;
     }
