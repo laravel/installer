@@ -64,7 +64,7 @@ class NewCommand extends Command
         ];
 
         $process = new Process(implode(' && ', $commands), $directory, null, null, null);
-        
+
         $process->setTty(true);
 
         $process->run(function ($type, $line) use ($output) {
