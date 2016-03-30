@@ -88,7 +88,7 @@ class NewCommand extends Command
             throw new RuntimeException('Application already exists!');
         }
     }
-    
+
     /**
      * Check whether the directory is completely empty.
      *
