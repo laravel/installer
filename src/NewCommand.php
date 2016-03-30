@@ -87,6 +87,10 @@ class NewCommand extends Command
         if (is_dir($directory)) {
             throw new RuntimeException('Application already exists!');
         }
+
+        if (is_file($directory)) {
+            throw new RuntimeException('Cannot make an Application with that name due to a naming conflict!');
+        }
     }
 
     /**
