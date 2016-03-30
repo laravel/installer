@@ -84,13 +84,13 @@ class NewCommand extends Command
      */
     protected function verifyApplicationDoesntExist($directory, OutputInterface $output)
     {
-        if (is_dir($directory) && !$this->isDirEmpty($directory)) {
+        if (is_dir($directory) && ! $this->isDirEmpty($directory)) {
             throw new RuntimeException('Application already exists!');
         }
     }
     
     /**
-     * Check whether the directory is completely empty
+     * Check whether the directory is completely empty.
      *
      * @param  string  $directory
      * @return bool
@@ -98,7 +98,7 @@ class NewCommand extends Command
     protected function isDirEmpty($directory)
     {
         $expected = ['.', '..'];
-        
+
         return scandir($directory) === $expected;
     }
 
