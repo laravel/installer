@@ -84,12 +84,8 @@ class NewCommand extends Command
      */
     protected function verifyApplicationDoesntExist($directory, OutputInterface $output)
     {
-        if (is_dir($directory)) {
+        if (is_dir($directory) || is_file($directory)) {
             throw new RuntimeException('Application already exists!');
-        }
-
-        if (is_file($directory)) {
-            throw new RuntimeException('Cannot make an Application with that name due to a naming conflict!');
         }
     }
 
