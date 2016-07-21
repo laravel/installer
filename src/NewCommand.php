@@ -62,7 +62,13 @@ class NewCommand extends Command
             $composer.' run-script post-install-cmd',
             $composer.' run-script post-create-project-cmd',
         ];
-
+        
+        if ($input->getOption('no-ansi')) {
+            $commands = array_map(function ($value) {
+                return $value . ' --no-ansi';
+            }, $commands);
+        }
+        
         $process = new Process(implode(' && ', $commands), $directory, null, null, null);
 
         if ('\\' !== DIRECTORY_SEPARATOR && file_exists('/dev/tty') && is_readable('/dev/tty')) {
