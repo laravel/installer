@@ -65,7 +65,7 @@ class NewCommand extends Command
         
         if ($input->getOption('no-ansi')) {
             $commands = array_map(function ($value) {
-                return $value . ' --no-ansi';
+                return $value.' --no-ansi';
             }, $commands);
         }
         
