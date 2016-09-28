@@ -135,7 +135,7 @@ class NewCommand extends Command
     }
 
     /**
-     * Extract the zip file into the given directory.
+     * Extract the Zip file into the given directory.
      *
      * @param  string  $zipFile
      * @param  string  $directory
