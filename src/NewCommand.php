@@ -171,10 +171,10 @@ class NewCommand extends Command
     /**
      * Get the version that should be downloaded.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  InputInterface  $input
      * @return string
      */
-    protected function getVersion($input)
+    protected function getVersion(InputInterface $input)
     {
         if ($input->getOption('dev')) {
             return 'develop';
