@@ -32,8 +32,8 @@ class NewCommand extends Command
     /**
      * Execute the command.
      *
-     * @param  InputInterface  $input
-     * @param  OutputInterface  $output
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -171,7 +171,7 @@ class NewCommand extends Command
     /**
      * Get the version that should be downloaded.
      *
-     * @param  InputInterface  $input
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @return string
      */
     protected function getVersion(InputInterface $input)
