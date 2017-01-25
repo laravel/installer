@@ -26,7 +26,8 @@ class NewCommand extends Command
             ->setDescription('Create a new Laravel application.')
             ->addArgument('name', InputArgument::OPTIONAL)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
-            ->addOption('5.2', null, InputOption::VALUE_NONE, 'Installs the "5.2" release');
+            ->addOption('5.2', null, InputOption::VALUE_NONE, 'Installs the "5.2" release')
+            ->addOption('5.3', null, InputOption::VALUE_NONE, 'Installs the "5.3" release');
     }
 
     /**
@@ -124,6 +125,9 @@ class NewCommand extends Command
             case '5.2':
                 $filename = 'latest-52.zip';
                 break;
+            case '5.3':
+                $filename = 'latest-53.zip';
+                break;
         }
 
         $response = (new Client)->get('http://cabinet.laravel.com/'.$filename);
@@ -182,6 +186,10 @@ class NewCommand extends Command
 
         if ($input->getOption('5.2')) {
             return '5.2';
+        }
+
+        if ($input->getOption('5.3')) {
+            return '5.3';
         }
 
         return 'master';
