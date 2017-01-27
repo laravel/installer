@@ -122,7 +122,7 @@ class NewCommand extends Command
                 $filename = 'latest.zip';
                 break;
             default:
-                $filename = 'latest-' . $version . '.zip';
+                $filename = 'latest-'.str_rpelace('.', '', $version).'.zip';
                 break;
         }
 
