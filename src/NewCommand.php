@@ -26,7 +26,7 @@ class NewCommand extends Command
             ->setDescription('Create a new Laravel application.')
             ->addArgument('name', InputArgument::OPTIONAL)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
-            ->addOption('ver', null, InputOption::VALUE_REQUIRED, 'Installs the desired version release, e.g. --ver=5.3');
+            ->addOption('ver', null, InputOption::VALUE_REQUIRED, 'Installs the latest version of the desired branch, e.g. --ver=5.3');
     }
 
     /**
@@ -51,8 +51,10 @@ class NewCommand extends Command
         $version = $this->getVersion($input);
 
         $this->download($zipFile = $this->makeFilename(), $version)
-             ->extract($zipFile, $directory)
+             ->extract($zipFile)
              ->cleanUp($zipFile);
+
+        @rename(pathinfo($zipFile, PATHINFO_DIRNAME).'/laravel-'.$version, $directory);
 
         $composer = $this->findComposer();
 
@@ -114,19 +116,7 @@ class NewCommand extends Command
      */
     protected function download($zipFile, $version = 'master')
     {
-        switch ($version) {
-            case 'develop':
-                $filename = 'latest-develop.zip';
-                break;
-            case 'master':
-                $filename = 'latest.zip';
-                break;
-            default:
-                $filename = 'latest-'.str_replace('.', '', $version).'.zip';
-                break;
-        }
-
-        $response = (new Client)->get('http://cabinet.laravel.com/'.$filename);
+        $response = (new Client)->get('https://github.com/laravel/laravel/archive/'.$version.'.zip');
 
         file_put_contents($zipFile, $response->getBody());
 
@@ -137,16 +127,15 @@ class NewCommand extends Command
      * Extract the Zip file into the given directory.
      *
      * @param  string  $zipFile
-     * @param  string  $directory
      * @return $this
      */
-    protected function extract($zipFile, $directory)
+    protected function extract($zipFile)
     {
         $archive = new ZipArchive;
 
         $archive->open($zipFile);
 
-        $archive->extractTo($directory);
+        $archive->extractTo(pathinfo($zipFile, PATHINFO_DIRNAME));
 
         $archive->close();
 
