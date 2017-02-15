@@ -25,8 +25,7 @@ class NewCommand extends Command
             ->setName('new')
             ->setDescription('Create a new Laravel application.')
             ->addArgument('name', InputArgument::OPTIONAL)
-            ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
-            ->addOption('5.2', null, InputOption::VALUE_NONE, 'Installs the "5.2" release');
+            ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release');
     }
 
     /**
@@ -121,9 +120,6 @@ class NewCommand extends Command
             case 'master':
                 $filename = 'latest.zip';
                 break;
-            case '5.2':
-                $filename = 'latest-52.zip';
-                break;
         }
 
         $response = (new Client)->get('http://cabinet.laravel.com/'.$filename);
@@ -178,10 +174,6 @@ class NewCommand extends Command
     {
         if ($input->getOption('dev')) {
             return 'develop';
-        }
-
-        if ($input->getOption('5.2')) {
-            return '5.2';
         }
 
         return 'master';
