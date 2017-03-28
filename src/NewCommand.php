@@ -51,7 +51,8 @@ class NewCommand extends Command
 
         $this->download($zipFile = $this->makeFilename(), $version)
              ->extract($zipFile, $directory)
-             ->cleanUp($zipFile);
+             ->cleanUp($zipFile)
+             ->chmodStorage($directory);
 
         $composer = $this->findComposer();
 
@@ -191,5 +192,18 @@ class NewCommand extends Command
         }
 
         return 'composer';
+    }
+
+    /**
+     * Change the permission of the storage directory and its content
+     *
+     * @param string $directory
+     * @return $this
+     */
+    protected function chmodStorage($directory)
+    {
+        exec('chmod -R 777 '.$directory.'/storage');
+
+        return $this;
     }
 }
