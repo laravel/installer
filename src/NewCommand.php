@@ -65,6 +65,12 @@ class NewCommand extends Command
             $composer.' run-script post-create-project-cmd',
         ];
 
+        if ($input->getOption('dev')) {
+            unset($commands[2]);
+
+            $commands[] = $composer.' run-script post-autoload-dump';
+        }
+
         if ($input->getOption('no-ansi')) {
             $commands = array_map(function ($value) {
                 return $value.' --no-ansi';
