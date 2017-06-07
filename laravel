@@ -9,5 +9,6 @@ if (file_exists(__DIR__.'/../../autoload.php')) {
 
 $app = new Symfony\Component\Console\Application('Laravel Installer', '1.3.6');
 $app->add(new Laravel\Installer\Console\NewCommand);
+$app->add(new Laravel\Installer\Console\ArtisanCommand);
 
 $app->run();
