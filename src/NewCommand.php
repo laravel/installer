@@ -190,7 +190,7 @@ class NewCommand extends Command
         }
         
         if ($input->getOption('lts')) {
-            return '5.1';
+            return 'lts';
         }
 
         return 'master';
