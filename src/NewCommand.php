@@ -26,6 +26,7 @@ class NewCommand extends Command
             ->setDescription('Create a new Laravel application.')
             ->addArgument('name', InputArgument::OPTIONAL)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
+            ->addOption('lts', null, InputOption::VALUE_NONE, 'Installs the latest "LTS" release')
             ->addOption('force', null, InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
@@ -123,6 +124,9 @@ class NewCommand extends Command
     protected function download($zipFile, $version = 'master')
     {
         switch ($version) {
+            case 'lts':
+                $filename = 'lts.zip';
+                break;
             case 'develop':
                 $filename = 'latest-develop.zip';
                 break;
@@ -181,7 +185,9 @@ class NewCommand extends Command
      */
     protected function getVersion(InputInterface $input)
     {
-        if ($input->getOption('dev')) {
+        if ($input->getOption('lts')) {
+            return 'lts';
+        } elseif ($input->getOption('dev')) {
             return 'develop';
         }
 
