@@ -14,7 +14,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 
-
 class NewCommand extends Command
 {
     /**
@@ -178,7 +177,8 @@ class NewCommand extends Command
     }
 
     /**
-     * Make sure the storage and bootstrap cache directories are writable
+     * Make sure the storage and bootstrap cache directories are writable.
+     * 
      * @param  string  $appDirectory
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return $this
