@@ -6,11 +6,14 @@ use ZipArchive;
 use RuntimeException;
 use GuzzleHttp\Client;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
+
 
 class NewCommand extends Command
 {
@@ -54,6 +57,7 @@ class NewCommand extends Command
 
         $this->download($zipFile = $this->makeFilename(), $version)
              ->extract($zipFile, $directory)
+             ->prepareWritableDirectories($directory, $output)
              ->cleanUp($zipFile);
 
         $composer = $this->findComposer();
@@ -169,6 +173,26 @@ class NewCommand extends Command
         @chmod($zipFile, 0777);
 
         @unlink($zipFile);
+
+        return $this;
+    }
+
+    /**
+     * Make sure the storage and bootstrap cache directories are writable
+     * @param  string  $appDirectory
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return $this
+     */
+    protected function prepareWritableDirectories($appDirectory, OutputInterface $output)
+    {
+        $fs = new Filesystem();
+
+        try {
+            $fs->chmod($appDirectory . DIRECTORY_SEPARATOR . "bootstrap/cache", 0777, 0000, true);
+            $fs->chmod($appDirectory . DIRECTORY_SEPARATOR . "storage", 0777, 0000, true);
+        } catch (IOExceptionInterface $e) {
+            $output->writeln('<question>Verify that the storage and bootstrap/cache directories are writable.</question>');
+        }
 
         return $this;
     }
