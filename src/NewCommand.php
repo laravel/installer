@@ -188,8 +188,8 @@ class NewCommand extends Command
         $fs = new Filesystem();
 
         try {
-            $fs->chmod($appDirectory . DIRECTORY_SEPARATOR . "bootstrap/cache", 0777, 0000, true);
-            $fs->chmod($appDirectory . DIRECTORY_SEPARATOR . "storage", 0777, 0000, true);
+            $fs->chmod($appDirectory . DIRECTORY_SEPARATOR . "bootstrap/cache", 0755, 0000, true);
+            $fs->chmod($appDirectory . DIRECTORY_SEPARATOR . "storage", 0755, 0000, true);
         } catch (IOExceptionInterface $e) {
             $output->writeln('<question>Verify that the storage and bootstrap/cache directories are writable.</question>');
         }
