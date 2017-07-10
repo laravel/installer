@@ -178,20 +178,20 @@ class NewCommand extends Command
 
     /**
      * Make sure the storage and bootstrap cache directories are writable.
-     * 
+     *
      * @param  string  $appDirectory
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return $this
      */
     protected function prepareWritableDirectories($appDirectory, OutputInterface $output)
     {
-        $fs = new Filesystem();
+        $filesystem = new Filesystem;
 
         try {
-            $fs->chmod($appDirectory . DIRECTORY_SEPARATOR . "bootstrap/cache", 0755, 0000, true);
-            $fs->chmod($appDirectory . DIRECTORY_SEPARATOR . "storage", 0755, 0000, true);
+            $filesystem->chmod($appDirectory.DIRECTORY_SEPARATOR."bootstrap/cache", 0755, 0000, true);
+            $filesystem->chmod($appDirectory.DIRECTORY_SEPARATOR."storage", 0755, 0000, true);
         } catch (IOExceptionInterface $e) {
-            $output->writeln('<question>Verify that the storage and bootstrap/cache directories are writable.</question>');
+            $output->writeln('<comment>You should verify that the "storage" and "bootstrap/cache" directories are writable.</comment>');
         }
 
         return $this;
