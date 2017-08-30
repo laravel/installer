@@ -64,7 +64,6 @@ class NewCommand extends Command
         $commands = [
             $composer.' install --no-scripts',
             $composer.' run-script post-root-package-install',
-            $composer.' run-script post-install-cmd',
             $composer.' run-script post-create-project-cmd',
         ];
 
