@@ -65,6 +65,7 @@ class NewCommand extends Command
             $composer.' install --no-scripts',
             $composer.' run-script post-root-package-install',
             $composer.' run-script post-create-project-cmd',
+            $composer.' run-script post-autoload-dump',
         ];
 
         if ($input->getOption('dev')) {
