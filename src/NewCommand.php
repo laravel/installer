@@ -221,6 +221,8 @@ class NewCommand extends Command
     {
         if (file_exists(getcwd().'/composer.phar')) {
             return '"'.PHP_BINARY.'" composer.phar';
+        } elseif (file_exists($_SERVER['HOME'].'/composer.phar')) {
+            return '"'.PHP_BINARY.'" "'.$_SERVER['HOME'].'/composer.phar"';
         }
 
         return 'composer';
