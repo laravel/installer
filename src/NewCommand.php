@@ -68,10 +68,6 @@ class NewCommand extends Command
             $composer.' run-script post-autoload-dump',
         ];
 
-        if ($input->getOption('dev')) {
-            unset($commands[2]);
-        }
-
         if ($input->getOption('no-ansi')) {
             $commands = array_map(function ($value) {
                 return $value.' --no-ansi';
