@@ -28,6 +28,7 @@ class NewCommand extends Command
             ->setDescription('Create a new Laravel application')
             ->addArgument('name', InputArgument::OPTIONAL)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
+            ->addOption('lts', null, InputOption::VALUE_NONE, 'Installs the latest "5.5 LTS" release')
             ->addOption('force', null, InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
@@ -72,6 +73,10 @@ class NewCommand extends Command
             $commands = array_map(function ($value) {
                 return $value.' --no-ansi';
             }, $commands);
+        }
+
+        if ($input->getOption('lts')) {
+            array_unshift($commands, 'cp -r laravel-5.5/. . && rm -rf laravel-5.5');
         }
 
         $process = new Process(implode(' && ', $commands), $directory, null, null, null);
@@ -119,16 +124,20 @@ class NewCommand extends Command
      */
     protected function download($zipFile, $version = 'master')
     {
-        switch ($version) {
-            case 'develop':
-                $filename = 'latest-develop.zip';
-                break;
-            case 'master':
-                $filename = 'latest.zip';
-                break;
-        }
+        if ($version == 'lts') {
+            $response = (new Client)->get('https://github.com/laravel/laravel/archive/5.5.zip');
+        } else {
+            switch ($version) {
+                case 'develop':
+                    $filename = 'latest-develop.zip';
+                    break;
+                case 'master':
+                    $filename = 'latest.zip';
+                    break;
+            }
 
-        $response = (new Client)->get('http://cabinet.laravel.com/'.$filename);
+            $response = (new Client)->get('http://cabinet.laravel.com/'.$filename);
+        }
 
         file_put_contents($zipFile, $response->getBody());
 
@@ -201,6 +210,10 @@ class NewCommand extends Command
     {
         if ($input->getOption('dev')) {
             return 'develop';
+        }
+
+        if ($input->getOption('lts')) {
+            return 'lts';
         }
 
         return 'master';
