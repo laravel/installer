@@ -74,6 +74,12 @@ class NewCommand extends Command
             }, $commands);
         }
 
+        if ($input->getOption('quiet')) {
+            $commands = array_map(function ($value) {
+                return $value.' --quiet';
+            }, $commands);
+        }
+
         $process = new Process(implode(' && ', $commands), $directory, null, null, null);
 
         if ('\\' !== DIRECTORY_SEPARATOR && file_exists('/dev/tty') && is_readable('/dev/tty')) {
