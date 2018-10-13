@@ -52,6 +52,11 @@ class CloneCommand extends Command
         }
     }
 
+    /**
+     * Set Arguments and Options.
+     *
+     * @param $input
+     */
     public function setAttributes($input)
     {
         $this->repo = $input->getArgument('repository');
@@ -60,6 +65,11 @@ class CloneCommand extends Command
         $this->dir = getcwd() . '/' . $dir;
     }
 
+    /**
+     * Cloning repository using git command.
+     *
+     * @param $output
+     */
     public function cloneRepo($output)
     {
         $command = "git clone {$this->repo}";
@@ -77,6 +87,11 @@ class CloneCommand extends Command
         });
     }
 
+    /**
+     * Installing composer into repository.
+     *
+     * @param $output
+     */
     public function installComposer($output)
     {
         $composer = $this->findComposer();
@@ -89,6 +104,11 @@ class CloneCommand extends Command
         });
     }
 
+    /**
+     * If repository is a project then generate key using php artisan key:generate.
+     *
+     * @param $output
+     */
     public function keyGenerate($output)
     {
         chdir("{$this->dir}");
@@ -96,6 +116,11 @@ class CloneCommand extends Command
         $output->write(shell_exec('php artisan key:generate'));
     }
 
+    /**
+     * Extracting the repository name from url.
+     *
+     * @return mixed
+     */
     public function getRepoName()
     {
         preg_match('/\/(.+)(?=.git)/', $this->repo, $match);
@@ -116,12 +141,25 @@ class CloneCommand extends Command
         return 'composer';
     }
 
+    /**
+     * Read the type of repository from composer.json.
+     *
+     * @return mixed
+     */
     public function readType()
     {
         $content = $this->getComposerFile();
-        return $content->type;
+        if(isset($content->type)){
+            return $content->type;
+        }
+        return ;
     }
 
+    /**
+     * Getting the contents of composer.json file.
+     *
+     * @return mixed
+     */
     protected function getComposerFile()
     {
         $path = $this->dir . '/composer.json';
