@@ -28,7 +28,7 @@ class NewCommand extends Command
             ->setDescription('Create a new Laravel application')
             ->addArgument('name', InputArgument::OPTIONAL)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
-            ->addOption('force', null, InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
+            ->addOption('force', '-f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
     /**
