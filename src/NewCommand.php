@@ -43,8 +43,9 @@ class NewCommand extends Command
         if (! extension_loaded('zip')) {
             throw new RuntimeException('The Zip PHP extension is not installed. Please install it and try again.');
         }
-
-        $directory = ($input->getArgument('name')) ? getcwd().'/'.$input->getArgument('name') : getcwd();
+        
+        $name = $input->getArgument('name');
+        $directory = $name ? getcwd().'/'.$name : getcwd();
 
         if (! $input->getOption('force')) {
             $this->verifyApplicationDoesntExist($directory);
@@ -79,6 +80,8 @@ class NewCommand extends Command
                 return $value.' --quiet';
             }, $commands);
         }
+        
+        $commands[] = "sed -i '' 's/DB_DATABASE=homestead/DB_DATABASE={$name}/g' .env";
 
         $process = new Process(implode(' && ', $commands), $directory, null, null, null);
 
