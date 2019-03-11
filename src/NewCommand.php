@@ -43,8 +43,9 @@ class NewCommand extends Command
         if (! extension_loaded('zip')) {
             throw new RuntimeException('The Zip PHP extension is not installed. Please install it and try again.');
         }
-
-        $directory = ($input->getArgument('name')) ? getcwd().'/'.$input->getArgument('name') : getcwd();
+        
+        $name = $input->getArgument('name');
+        $directory = $name ? getcwd().'/'.$name : getcwd();
 
         if (! $input->getOption('force')) {
             $this->verifyApplicationDoesntExist($directory);
@@ -89,6 +90,9 @@ class NewCommand extends Command
         $process->run(function ($type, $line) use ($output) {
             $output->write($line);
         });
+        
+        $this->replaceDefaultDatabase("{$directory}/.env", $name);
+        $this->replaceDefaultDatabase("{$directory}/.env.example", $name);
 
         $output->writeln('<comment>Application ready! Build something amazing.</comment>');
     }
@@ -224,5 +228,20 @@ class NewCommand extends Command
         }
 
         return 'composer';
+    }
+    
+    /**
+     * Replaces the default database name with the given name.
+     *
+     * @param  string  $path
+     * @param  string  $database
+     * @return void
+     */
+    protected function replaceDefaultDatabase($path, $database)
+    {
+        file_put_contents(
+            $path,
+            str_replace("DB_DATABASE=homestead", "DB_DATABASE={$database}", file_get_contents($path))
+        );
     }
 }
