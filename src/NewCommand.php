@@ -81,7 +81,7 @@ class NewCommand extends Command
             }, $commands);
         }
         
-        $commands[] = "sed -i '' 's/DB_DATABASE=homestead/DB_DATABASE={$name}/g' .env";
+        $commands[] = "sed -i '' 's/DB_DATABASE=homestead/DB_DATABASE={$name}/g' .env .env.example";
 
         $process = new Process(implode(' && ', $commands), $directory, null, null, null);
 
