@@ -4,9 +4,6 @@ about: 'Report a general library issue. Please ensure your version is still supp
 ---
 
 - Installer Version: #.#.#
-- Laravel Version: #.#.#
-- PHP Version: #.#.#
-- Database Driver & Version:
 
 ### Description:
 
