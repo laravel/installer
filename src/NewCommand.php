@@ -135,7 +135,6 @@ class NewCommand extends Command
         }
 
         $response = (new Client)->get('http://cabinet.laravel.com/'.$filename);
-        $response = (new Client)->get("https://github.com/laravel/laravel/archive/$version.zip");
 
         file_put_contents($zipFile, $response->getBody());
 
