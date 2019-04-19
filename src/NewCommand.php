@@ -28,6 +28,8 @@ class NewCommand extends Command
             ->setDescription('Create a new Laravel application')
             ->addArgument('name', InputArgument::OPTIONAL)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
+            ->addOption('lts', null, InputOption::VALUE_NONE, 'Installs the latest "LTS" release')
+            ->addOption('release', null, InputOption::VALUE_OPTIONAL, 'Installs the requested release')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
@@ -52,9 +54,7 @@ class NewCommand extends Command
 
         $output->writeln('<info>Crafting application...</info>');
 
-        $version = $this->getVersion($input);
-
-        $this->download($zipFile = $this->makeFilename(), $version)
+        $this->download($zipFile = $this->makeFilename(), $this->getVersion($input))
              ->extract($zipFile, $directory)
              ->prepareWritableDirectories($directory, $output)
              ->cleanUp($zipFile);
@@ -125,16 +125,7 @@ class NewCommand extends Command
      */
     protected function download($zipFile, $version = 'master')
     {
-        switch ($version) {
-            case 'develop':
-                $filename = 'latest-develop.zip';
-                break;
-            case 'master':
-                $filename = 'latest.zip';
-                break;
-        }
-
-        $response = (new Client)->get('http://cabinet.laravel.com/'.$filename);
+        $response = (new Client)->get('https://codeload.github.com/laravel/laravel/zip/'.$version);
 
         file_put_contents($zipFile, $response->getBody());
 
@@ -152,6 +143,16 @@ class NewCommand extends Command
     {
         $archive = new ZipArchive;
 
+        $archive->open($zipFile);
+
+        $root = $archive->getNameIndex(0);
+
+        for ($i = 1; $i < $archive->numFiles; $i++) {
+            $archive->renameIndex($i, str_replace($root, '', $archive->getNameIndex($i)));
+        }
+
+        $archive->deleteIndex(0);
+        $archive->close();
         $archive->open($zipFile);
 
         $archive->extractTo($directory);
@@ -207,9 +208,11 @@ class NewCommand extends Command
     {
         if ($input->getOption('dev')) {
             return 'develop';
+        } elseif ($input->getOption('lts')) {
+            return '5.5';
         }
 
-        return 'master';
+        return $input->getOption('release') ?? 'master';
     }
 
     /**
