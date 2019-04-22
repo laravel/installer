@@ -52,9 +52,7 @@ class NewCommand extends Command
 
         $output->writeln('<info>Crafting application...</info>');
 
-        $version = $this->getVersion($input);
-
-        $this->download($zipFile = $this->makeFilename(), $version)
+        $this->download($zipFile = $this->makeFilename(), $this->getVersion($input))
              ->extract($zipFile, $directory)
              ->prepareWritableDirectories($directory, $output)
              ->cleanUp($zipFile);
