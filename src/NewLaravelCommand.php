@@ -14,7 +14,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
 
-class NewCommand extends Command
+class NewLaravelCommand extends Command
 {
     /**
      * Configure the command options.
@@ -24,8 +24,9 @@ class NewCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('new')
-            ->setDescription('Create a new Laravel application')
+            ->setName('new:laravel')
+            ->setAliases(['new'])
+            ->setDescription('Create a new Laravel application.')
             ->addArgument('name', InputArgument::OPTIONAL)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
