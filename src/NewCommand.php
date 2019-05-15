@@ -28,7 +28,8 @@ class NewCommand extends Command
             ->setDescription('Create a new Laravel application')
             ->addArgument('name', InputArgument::OPTIONAL)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
-            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
+            ->addOption('preset', null, InputOption::VALUE_REQUIRED, 'Choose a preset list of packages to install along with your new Laravel installtion');
     }
 
     /**
@@ -40,8 +41,34 @@ class NewCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
         if (! extension_loaded('zip')) {
             throw new RuntimeException('The Zip PHP extension is not installed. Please install it and try again.');
+        }
+
+        $presets_path = getenv('HOME').DIRECTORY_SEPARATOR."laravel-installer.json";
+        
+        if (file_exists($presets_path)) {
+            
+            $output->writeln('<info>Presets file found</info>');
+            
+            // Check that it can be parsed.
+            $data = file_get_contents($presets_path);
+            
+            $presetData = json_decode($data);
+            
+            if (json_last_error()) {
+                throw new RuntimeException('Your laravel-presets.json file is not valid JSON');
+            }
+
+            if ($input->getOption('preset')) {
+                $preset = $input->getOption('preset');
+
+                if (!isset($presetData->{$preset})) {
+                    throw new RuntimeException("Unknown preset '$preset'.");
+                }
+            }
+
         }
 
         $directory = ($input->getArgument('name')) ? getcwd().'/'.$input->getArgument('name') : getcwd();
@@ -58,6 +85,35 @@ class NewCommand extends Command
              ->cleanUp($zipFile);
 
         $composer = $this->findComposer();
+
+        // Before running the commands, move our chosen preset into the list.
+        if ($input->getOption('preset') && isset($presetData)) {
+
+            $output->writeln("<info>Adding presets from '$preset' preset.</info>");
+
+            $projectComposerPath = $directory.DIRECTORY_SEPARATOR.'composer.json';
+            
+            $oldComposer = json_decode(file_get_contents($projectComposerPath));
+
+            $oldRequire = (array)$oldComposer->require;
+            
+            $newRequire = (array)$presetData->{$preset};
+
+            $merged = array_merge($oldRequire, $newRequire);
+
+            $newComposer = clone $oldComposer;
+
+            $newComposer->require = (object)$merged;
+
+            $file = fopen($projectComposerPath, 'w+');
+
+            fwrite($file, json_encode($newComposer));
+
+            fclose($file);
+
+            $this->cleanup($directory.DIRECTORY_SEPARATOR.'composer.lock');
+
+        }
 
         $commands = [
             $composer.' install --no-scripts',
@@ -89,6 +145,12 @@ class NewCommand extends Command
         });
 
         $output->writeln('<comment>Application ready! Build something amazing.</comment>');
+    }
+
+
+    public function doesPresetFileExist()
+    {
+
     }
 
     /**
