@@ -29,7 +29,7 @@ class NewCommand extends Command
             ->addArgument('name', InputArgument::OPTIONAL)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
-            ->addOption('preset', null, InputOption::VALUE_REQUIRED, 'Choose a preset list of packages to install along with your new Laravel installtion');
+            ->addOption('preset', null, InputOption::VALUE_REQUIRED, 'Choose a preset list of packages to install along with your new Laravel installation');
     }
 
     /**
