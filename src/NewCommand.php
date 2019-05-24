@@ -92,6 +92,17 @@ class NewCommand extends Command
     }
 
     /**
+     * Check that the directory is empty.
+     *
+     * @param  string  $directory
+     * @return bool
+     */
+    protected function checkDirectoryIsEmpty($directory)
+    {
+        return count(array_diff(scandir($directory), ['..', '.'])) === 0;
+    }
+
+    /**
      * Verify that the application does not already exist.
      *
      * @param  string  $directory
@@ -99,7 +110,7 @@ class NewCommand extends Command
      */
     protected function verifyApplicationDoesntExist($directory)
     {
-        if ((is_dir($directory) || is_file($directory)) && $directory != getcwd()) {
+        if ((is_dir($directory) && ! $this->checkDirectoryIsEmpty($directory)) || is_file($directory)) {
             throw new RuntimeException('Application already exists!');
         }
     }
