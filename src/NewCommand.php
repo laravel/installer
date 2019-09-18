@@ -28,7 +28,8 @@ class NewCommand extends Command
             ->setDescription('Create a new Laravel application')
             ->addArgument('name', InputArgument::OPTIONAL)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
-            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
+            ->addOption('auth', 'a', InputOption::VALUE_NONE, 'Install the laravel/ui package and bootstrap authentication');
     }
 
     /**
@@ -76,6 +77,11 @@ class NewCommand extends Command
             $commands = array_map(function ($value) {
                 return $value.' --quiet';
             }, $commands);
+        }
+
+        if ($input->getOption('auth')) {
+            $commands[] = $composer.' require laravel/ui';
+            $commands[] = 'php artisan ui:auth';
         }
 
         $process = new Process(implode(' && ', $commands), $directory, null, null, null);
