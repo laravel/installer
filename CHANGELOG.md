@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v2.0.1...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v2.2.0...master)
+
+
+## [v2.2.0 (2019-10-15)](https://github.com/laravel/installer/compare/v2.1.0...v2.2.0)
+
+### Added
+- Create a new project in the current directory using "laravel new ." ([#99](https://github.com/laravel/installer/pull/99))
 
 
 ## [v2.1.0 (2019-04-30)](https://github.com/laravel/installer/compare/v2.0.1...v2.1.0)
