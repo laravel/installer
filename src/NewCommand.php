@@ -44,7 +44,9 @@ class NewCommand extends Command
             throw new RuntimeException('The Zip PHP extension is not installed. Please install it and try again.');
         }
 
-        $directory = ($input->getArgument('name')) ? getcwd().'/'.$input->getArgument('name') : getcwd();
+        $name = $input->getArgument('name');
+
+        $directory = $name && $name !== '.' ? getcwd().'/'.$name : getcwd();
 
         if (! $input->getOption('force')) {
             $this->verifyApplicationDoesntExist($directory);
