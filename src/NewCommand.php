@@ -152,7 +152,11 @@ class NewCommand extends Command
     {
         $archive = new ZipArchive;
 
-        $archive->open($zipFile);
+        $res = $archive->open($zipFile, ZipArchive::CHECKCONS);
+
+        if ($res === ZipArchive::ER_NOZIP) {
+            throw new RuntimeException('The zip file could not download. Check that you are able to access http://cabinet.laravel.com/latest.zip');
+        }
 
         $archive->extractTo($directory);
 
