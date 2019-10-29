@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v2.2.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v2.2.1...master)
+
+
+## [v2.2.1 (2019-10-29)](https://github.com/laravel/installer/compare/v2.2.0...v2.2.1)
+
+### Fixed
+- Make sure zip file is valid before extracting ([#100](https://github.com/laravel/installer/pull/100))
 
 
 ## [v2.2.0 (2019-10-15)](https://github.com/laravel/installer/compare/v2.1.0...v2.2.0)
