@@ -90,7 +90,9 @@ class NewCommand extends Command
             $output->write($line);
         });
 
-        $output->writeln('<comment>Application ready! Build something amazing.</comment>');
+        if ($process->isSuccessful()) {
+            $output->writeln('<comment>Application ready! Build something amazing.</comment>');
+        }
     }
 
     /**
