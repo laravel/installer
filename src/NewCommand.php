@@ -28,6 +28,7 @@ class NewCommand extends Command
             ->setDescription('Create a new Laravel application')
             ->addArgument('name', InputArgument::OPTIONAL)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
+            ->addOption('auth', null, InputOption::VALUE_NONE, 'Installs the Laravel authentication scaffolding')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
@@ -131,6 +132,9 @@ class NewCommand extends Command
             case 'develop':
                 $filename = 'latest-develop.zip';
                 break;
+            case 'auth':
+                $filename = 'latest-auth.zip';
+                break;
             case 'master':
                 $filename = 'latest.zip';
                 break;
@@ -213,6 +217,10 @@ class NewCommand extends Command
     {
         if ($input->getOption('dev')) {
             return 'develop';
+        }
+
+        if ($input->getOption('auth')) {
+            return 'auth';
         }
 
         return 'master';
