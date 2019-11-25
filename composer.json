@@ -9,19 +9,38 @@
             "email": "taylorotwell@gmail.com"
         }
     ],
+    "require": {
+        "php": "^7.2",
+        "ext-zip": "*",
+        "guzzlehttp/guzzle": "^6.0",
+        "symfony/console": "^4.0|^5.0",
+        "symfony/filesystem": "^4.0|^5.0",
+        "symfony/process": "^4.0|^5.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8.0"
+    },
+    "bin": [
+        "bin/laravel"
+    ],
     "autoload": {
         "psr-4": {
             "Laravel\\Installer\\Console\\": "src/"
         }
     },
-    "require": {
-        "ext-zip": "*",
-        "guzzlehttp/guzzle": "~6.0",
-        "symfony/console": "~3.0|~4.0",
-        "symfony/filesystem": "~3.0|~4.0",
-        "symfony/process": "~3.0|~4.0"
+    "autoload-dev": {
+        "psr-4": {
+            "Laravel\\Installer\\Console\\Tests\\": "tests/"
+        }
     },
-    "bin": [
-        "laravel"
-    ]
+    "extra": {
+        "branch-alias": {
+            "dev-master": "3.x-dev"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }

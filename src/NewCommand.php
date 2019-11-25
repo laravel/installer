@@ -37,7 +37,7 @@ class NewCommand extends Command
      *
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-     * @return void
+     * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -81,7 +81,7 @@ class NewCommand extends Command
             }, $commands);
         }
 
-        $process = new Process(implode(' && ', $commands), $directory, null, null, null);
+        $process = Process::fromShellCommandline(implode(' && ', $commands), $directory, null, null, null);
 
         if ('\\' !== DIRECTORY_SEPARATOR && file_exists('/dev/tty') && is_readable('/dev/tty')) {
             $process->setTty(true);
@@ -94,6 +94,8 @@ class NewCommand extends Command
         if ($process->isSuccessful()) {
             $output->writeln('<comment>Application ready! Build something amazing.</comment>');
         }
+
+        return 0;
     }
 
     /**
