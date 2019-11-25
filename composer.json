@@ -9,11 +9,6 @@
             "email": "taylorotwell@gmail.com"
         }
     ],
-    "autoload": {
-        "psr-4": {
-            "Laravel\\Installer\\Console\\": "src/"
-        }
-    },
     "require": {
         "ext-zip": "*",
         "guzzlehttp/guzzle": "^6.0",
@@ -22,6 +17,21 @@
         "symfony/process": "^3.0|^4.0"
     },
     "bin": [
-        "laravel"
-    ]
+        "bin/laravel"
+    ],
+    "autoload": {
+        "psr-4": {
+            "Laravel\\Installer\\Console\\": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "2.x-dev"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
