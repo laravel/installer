@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v3.0.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v3.0.1...master)
+
+
+## [v3.0.1 (2019-11-26)](https://github.com/laravel/installer/compare/v3.0.0...v3.0.1)
+
+### Fixed
+- Fix composer autoloader path ([f3db3f3](https://github.com/laravel/installer/commit/f3db3f306c3c2dbbf4ecce4a5dbefe6c1fd178be))
 
 
 ## [v3.0.0 (2019-11-26)](https://github.com/laravel/installer/compare/v2.3.0...v3.0.0)
