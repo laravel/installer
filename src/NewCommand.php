@@ -288,7 +288,7 @@ class NewCommand extends Command
     /**
      * @param  string  $packages
      * @param  string  $composer
-     * @return string
+     * @return  string
      */
     private function getLaravelPackages($packages, $composer)
     {
