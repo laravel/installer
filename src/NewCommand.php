@@ -312,6 +312,7 @@ class NewCommand extends Command
             if ($dev) {
                 return $composer.' require --dev'.$composerPackages;
             }
+            
             return $composer.' require'.$composerPackages;
         }
 
