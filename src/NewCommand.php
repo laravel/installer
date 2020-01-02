@@ -297,13 +297,13 @@ class NewCommand extends Command
         $composerPackages = '';
         foreach ($laravelPackages as $laravelPackage) {
             if ($dev) {
-                if (isset(self::LARAVEL_DEV_PACKAGES[$laravelPackage]) ) {
+                if (isset(self::LARAVEL_DEV_PACKAGES[$laravelPackage])) {
                     $composerPackages .= ' '.self::LARAVEL_DEV_PACKAGES[$laravelPackage];
                 }
                 continue;
             }
 
-            if (isset(self::LARAVEL_PACKAGES[$laravelPackage]) ) {
+            if (isset(self::LARAVEL_PACKAGES[$laravelPackage])) {
                 $composerPackages .= ' '.self::LARAVEL_PACKAGES[$laravelPackage];
             }
         }
