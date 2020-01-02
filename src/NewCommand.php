@@ -290,7 +290,7 @@ class NewCommand extends Command
      * @param  string  $composer
      * @return string
      */
-    private function getLaravelPackages(string $packages, string $composer)
+    private function getLaravelPackages($packages, $composer)
     {
         $laravelPackages = explode(',', $packages);
 
@@ -313,7 +313,7 @@ class NewCommand extends Command
      * @param  string  $composer
      * @return  string
      */
-    private function getLaravelDevPackages(string $packages, string $composer)
+    private function getLaravelDevPackages($packages, $composer)
     {
         $laravelPackages = explode(',', $packages);
 
@@ -335,7 +335,7 @@ class NewCommand extends Command
      * @param  string  $packages
      * @return  string
      */
-    private function getLaravelInstallCommands(string $packages)
+    private function getLaravelInstallCommands($packages)
     {
         $laravelPackages = explode(',', $packages);
 
