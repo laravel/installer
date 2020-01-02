@@ -286,8 +286,8 @@ class NewCommand extends Command
     }
 
     /**
-     * @param string $packages
-     * @param string $composer
+     * @param  string  $packages
+     * @param  string  $composer
      * @return string
      */
     private function getLaravelPackages(string $packages, string $composer)
@@ -309,9 +309,9 @@ class NewCommand extends Command
     }
 
     /**
-     * @param string $packages
-     * @param string $composer
-     * @return string
+     * @param  string  $packages
+     * @param  string  $composer
+     * @return  string
      */
     private function getLaravelDevPackages(string $packages, string $composer)
     {
@@ -332,8 +332,8 @@ class NewCommand extends Command
     }
 
     /**
-     * @param string $packages
-     * @return string
+     * @param  string  $packages
+     * @return  string
      */
     private function getLaravelInstallCommands(string $packages)
     {
