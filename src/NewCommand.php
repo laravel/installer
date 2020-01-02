@@ -16,7 +16,7 @@ use ZipArchive;
 
 class NewCommand extends Command
 {
-    public const LARAVEL_PACKAGES = [
+    protected const LARAVEL_PACKAGES = [
         'telescope' => 'laravel/telescope',
         'socialite' => 'laravel/socialite',
         'horizon' => 'laravel/horizon',
@@ -27,12 +27,12 @@ class NewCommand extends Command
         'slack' => 'laravel/slack-notification-channel'
     ];
 
-    public const LARAVEL_DEV_PACKAGES = [
+    protected const LARAVEL_DEV_PACKAGES = [
         'ui' => 'laravel/ui',
         'dusk' => 'laravel/dusk'
     ];
 
-    public const LARAVEL_PACKAGES_INSTALL_COMMAND = [
+    protected const LARAVEL_PACKAGES_INSTALL_COMMAND = [
         'telescope' => 'telescope:install',
         'horizon' => 'horizon:install',
         'passport' => 'passport:install',
