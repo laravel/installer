@@ -131,8 +131,7 @@ class NewCommand extends Command
         $process->run(function ($type, $line) use ($output) {
             $output->write($line);
         });
-
-
+        
         if ($process->isSuccessful()) {
             $output->writeln('<comment>Application ready! Build something amazing.</comment>');
         }
