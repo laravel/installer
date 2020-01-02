@@ -2,11 +2,11 @@
 
 namespace Laravel\Installer\Console\Tests;
 
-use Laravel\Installer\Console\NewCommand;
 use PHPUnit\Framework\TestCase;
+use Laravel\Installer\Console\NewCommand;
 use Symfony\Component\Console\Application;
-use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Console\Tester\CommandTester;
 
 class NewCommandTest extends TestCase
 {
