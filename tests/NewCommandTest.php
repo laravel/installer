@@ -35,7 +35,7 @@ class NewCommandTest extends TestCase
     public function test_it_can_scaffold_a_new_laravel_app_with_packages()
     {
         $scaffoldDirectoryName = 'tests-output/my-app';
-        $scaffoldDirectory = __DIR__ . '/../' . $scaffoldDirectoryName;
+        $scaffoldDirectory = __DIR__.'/../'.$scaffoldDirectoryName;
 
         if (file_exists($scaffoldDirectory)) {
             (new Filesystem)->remove($scaffoldDirectory);
@@ -49,7 +49,7 @@ class NewCommandTest extends TestCase
         $statusCode = $tester->execute(['name' => $scaffoldDirectoryName, '--auth' => null, '--with' => 'telescope,horizon']);
 
         $this->assertEquals($statusCode, 0);
-        $this->assertFileExists($scaffoldDirectory . '/config/telescope.php');
-        $this->assertFileExists($scaffoldDirectory . '/config/horizon.php');
+        $this->assertFileExists($scaffoldDirectory.'/config/telescope.php');
+        $this->assertFileExists($scaffoldDirectory.'/config/horizon.php');
     }
 }

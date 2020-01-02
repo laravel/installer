@@ -24,12 +24,12 @@ class NewCommand extends Command
         'passport' => 'laravel/passport',
         'scout' => 'laravel/scout',
         'nexmo' => 'laravel/nexmo-notification-channel',
-        'slack' => 'laravel/slack-notification-channel'
+        'slack' => 'laravel/slack-notification-channel',
     ];
 
     protected const LARAVEL_DEV_PACKAGES = [
         'ui' => 'laravel/ui',
-        'dusk' => 'laravel/dusk'
+        'dusk' => 'laravel/dusk',
     ];
 
     protected const LARAVEL_PACKAGES_INSTALL_COMMAND = [
@@ -297,12 +297,12 @@ class NewCommand extends Command
         $composerPackages = '';
         foreach ($laravelPackages as $laravelPackage) {
             if (array_key_exists($laravelPackage, self::LARAVEL_PACKAGES)) {
-                $composerPackages .= ' ' . self::LARAVEL_PACKAGES[$laravelPackage];
+                $composerPackages .= ' '.self::LARAVEL_PACKAGES[$laravelPackage];
             }
         }
 
         if ($composerPackages !== '') {
-            return $composer . ' require' . $composerPackages;
+            return $composer.' require'.$composerPackages;
         }
 
         return $composerPackages;
@@ -320,12 +320,12 @@ class NewCommand extends Command
         $composerPackages = '';
         foreach ($laravelPackages as $laravelPackage) {
             if (array_key_exists($laravelPackage, self::LARAVEL_DEV_PACKAGES)) {
-                $composerPackages .= ' ' . self::LARAVEL_DEV_PACKAGES[$laravelPackage];
+                $composerPackages .= ' '.self::LARAVEL_DEV_PACKAGES[$laravelPackage];
             }
         }
 
         if ($composerPackages !== '') {
-            return $composer . ' require --dev' . $composerPackages;
+            return $composer.' require --dev'.$composerPackages;
         }
 
         return $composerPackages;
@@ -347,7 +347,7 @@ class NewCommand extends Command
                     $packagesInstallCommands .= ' && ';
                 }
 
-                $packagesInstallCommands .= 'php artisan ' . self::LARAVEL_PACKAGES_INSTALL_COMMAND[$laravelPackage];
+                $packagesInstallCommands .= 'php artisan '.self::LARAVEL_PACKAGES_INSTALL_COMMAND[$laravelPackage];
             }
         }
 
