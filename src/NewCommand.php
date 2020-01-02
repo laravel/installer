@@ -330,7 +330,7 @@ class NewCommand extends Command
         $packagesInstallCommands = '';
 
         foreach ($laravelPackages as $laravelPackage) {
-            if (array_key_exists($laravelPackage, self::LARAVEL_PACKAGES_INSTALL_COMMAND)) {
+            if (isset(self::LARAVEL_PACKAGES_INSTALL_COMMAND[$laravelPackage])) {
                 if ($packagesInstallCommands !== '') {
                     $packagesInstallCommands .= ' && ';
                 }
