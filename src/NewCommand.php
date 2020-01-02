@@ -106,18 +106,18 @@ class NewCommand extends Command
             }, $commands);
         }
 
-        if ($input->getOption('with')) {
-            $laravelPackages = $this->getLaravelPackages($input->getOption('with'), $composer);
+        if ($with = $input->getOption('with')) {
+            $laravelPackages = $this->getLaravelPackages($with, $composer);
             if ($laravelPackages) {
                 $commands[] = $laravelPackages;
             }
 
-            $laravelDevPackages = $this->getLaravelDevPackages($input->getOption('with'), $composer);
+            $laravelDevPackages = $this->getLaravelPackages($with, $composer, true);
             if ($laravelDevPackages) {
                 $commands[] = $laravelDevPackages;
             }
             if ($laravelPackages || $laravelDevPackages) {
-                $commands[] = $this->getLaravelInstallCommands($input->getOption('with'));
+                $commands[] = $this->getLaravelInstallCommands($with);
             }
         }
 
@@ -287,20 +287,31 @@ class NewCommand extends Command
     /**
      * @param  string  $packages
      * @param  string  $composer
+     * @param  bool  $dev
      * @return  string
      */
-    private function getLaravelPackages($packages, $composer)
+    protected function getLaravelPackages($packages, $composer, $dev = false)
     {
         $laravelPackages = explode(',', $packages);
 
         $composerPackages = '';
         foreach ($laravelPackages as $laravelPackage) {
-            if (array_key_exists($laravelPackage, self::LARAVEL_PACKAGES)) {
+            if ($dev) {
+                if (isset(self::LARAVEL_DEV_PACKAGES[$laravelPackage]) ) {
+                    $composerPackages .= ' '.self::LARAVEL_DEV_PACKAGES[$laravelPackage];
+                }
+                continue;
+            }
+
+            if (isset(self::LARAVEL_PACKAGES[$laravelPackage]) ) {
                 $composerPackages .= ' '.self::LARAVEL_PACKAGES[$laravelPackage];
             }
         }
 
         if ($composerPackages !== '') {
+            if ($dev) {
+                return $composer.' require --dev'.$composerPackages;
+            }
             return $composer.' require'.$composerPackages;
         }
 
@@ -309,32 +320,9 @@ class NewCommand extends Command
 
     /**
      * @param  string  $packages
-     * @param  string  $composer
      * @return  string
      */
-    private function getLaravelDevPackages($packages, $composer)
-    {
-        $laravelPackages = explode(',', $packages);
-
-        $composerPackages = '';
-        foreach ($laravelPackages as $laravelPackage) {
-            if (array_key_exists($laravelPackage, self::LARAVEL_DEV_PACKAGES)) {
-                $composerPackages .= ' '.self::LARAVEL_DEV_PACKAGES[$laravelPackage];
-            }
-        }
-
-        if ($composerPackages !== '') {
-            return $composer.' require --dev'.$composerPackages;
-        }
-
-        return $composerPackages;
-    }
-
-    /**
-     * @param  string  $packages
-     * @return  string
-     */
-    private function getLaravelInstallCommands($packages)
+    protected function getLaravelInstallCommands($packages)
     {
         $laravelPackages = explode(',', $packages);
 
