@@ -39,8 +39,7 @@ class NewCommand extends Command
         'dusk' => 'dusk:install',
         'scout' => 'vendor:publish --provider="Laravel\Scout\ScoutServiceProvider"',
     ];
-
-
+    
     /**
      * Configure the command options.
      *
