@@ -2,20 +2,45 @@
 
 namespace Laravel\Installer\Console;
 
-use GuzzleHttp\Client;
+use ZipArchive;
 use RuntimeException;
+use GuzzleHttp\Client;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
-use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Process\Process;
-use ZipArchive;
 
 class NewCommand extends Command
 {
+    public const LARAVEL_PACKAGES = [
+        'telescope' => 'laravel/telescope',
+        'socialite' => 'laravel/socialite',
+        'horizon' => 'laravel/horizon',
+        'cashier' => 'laravel/cashier',
+        'passport' => 'laravel/passport',
+        'scout' => 'laravel/scout',
+        'nexmo' => 'laravel/nexmo-notification-channel',
+        'slack' => 'laravel/slack-notification-channel'
+    ];
+
+    public const LARAVEL_DEV_PACKAGES = [
+        'ui' => 'laravel/ui',
+        'dusk' => 'laravel/dusk'
+    ];
+
+    public const LARAVEL_PACKAGES_INSTALL_COMMAND = [
+        'telescope' => 'telescope:install',
+        'horizon' => 'horizon:install',
+        'passport' => 'passport:install',
+        'dusk' => 'dusk:install',
+        'scout' => 'vendor:publish --provider="Laravel\Scout\ScoutServiceProvider"',
+    ];
+
+
     /**
      * Configure the command options.
      *
@@ -29,56 +54,72 @@ class NewCommand extends Command
             ->addArgument('name', InputArgument::OPTIONAL)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('auth', null, InputOption::VALUE_NONE, 'Installs the Laravel authentication scaffolding')
-            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
+            ->addOption('with', 'w', InputOption::VALUE_NONE, 'Installs Laravel packages');
     }
 
     /**
      * Execute the command.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @param \Symfony\Component\Console\Input\InputInterface $input
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
      * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        if (! extension_loaded('zip')) {
+        if (!extension_loaded('zip')) {
             throw new RuntimeException('The Zip PHP extension is not installed. Please install it and try again.');
         }
 
         $name = $input->getArgument('name');
 
-        $directory = $name && $name !== '.' ? getcwd().'/'.$name : getcwd();
+        $directory = $name && $name !== '.' ? getcwd() . '/' . $name : getcwd();
 
-        if (! $input->getOption('force')) {
+        if (!$input->getOption('force')) {
             $this->verifyApplicationDoesntExist($directory);
         }
 
         $output->writeln('<info>Crafting application...</info>');
 
         $this->download($zipFile = $this->makeFilename(), $this->getVersion($input))
-             ->extract($zipFile, $directory)
-             ->prepareWritableDirectories($directory, $output)
-             ->cleanUp($zipFile);
+            ->extract($zipFile, $directory)
+            ->prepareWritableDirectories($directory, $output)
+            ->cleanUp($zipFile);
 
         $composer = $this->findComposer();
 
         $commands = [
-            $composer.' install --no-scripts',
-            $composer.' run-script post-root-package-install',
-            $composer.' run-script post-create-project-cmd',
-            $composer.' run-script post-autoload-dump',
+            $composer . ' install --no-scripts',
+            $composer . ' run-script post-root-package-install',
+            $composer . ' run-script post-create-project-cmd',
+            $composer . ' run-script post-autoload-dump',
         ];
 
         if ($input->getOption('no-ansi')) {
             $commands = array_map(function ($value) {
-                return $value.' --no-ansi';
+                return $value . ' --no-ansi';
             }, $commands);
         }
 
         if ($input->getOption('quiet')) {
             $commands = array_map(function ($value) {
-                return $value.' --quiet';
+                return $value . ' --quiet';
             }, $commands);
+        }
+
+        if ($input->getOption('with')) {
+            $laravelPackages = $this->getLaravelPackages($input->getOption('with'), $composer);
+            if ($laravelPackages) {
+                $commands[] = $laravelPackages;
+            }
+
+            $laravelDevPackages = $this->getLaravelDevPackages($input->getOption('with'), $composer);
+            if ($laravelDevPackages) {
+                $commands[] = $laravelDevPackages;
+            }
+            if ($laravelPackages || $laravelDevPackages) {
+                $commands[] = $this->getLaravelInstallCommands($input->getOption('with'));
+            }
         }
 
         $process = Process::fromShellCommandline(implode(' && ', $commands), $directory, null, null, null);
@@ -91,6 +132,7 @@ class NewCommand extends Command
             $output->write($line);
         });
 
+
         if ($process->isSuccessful()) {
             $output->writeln('<comment>Application ready! Build something amazing.</comment>');
         }
@@ -101,7 +143,7 @@ class NewCommand extends Command
     /**
      * Verify that the application does not already exist.
      *
-     * @param  string  $directory
+     * @param string $directory
      * @return void
      */
     protected function verifyApplicationDoesntExist($directory)
@@ -118,14 +160,14 @@ class NewCommand extends Command
      */
     protected function makeFilename()
     {
-        return getcwd().'/laravel_'.md5(time().uniqid()).'.zip';
+        return getcwd() . '/laravel_' . md5(time() . uniqid()) . '.zip';
     }
 
     /**
      * Download the temporary Zip to the given file.
      *
-     * @param  string  $zipFile
-     * @param  string  $version
+     * @param string $zipFile
+     * @param string $version
      * @return $this
      */
     protected function download($zipFile, $version = 'master')
@@ -142,7 +184,7 @@ class NewCommand extends Command
                 break;
         }
 
-        $response = (new Client)->get('http://cabinet.laravel.com/'.$filename);
+        $response = (new Client)->get('http://cabinet.laravel.com/' . $filename);
 
         file_put_contents($zipFile, $response->getBody());
 
@@ -152,8 +194,8 @@ class NewCommand extends Command
     /**
      * Extract the Zip file into the given directory.
      *
-     * @param  string  $zipFile
-     * @param  string  $directory
+     * @param string $zipFile
+     * @param string $directory
      * @return $this
      */
     protected function extract($zipFile, $directory)
@@ -176,7 +218,7 @@ class NewCommand extends Command
     /**
      * Clean-up the Zip file.
      *
-     * @param  string  $zipFile
+     * @param string $zipFile
      * @return $this
      */
     protected function cleanUp($zipFile)
@@ -191,8 +233,8 @@ class NewCommand extends Command
     /**
      * Make sure the storage and bootstrap cache directories are writable.
      *
-     * @param  string  $appDirectory
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @param string $appDirectory
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
      * @return $this
      */
     protected function prepareWritableDirectories($appDirectory, OutputInterface $output)
@@ -200,8 +242,8 @@ class NewCommand extends Command
         $filesystem = new Filesystem;
 
         try {
-            $filesystem->chmod($appDirectory.DIRECTORY_SEPARATOR.'bootstrap/cache', 0755, 0000, true);
-            $filesystem->chmod($appDirectory.DIRECTORY_SEPARATOR.'storage', 0755, 0000, true);
+            $filesystem->chmod($appDirectory . DIRECTORY_SEPARATOR . 'bootstrap/cache', 0755, 0000, true);
+            $filesystem->chmod($appDirectory . DIRECTORY_SEPARATOR . 'storage', 0755, 0000, true);
         } catch (IOExceptionInterface $e) {
             $output->writeln('<comment>You should verify that the "storage" and "bootstrap/cache" directories are writable.</comment>');
         }
@@ -212,7 +254,7 @@ class NewCommand extends Command
     /**
      * Get the version that should be downloaded.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param \Symfony\Component\Console\Input\InputInterface $input
      * @return string
      */
     protected function getVersion(InputInterface $input)
@@ -235,12 +277,81 @@ class NewCommand extends Command
      */
     protected function findComposer()
     {
-        $composerPath = getcwd().'/composer.phar';
+        $composerPath = getcwd() . '/composer.phar';
 
         if (file_exists($composerPath)) {
-            return '"'.PHP_BINARY.'" '.$composerPath;
+            return '"' . PHP_BINARY . '" ' . $composerPath;
         }
 
         return 'composer';
+    }
+
+    /**
+     * @param string $packages
+     * @param string $composer
+     * @return string
+     */
+    private function getLaravelPackages(string $packages, string $composer)
+    {
+        $laravelPackages = explode(',', $packages);
+
+        $composerPackages = '';
+        foreach ($laravelPackages as $laravelPackage) {
+            if (array_key_exists($laravelPackage, self::LARAVEL_PACKAGES)) {
+                $composerPackages .= ' ' . self::LARAVEL_PACKAGES[$laravelPackage];
+            }
+        }
+
+        if ($composerPackages !== '') {
+            return $composer . ' require' . $composerPackages;
+        }
+
+        return $composerPackages;
+    }
+
+    /**
+     * @param string $packages
+     * @param string $composer
+     * @return string
+     */
+    private function getLaravelDevPackages(string $packages, string $composer)
+    {
+        $laravelPackages = explode(',', $packages);
+
+        $composerPackages = '';
+        foreach ($laravelPackages as $laravelPackage) {
+            if (array_key_exists($laravelPackage, self::LARAVEL_DEV_PACKAGES)) {
+                $composerPackages .= ' ' . self::LARAVEL_DEV_PACKAGES[$laravelPackage];
+            }
+        }
+
+        if ($composerPackages !== '') {
+            return $composer . ' require --dev' . $composerPackages;
+        }
+
+        return $composerPackages;
+    }
+
+    /**
+     * @param string $packages
+     * @return string
+     */
+    private function getLaravelInstallCommands(string $packages)
+    {
+        $laravelPackages = explode(',', $packages);
+
+        $packagesInstallCommands = '';
+
+        foreach ($laravelPackages as $laravelPackage) {
+            if (array_key_exists($laravelPackage, self::LARAVEL_PACKAGES_INSTALL_COMMAND)) {
+                if ($packagesInstallCommands !== '') {
+                    $packagesInstallCommands .= ' && ';
+                }
+
+                $packagesInstallCommands .= 'php artisan ' . self::LARAVEL_PACKAGES_INSTALL_COMMAND[$laravelPackage];
+            }
+        }
+
+        return $packagesInstallCommands;
     }
 }
