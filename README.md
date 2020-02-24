@@ -1,6 +1,6 @@
 # Laravel Installer
 
-<a href="https://travis-ci.org/laravel/installer"><img src="https://travis-ci.org/laravel/installer.svg" alt="Build Status"></a>
+<a href="https://github.com/laravel/installer/actions"><img src="https://github.com/laravel/installer/workflows/tests/badge.svg" alt="Build Status"></a>
 <a href="https://packagist.org/packages/laravel/installer"><img src="https://poser.pugx.org/laravel/installer/d/total.svg" alt="Total Downloads"></a>
 <a href="https://packagist.org/packages/laravel/installer"><img src="https://poser.pugx.org/laravel/installer/v/stable.svg" alt="Latest Stable Version"></a>
 <a href="https://packagist.org/packages/laravel/installer"><img src="https://poser.pugx.org/laravel/installer/license.svg" alt="License"></a>
