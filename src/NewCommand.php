@@ -27,6 +27,7 @@ class NewCommand extends Command
             ->setName('new')
             ->setDescription('Create a new Laravel application')
             ->addArgument('name', InputArgument::OPTIONAL)
+            ->addArgument('setup', InputArgument::OPTIONAL, 'Use setup file')
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('auth', null, InputOption::VALUE_NONE, 'Installs the Laravel authentication scaffolding')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
@@ -62,12 +63,18 @@ class NewCommand extends Command
 
         $composer = $this->findComposer();
 
+        $setupFile = $input->getArgument('setup');
+
         $commands = [
             $composer.' install --no-scripts',
             $composer.' run-script post-root-package-install',
             $composer.' run-script post-create-project-cmd',
             $composer.' run-script post-autoload-dump',
         ];
+
+        if (isset($setupFile)) {
+            $commands = $this->runSetupComposer($setupFile, $commands, $output);
+        }
 
         if ($input->getOption('no-ansi')) {
             $commands = array_map(function ($value) {
@@ -91,6 +98,14 @@ class NewCommand extends Command
             $output->write($line);
         });
 
+        if (isset($setupFile)) {
+            $this->runSetupEnv($setupFile, $directory, $output);
+        }
+
+        if (isset($setupFile)) {
+            $this->runSetupFiles($setupFile, $directory, $output);
+        }
+
         if ($process->isSuccessful()) {
             $output->writeln('<comment>Application ready! Build something amazing.</comment>');
         }
@@ -109,6 +124,96 @@ class NewCommand extends Command
         if ((is_dir($directory) || is_file($directory)) && $directory != getcwd()) {
             throw new RuntimeException('Application already exists!');
         }
+    }
+
+    protected function runSetupComposer(string $fileName, array $commands, OutputInterface $output):array
+    {
+        $setup = json_decode(file_get_contents($fileName), true);
+        $composer = $this->findComposer();
+
+        if (!array_key_exists('composer', $setup)) {
+            return $commands;
+        }
+
+        if (array_key_exists('require', $setup['composer'])) {
+            foreach ($setup['composer']['require'] as $package => $version) {
+                $output->writeln("<info>Adding $package:$version as a composer dependency</info>");
+                $commands[] = $composer . " require $package:$version";
+            }
+        }
+
+        if (array_key_exists('require-dev', $setup['composer'])) {
+            foreach ($setup['composer']['require-dev'] as $package => $version) {
+                $output->writeln("<info>Adding $package:$version as a composer dev dependency</info>");
+                $commands[] = $composer . " require --dev $package:$version";
+            }
+        }
+
+        return $commands;
+    }
+
+    protected function runSetupEnv(string $setupFile, string $directory, OutputInterface $output)
+    {
+        $setup = json_decode(file_get_contents($setupFile), true);
+
+        if (!array_key_exists('env', $setup)) {
+            return;
+        }
+
+        $envFile = $directory . '/.env';
+        $tempEnvFileName = $directory . '/.env-temp';
+        $tempEnvFile = fopen($tempEnvFileName, "a");
+
+        $lines = file($envFile);
+        foreach ($lines as $line) {
+            if (trim($line) == '') {
+                fwrite($tempEnvFile, PHP_EOL);
+                continue;
+            }
+
+            [$name, $value] = explode('=', $line);
+            if (array_key_exists($name, $setup['env'])) {
+                if ($setup['env'][$name] === null) {
+                    $output->writeln("<warning>DELETED " . $name . " from $envFile</warning>");
+                    continue;
+                } else {
+                    $output->writeln("<info>Replaced " . $name . " with " . $setup['env'][$name] . "</info>");
+                    fwrite($tempEnvFile, "$name=" . $setup['env'][$name] . PHP_EOL);
+                    continue;
+                }
+            }
+            fwrite($tempEnvFile, "$name=$value");
+        }
+
+        rename($tempEnvFileName, $envFile);
+    }
+
+    protected function runSetupFiles(string $setupFile, string $directory, OutputInterface $output)
+    {
+        $setup = json_decode(file_get_contents($setupFile), true);
+
+        if (!array_key_exists('files', $setup)) {
+            return;
+        }
+
+        if (array_key_exists('create', $setup['files'])) {
+            foreach ($setup['files']['create'] as $file) {
+                $fullFileName = $directory . '/' . $file;
+                touch($fullFileName);
+                $output->writeln("<info>Created {$fullFileName}</info>");
+            }
+        }
+
+        if (array_key_exists('copy', $setup['files'])) {
+            foreach ($setup['files']['copy'] as $source => $dest) {
+                $fullDest = $directory . '/' . $dest;
+                $success = copy($source, $fullDest);
+                if ($success){
+                    $output->writeln("<info>Copied {$source} to {$fullDest}</info>");
+                }
+            }
+        }
+
     }
 
     /**
