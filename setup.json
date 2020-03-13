@@ -1,0 +1,29 @@
+{
+    "composer": {
+        "require": {
+            "webpatser/laravel-uuid": "^3.0"
+        },
+        "require-dev": {
+            "barryvdh/laravel-debugbar": "*",
+            "beyondcode/laravel-dump-server": "*"
+        }
+    },
+    "files": {
+        "create": [
+            "database/database.sqlite"
+        ],
+        "copy": {
+            "installer/setup.json": "setup.json"
+        }
+    },
+    "env": {
+        "APP_NAME": "MYPROJECT2",
+        "CACHE_DRIVER": "redis",
+        "DB_CONNECTION": "sqlite",
+        "DB_HOST": "database/database.sqlite",
+        "DB_DATABASE": null,
+        "DB_PORT": null,
+        "DB_USERNAME": null,
+        "DB_PASSWORD": null
+    }
+}
