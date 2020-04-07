@@ -58,9 +58,9 @@ class DocsCommand extends Command
             }
         }
 
-        $output->writeln('<info>Opening Laravel Docs: ' . $uri . '</info>');
+        $output->writeln('<info>Opening Laravel Docs: '.$uri.'</info>');
 
-        $process = Process::fromShellCommandline('open ' . $uri);
+        $process = Process::fromShellCommandline('open '.$uri);
         $process->run();
 
         return 0;
