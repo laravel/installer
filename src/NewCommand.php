@@ -42,7 +42,7 @@ class NewCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         if (version_compare(PHP_VERSION, '7.3.0', '<')) {
-            throw new RuntimeException('Installer not available for PHP 7.2. Please use "composer create-project laravel/laravel" instead.');
+            throw new RuntimeException('The Laravel installer requires PHP 7.3.0 or greater. Please use "composer create-project laravel/laravel" instead.');
         }
 
         if (! extension_loaded('zip')) {
