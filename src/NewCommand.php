@@ -41,6 +41,10 @@ class NewCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        if (version_compare(PHP_VERSION, '7.3.0', '<')) {
+            throw new RuntimeException('Installer not available for PHP 7.2. Please use "composer create-project laravel/laravel" instead.');
+        }
+
         if (! extension_loaded('zip')) {
             throw new RuntimeException('The Zip PHP extension is not installed. Please install it and try again.');
         }
