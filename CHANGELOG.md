@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v3.0.1...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v3.1.0...master)
+
+
+## [v3.1.0 (2020-05-21)](https://github.com/laravel/installer/compare/v3.0.1...v3.1.0)
+
+### Removed
+- Drop support for PHP 7.2 ([#118](https://github.com/laravel/installer/pull/118))
 
 
 ## [v3.0.1 (2019-11-26)](https://github.com/laravel/installer/compare/v3.0.0...v3.0.1)
