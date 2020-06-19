@@ -150,7 +150,7 @@ class NewCommand extends Command
                 break;
         }
 
-        $response = (new Client)->get('http://cabinet.laravel.com/'.$filename);
+        $response = (new Client)->get('https://cabinet.laravel.com/'.$filename);
 
         file_put_contents($zipFile, $response->getBody());
 
@@ -171,7 +171,7 @@ class NewCommand extends Command
         $response = $archive->open($zipFile, ZipArchive::CHECKCONS);
 
         if ($response === ZipArchive::ER_NOZIP) {
-            throw new RuntimeException('The zip file could not download. Verify that you are able to access: http://cabinet.laravel.com/latest.zip');
+            throw new RuntimeException('The zip file could not download. Verify that you are able to access: https://cabinet.laravel.com/latest.zip');
         }
 
         $archive->extractTo($directory);
