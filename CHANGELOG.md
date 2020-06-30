@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v3.1.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v3.2.0...master)
+
+
+## [v3.2.0 (2020-06-30)](https://github.com/laravel/installer/compare/v3.1.0...v3.2.0)
+
+### Added
+- Guzzle 7 support ([144a695](https://github.com/laravel/installer/commit/144a69576bfb0df2bbd5c7ae3f40dd87db64d0ba))
 
 
 ## [v3.1.0 (2020-05-21)](https://github.com/laravel/installer/compare/v3.0.1...v3.1.0)
