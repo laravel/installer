@@ -59,8 +59,11 @@ class NewCommand extends Command
 
         $output->writeln('<info>Crafting application...</info>');
 
-        $this->download($zipFile = $this->makeFilename(), $this->getVersion($input))
-             ->extract($zipFile, $directory)
+        $version = $this->getVersion($input);
+        $filename = $this->getFilename($version);
+
+        $this->download($zipFile = $this->makeFilename(), $filename)
+             ->extract($zipFile, $directory, $filename)
              ->prepareWritableDirectories($directory, $output)
              ->cleanUp($zipFile);
 
@@ -133,23 +136,11 @@ class NewCommand extends Command
      * Download the temporary Zip to the given file.
      *
      * @param  string  $zipFile
-     * @param  string  $version
+     * @param  string  $filename
      * @return $this
      */
-    protected function download($zipFile, $version = 'master')
+    protected function download($zipFile, $filename)
     {
-        switch ($version) {
-            case 'develop':
-                $filename = 'latest-develop.zip';
-                break;
-            case 'auth':
-                $filename = 'latest-auth.zip';
-                break;
-            case 'master':
-                $filename = 'latest.zip';
-                break;
-        }
-
         $response = (new Client)->get('http://cabinet.laravel.com/'.$filename);
 
         file_put_contents($zipFile, $response->getBody());
@@ -162,16 +153,17 @@ class NewCommand extends Command
      *
      * @param  string  $zipFile
      * @param  string  $directory
+     * @param  string  $filename
      * @return $this
      */
-    protected function extract($zipFile, $directory)
+    protected function extract($zipFile, $directory, $filename)
     {
         $archive = new ZipArchive;
 
         $response = $archive->open($zipFile, ZipArchive::CHECKCONS);
 
         if ($response === ZipArchive::ER_NOZIP) {
-            throw new RuntimeException('The zip file could not download. Verify that you are able to access: http://cabinet.laravel.com/latest.zip');
+            throw new RuntimeException("The zip file could not download. Verify that you are able to access: http://cabinet.laravel.com/{$filename}");
         }
 
         $archive->extractTo($directory);
@@ -234,6 +226,29 @@ class NewCommand extends Command
         }
 
         return 'master';
+    }
+
+    /**
+     * Get the filename that should be downloaded.
+     *
+     * @param  string  $version
+     * @return string
+     */
+    protected function getFilename($version)
+    {
+        switch ($version) {
+            case 'develop':
+                $filename = 'latest-develop.zip';
+                break;
+            case 'auth':
+                $filename = 'latest-auth.zip';
+                break;
+            case 'master':
+                $filename = 'latest.zip';
+                break;
+        }
+
+        return $filename;
     }
 
     /**
