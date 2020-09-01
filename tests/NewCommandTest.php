@@ -6,7 +6,6 @@ use Laravel\Installer\Console\NewCommand;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\Filesystem\Filesystem;
 
 class NewCommandTest extends TestCase
 {
@@ -15,20 +14,17 @@ class NewCommandTest extends TestCase
         $scaffoldDirectoryName = 'tests-output/my-app';
         $scaffoldDirectory = __DIR__.'/../'.$scaffoldDirectoryName;
 
-        if (file_exists($scaffoldDirectory)) {
-            (new Filesystem)->remove($scaffoldDirectory);
-        }
+        exec("rm -rf $scaffoldDirectory");
 
         $app = new Application('Laravel Installer');
         $app->add(new NewCommand);
 
         $tester = new CommandTester($app->find('new'));
 
-        $statusCode = $tester->execute(['name' => $scaffoldDirectoryName, '--auth' => null]);
+        $statusCode = $tester->execute(['name' => $scaffoldDirectoryName]);
 
         $this->assertEquals($statusCode, 0);
         $this->assertDirectoryExists($scaffoldDirectory.'/vendor');
         $this->assertFileExists($scaffoldDirectory.'/.env');
-        $this->assertFileExists($scaffoldDirectory.'/resources/views/auth/login.blade.php');
     }
 }
