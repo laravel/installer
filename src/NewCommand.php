@@ -36,6 +36,15 @@ class NewCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $output->write(PHP_EOL.'<fg=red> _                               _
+| |                             | |
+| |     __ _ _ __ __ ___   _____| |
+| |    / _` | \'__/ _` \ \ / / _ \ |
+| |___| (_| | | | (_| |\ V /  __/ |
+|______\__,_|_|  \__,_| \_/ \___|_|'.PHP_EOL.PHP_EOL.'Crafting a fresh Laravel application...</>'.PHP_EOL.PHP_EOL);
+
+        sleep(1);
+
         if (version_compare(PHP_VERSION, '7.3.0', '<')) {
             throw new RuntimeException('The Laravel installer requires PHP 7.3.0 or greater. Please use "composer create-project laravel/laravel" instead.');
         }
@@ -145,7 +154,7 @@ class NewCommand extends Command
         }
 
         $process->run(function ($type, $line) use ($output) {
-            $output->write($line);
+            $output->write('    '.$line);
         });
 
         return $process;
