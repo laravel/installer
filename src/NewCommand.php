@@ -71,7 +71,19 @@ class NewCommand extends Command
         }
 
         if ($this->runCommands($commands, $input, $output)->isSuccessful()) {
-            $output->writeln('<comment>Application ready! Build something amazing.</comment>');
+            $this->replaceInFile(
+                'APP_URL=http://localhost',
+                'APP_URL=http://'.$name.'.test',
+                $directory.'/.env'
+            );
+
+            $this->replaceInFile(
+                'DB_DATABASE=laravel',
+                'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
+                $directory.'/.env'
+            );
+
+            $output->writeln(PHP_EOL.'<comment>Application ready! Build something amazing.</comment>');
         }
 
         return 0;
@@ -158,5 +170,13 @@ class NewCommand extends Command
         });
 
         return $process;
+    }
+
+    protected function replaceInFile($search, $replace, $file)
+    {
+        file_put_contents(
+            $file,
+            str_replace($search, $replace, file_get_contents($file))
+        );
     }
 }
