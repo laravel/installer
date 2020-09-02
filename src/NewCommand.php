@@ -8,6 +8,9 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\ChoiceQuestion;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Process\Process;
 
 class NewCommand extends Command
@@ -24,6 +27,7 @@ class NewCommand extends Command
             ->setDescription('Create a new Laravel application')
             ->addArgument('name', InputArgument::OPTIONAL)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
+            ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
@@ -36,12 +40,33 @@ class NewCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $output->write(PHP_EOL.'<fg=red> _                               _
+        if ($input->getOption('jet')) {
+            $output->write(PHP_EOL."<fg=magenta>
+    |     |         |
+    |,---.|--- ,---.|--- ,---.,---.,---.,-.-.
+    ||---'|    `---.|    |    |---',---|| | |
+`---'`---'`---'`---'`---'`    `---'`---^` ' '</>".PHP_EOL.PHP_EOL);
+
+            $helper = $this->getHelper('question');
+
+            $question = new ChoiceQuestion('Which Jetstream stack do you prefer?', [
+                'livewire',
+                'inertia',
+            ]);
+
+            $output->write(PHP_EOL);
+
+            $stack = $helper->ask($input, new SymfonyStyle($input, $output), $question);
+
+            $teams = (new SymfonyStyle($input, $output))->confirm('Will your application use teams?', false);
+        } else {
+            $output->write(PHP_EOL.'<fg=red> _                               _
 | |                             | |
 | |     __ _ _ __ __ ___   _____| |
 | |    / _` | \'__/ _` \ \ / / _ \ |
 | |___| (_| | | | (_| |\ V /  __/ |
 |______\__,_|_|  \__,_| \_/ \___|_|'.PHP_EOL.PHP_EOL);
+        }
 
         sleep(1);
 
@@ -83,10 +108,38 @@ class NewCommand extends Command
                 $directory.'/.env'
             );
 
+            if ($input->getOption('jet')) {
+                $this->installJetstream($directory, $stack, $teams, $input, $output);
+            }
+
             $output->writeln(PHP_EOL.'<comment>Application ready! Build something amazing.</comment>');
         }
 
         return 0;
+    }
+
+    /**
+     * Install Laravel Jetstream into the application.
+     *
+     * @param  string  $directory
+     * @param  string  $stack
+     * @param  bool  $teams
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function installJetstream(string $directory, string $stack, bool $teams, InputInterface $input, OutputInterface $output)
+    {
+        chdir($directory);
+
+        $commands = array_filter([
+            $this->findComposer().' require laravel/jetstream',
+            trim(sprintf(PHP_BINARY.' artisan jetstream:install %s %s', $stack, $teams ? '--teams' : '')),
+            $stack === 'inertia' ? 'npm install && npm run dev' : null,
+            PHP_BINARY.' artisan storage:link',
+        ]);
+
+        $this->runCommands($commands, $input, $output);
     }
 
     /**
