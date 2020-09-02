@@ -224,7 +224,15 @@ class NewCommand extends Command
         return $process;
     }
 
-    protected function replaceInFile($search, $replace, $file)
+    /**
+     * Replace the given string in the given file.
+     *
+     * @param  string  $search
+     * @param  string  $replace
+     * @param  string  $file
+     * @return string
+     */
+    protected function replaceInFile(string $search, string $replace, string $file)
     {
         file_put_contents(
             $file,
