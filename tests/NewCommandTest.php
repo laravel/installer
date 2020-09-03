@@ -23,7 +23,7 @@ class NewCommandTest extends TestCase
 
         $statusCode = $tester->execute(['name' => $scaffoldDirectoryName]);
 
-        $this->assertEquals($statusCode, 0);
+        $this->assertSame(0, $statusCode);
         $this->assertDirectoryExists($scaffoldDirectory.'/vendor');
         $this->assertFileExists($scaffoldDirectory.'/.env');
     }
