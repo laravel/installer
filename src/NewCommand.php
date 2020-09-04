@@ -87,7 +87,6 @@ class NewCommand extends Command
 
         $commands = [
             $composer." create-project laravel/laravel $directory $version --remove-vcs --prefer-dist",
-            "chmod 644 $directory/artisan",
         ];
 
         if ($directory != '.') {
@@ -95,6 +94,7 @@ class NewCommand extends Command
                 array_unshift($commands, "rd /s /q \"$directory\"");
             } else {
                 array_unshift($commands, "rm -rf $directory");
+				$commands[] = "chmod 644 $directory/artisan";
             }
         }
 
