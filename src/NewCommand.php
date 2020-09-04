@@ -91,7 +91,11 @@ class NewCommand extends Command
         ];
 
         if ($directory != '.') {
-            array_unshift($commands, "rm -rf $directory");
+            if (PHP_OS_FAMILY == 'Windows') {
+                array_unshift($commands, "rd /s /q \"$directory\"");
+            } else {
+                array_unshift($commands, "rm -rf $directory");
+            }
         }
 
         if ($this->runCommands($commands, $input, $output)->isSuccessful()) {
