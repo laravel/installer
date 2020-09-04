@@ -89,13 +89,16 @@ class NewCommand extends Command
             $composer." create-project laravel/laravel $directory $version --remove-vcs --prefer-dist",
         ];
 
-        if ($directory != '.') {
+        if ($directory != '.' && $input->getOption('force')) {
             if (PHP_OS_FAMILY == 'Windows') {
                 array_unshift($commands, "rd /s /q \"$directory\"");
             } else {
                 array_unshift($commands, "rm -rf $directory");
-				$commands[] = "chmod 644 $directory/artisan";
             }
+        }
+
+        if (PHP_OS_FAMILY != 'Windows') {
+            $commands[] = "chmod 644 $directory/artisan";
         }
 
         if ($this->runCommands($commands, $input, $output)->isSuccessful()) {
