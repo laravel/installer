@@ -82,7 +82,7 @@ class NewCommand extends Command
         $composer = $this->findComposer();
 
         $commands = [
-            $composer." create-project laravel/laravel $directory $version --remove-vcs --prefer-dist",
+             $composer." create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist",
         ];
 
         if ($directory != '.' && $input->getOption('force')) {
