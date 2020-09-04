@@ -98,17 +98,19 @@ class NewCommand extends Command
         }
 
         if ($this->runCommands($commands, $input, $output)->isSuccessful()) {
-            $this->replaceInFile(
-                'APP_URL=http://localhost',
-                'APP_URL=http://'.$name.'.test',
-                $directory.'/.env'
-            );
+            if($name && $name !== '.'){
+                $this->replaceInFile(
+                    'APP_URL=http://localhost',
+                    'APP_URL=http://'.$name.'.test',
+                    $directory.'/.env'
+                );
 
-            $this->replaceInFile(
-                'DB_DATABASE=laravel',
-                'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
-                $directory.'/.env'
-            );
+                $this->replaceInFile(
+                    'DB_DATABASE=laravel',
+                    'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
+                    $directory.'/.env'
+                );
+            }
 
             if ($input->getOption('jet')) {
                 $this->installJetstream($directory, $stack, $teams, $input, $output);
