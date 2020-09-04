@@ -91,7 +91,9 @@ class NewCommand extends Command
         ];
 
         if ($directory != '.') {
-            array_unshift($commands, "rm -rf $directory");
+            array_unshift($commands,
+                strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' ? "rmdir /Q /S $directory" : "rm -rf $directory"
+            );
         }
 
         if ($this->runCommands($commands, $input, $output)->isSuccessful()) {
