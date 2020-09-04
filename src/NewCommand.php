@@ -75,7 +75,7 @@ class NewCommand extends Command
 
         $name = $input->getArgument('name');
 
-        $directory = $name && $name !== '.' ? getcwd().'/'.$name : '.';
+        $directory = $name && $name !== '.' ? getcwd().DIRECTORY_SEPARATOR.$name : '.';
 
         $version = $this->getVersion($input);
 
