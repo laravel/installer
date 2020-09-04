@@ -14,7 +14,13 @@ class NewCommandTest extends TestCase
         $scaffoldDirectoryName = 'tests-output/my-app';
         $scaffoldDirectory = __DIR__.'/../'.$scaffoldDirectoryName;
 
-        exec("rm -rf $scaffoldDirectory");
+        if (file_exists($scaffoldDirectory)) {
+            if (PHP_OS_FAMILY == 'Windows') {
+                exec("rd /s /q \"$scaffoldDirectory\"");
+            } else {
+                exec("rm -rf $scaffoldDirectory");
+            }
+        }
 
         $app = new Application('Laravel Installer');
         $app->add(new NewCommand);

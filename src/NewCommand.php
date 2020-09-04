@@ -83,11 +83,18 @@ class NewCommand extends Command
 
         $commands = [
             $composer." create-project laravel/laravel $directory $version --remove-vcs --prefer-dist",
-            "chmod 644 $directory/artisan",
         ];
 
-        if ($directory != '.') {
-            array_unshift($commands, "rm -rf $directory");
+        if ($directory != '.' && $input->getOption('force')) {
+            if (PHP_OS_FAMILY == 'Windows') {
+                array_unshift($commands, "rd /s /q \"$directory\"");
+            } else {
+                array_unshift($commands, "rm -rf $directory");
+            }
+        }
+
+        if (PHP_OS_FAMILY != 'Windows') {
+            $commands[] = "chmod 644 $directory/artisan";
         }
 
         if ($this->runCommands($commands, $input, $output)->isSuccessful()) {
