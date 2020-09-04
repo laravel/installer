@@ -69,10 +69,6 @@ class NewCommand extends Command
 
         sleep(1);
 
-        if (version_compare(PHP_VERSION, '7.3.0', '<')) {
-            throw new RuntimeException('The Laravel installer requires PHP 7.3.0 or greater. Please use "composer create-project laravel/laravel" instead.');
-        }
-
         $name = $input->getArgument('name');
 
         $directory = $name && $name !== '.' ? getcwd().'/'.$name : '.';
