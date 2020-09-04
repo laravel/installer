@@ -98,7 +98,7 @@ class NewCommand extends Command
         }
 
         if ($this->runCommands($commands, $input, $output)->isSuccessful()) {
-            if($name && $name !== '.'){
+            if ($name && $name !== '.') {
                 $this->replaceInFile(
                     'APP_URL=http://localhost',
                     'APP_URL=http://'.$name.'.test',
