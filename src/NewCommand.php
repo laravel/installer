@@ -265,8 +265,6 @@ class NewCommand extends Command
 
         $output->write(PHP_EOL);
 
-        $stack = $helper->ask($input, new SymfonyStyle($input, $output), $question);
-
-        return $stack;
+        return $helper->ask($input, new SymfonyStyle($input, $output), $question);
     }
 }
