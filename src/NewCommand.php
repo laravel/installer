@@ -84,15 +84,15 @@ class NewCommand extends Command
             if (PHP_OS_FAMILY == 'Windows') {
                 array_unshift($commands, "rd /s /q \"$directory\"");
             } else {
-                array_unshift($commands, "rm -rf $directory");
+                array_unshift($commands, "rm -rf \"$directory\"");
             }
         }
 
         if (PHP_OS_FAMILY != 'Windows') {
-            $commands[] = "chmod 644 $directory/artisan";
+            $commands[] = "chmod 644 \"$directory/artisan\"";
         }
 
-        if ($this->runCommands($commands, $input, $output)->isSuccessful()) {
+        if (($process = $this->runCommands($commands, $input, $output))->isSuccessful()) {
             if ($name && $name !== '.') {
                 $this->replaceInFile(
                     'APP_URL=http://localhost',
@@ -114,7 +114,7 @@ class NewCommand extends Command
             $output->writeln(PHP_EOL.'<comment>Application ready! Build something amazing.</comment>');
         }
 
-        return 0;
+        return $process->getExitCode();
     }
 
     /**

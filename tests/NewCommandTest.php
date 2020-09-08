@@ -18,7 +18,7 @@ class NewCommandTest extends TestCase
             if (PHP_OS_FAMILY == 'Windows') {
                 exec("rd /s /q \"$scaffoldDirectory\"");
             } else {
-                exec("rm -rf $scaffoldDirectory");
+                exec("rm -rf \"$scaffoldDirectory\"");
             }
         }
 
