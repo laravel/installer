@@ -53,7 +53,6 @@ class NewCommand extends Command
             $teams = ! is_null($input->getOption('teams'))
                 ? (bool) $input->getOption('teams')
                 : (new SymfonyStyle($input, $output))->confirm('Will your application use teams?', false);
-            die();
         } else {
             $output->write(PHP_EOL.'<fg=red> _                               _
 | |                             | |
