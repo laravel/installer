@@ -99,6 +99,8 @@ class NewCommand extends Command
 
         if ($this->runCommands($commands, $input, $output)->isSuccessful()) {
             if ($name && $name !== '.') {
+                $name = strtolower($name);
+                
                 $this->replaceInFile(
                     'APP_URL=http://localhost',
                     'APP_URL=http://'.$name.'.test',
@@ -107,7 +109,7 @@ class NewCommand extends Command
 
                 $this->replaceInFile(
                     'DB_DATABASE=laravel',
-                    'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
+                    'DB_DATABASE='.str_replace('-', '_', $name),
                     $directory.'/.env'
                 );
             }
