@@ -27,6 +27,8 @@ class NewCommand extends Command
             ->addArgument('name', InputArgument::OPTIONAL)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
+            ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack')
+            ->addOption('teams', null, InputOption::VALUE_OPTIONAL, 'Install Jetstream teams.')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
@@ -46,18 +48,12 @@ class NewCommand extends Command
     ||---'|    `---.|    |    |---',---|| | |
 `---'`---'`---'`---'`---'`    `---'`---^` ' '</>".PHP_EOL.PHP_EOL);
 
-            $helper = $this->getHelper('question');
+            $stack = $this->jetstreamStack($input, $output);
 
-            $question = new ChoiceQuestion('Which Jetstream stack do you prefer?', [
-                'livewire',
-                'inertia',
-            ]);
-
-            $output->write(PHP_EOL);
-
-            $stack = $helper->ask($input, new SymfonyStyle($input, $output), $question);
-
-            $teams = (new SymfonyStyle($input, $output))->confirm('Will your application use teams?', false);
+            $teams = ! is_null($input->getOption('teams'))
+                ? (bool) $input->getOption('teams')
+                : (new SymfonyStyle($input, $output))->confirm('Will your application use teams?', false);
+            die();
         } else {
             $output->write(PHP_EOL.'<fg=red> _                               _
 | |                             | |
@@ -243,5 +239,34 @@ class NewCommand extends Command
             $file,
             str_replace($search, $replace, file_get_contents($file))
         );
+    }
+
+    /**
+     * Determine the stack for Jetstream.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return string
+     */
+    protected function jetstreamStack(InputInterface $input, OutputInterface $output)
+    {
+        $stacks = [
+            'livewire',
+            'inertia',
+        ];
+
+        if ($input->getOption('stack') && in_array($input->getOption('stack'), $stacks)) {
+            return $input->getOption('stack');
+        }
+
+        $helper = $this->getHelper('question');
+
+        $question = new ChoiceQuestion('Which Jetstream stack do you prefer?', $stacks);
+
+        $output->write(PHP_EOL);
+
+        $stack = $helper->ask($input, new SymfonyStyle($input, $output), $question);
+
+        return $stack;
     }
 }
