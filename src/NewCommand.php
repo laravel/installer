@@ -51,7 +51,7 @@ class NewCommand extends Command
             $question = new ChoiceQuestion('Which Jetstream stack do you prefer?', [
                 'livewire',
                 'inertia',
-            ]);
+            ], 'livewire');
 
             $output->write(PHP_EOL);
 
