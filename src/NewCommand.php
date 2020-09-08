@@ -28,7 +28,7 @@ class NewCommand extends Command
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack')
-            ->addOption('teams', null, InputOption::VALUE_OPTIONAL, 'Install Jetstream teams.')
+            ->addOption('teams', null, InputOption::VALUE_OPTIONAL, 'Install Jetstream teams')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
