@@ -1,6 +1,34 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v3.2.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.0.3...master)
+
+
+## [v4.0.3 (2020-09-08)](https://github.com/laravel/installer/compare/v4.0.2...v4.0.3)
+
+### Fixed
+- Fix for directories with spaces in current working directory path ([#147](https://github.com/laravel/installer/pull/147))
+
+
+## [v4.0.2 (2020-09-08)](https://github.com/laravel/installer/compare/v4.0.1...v4.0.2)
+
+### Added
+- Add stack and teams options ([#143](https://github.com/laravel/installer/pull/143))
+
+
+## [v4.0.1 (2020-09-07)](https://github.com/laravel/installer/compare/v4.0.0...v4.0.1)
+
+### Changed
+- Require PHP 7.3 ([#132](https://github.com/laravel/installer/pull/132))
+
+### Fixed
+- Fix multiple issues when running on Windows ([#133](https://github.com/laravel/installer/pull/133), [#137](https://github.com/laravel/installer/pull/137))
+- Only change `.env` file when project name exists ([#140](https://github.com/laravel/installer/pull/140))
+
+
+## [v4.0.0 (2020-09-03)](https://github.com/laravel/installer/compare/v3.2.0...v4.0.0)
+
+### Changed
+- Switch to `composer create-project` ([#124](https://github.com/laravel/installer/pull/124), [562650d](https://github.com/laravel/installer/commit/562650de8b637253b7ae47c3383bdd20e8419d1c), [8ab3502](https://github.com/laravel/installer/commit/8ab3502f1d5561d10cf1767213ec0c008baa145b))
 
 
 ## [v3.2.0 (2020-06-30)](https://github.com/laravel/installer/compare/v3.1.0...v3.2.0)
