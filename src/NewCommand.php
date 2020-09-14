@@ -74,6 +74,10 @@ class NewCommand extends Command
             $this->verifyApplicationDoesntExist($directory);
         }
 
+        if ($input->getOption('force') && $directory === '.') {
+            throw new RuntimeException('Cannot use --force option when using current directory for installation!');
+        }
+
         $composer = $this->findComposer();
 
         $commands = [
