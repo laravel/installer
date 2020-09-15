@@ -1,6 +1,13 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.0.3...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.0.4...master)
+
+
+## [v4.0.4 (2020-09-15)](https://github.com/laravel/installer/compare/v4.0.3...v4.0.4)
+
+### Fixed
+- Close `<fg>` tag ([#149](https://github.com/laravel/installer/pull/149))
+- Add warning about `--force` and installing in current directory ([#152](https://github.com/laravel/installer/pull/152))
 
 
 ## [v4.0.3 (2020-09-08)](https://github.com/laravel/installer/compare/v4.0.2...v4.0.3)
