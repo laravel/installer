@@ -93,7 +93,7 @@ class NewCommand extends Command
         }
 
         if (PHP_OS_FAMILY != 'Windows') {
-            $commands[] = "chmod 644 \"$directory/artisan\"";
+            $commands[] = "chmod 755 \"$directory/artisan\"";
         }
 
         if (($process = $this->runCommands($commands, $input, $output))->isSuccessful()) {
