@@ -2,7 +2,6 @@
 
 namespace Laravel\Installer\Console;
 
-use Illuminate\Support\Str;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -229,7 +228,7 @@ class NewCommand extends Command
     {
         if ($input->getOption('no-ansi')) {
             $commands = array_map(function ($value) {
-                if (substr( $value, 0, 5) === 'chmod') {
+                if (substr($value, 0, 5) === 'chmod') {
                     return $value;
                 }
 
@@ -239,7 +238,7 @@ class NewCommand extends Command
 
         if ($input->getOption('quiet')) {
             $commands = array_map(function ($value) {
-                if (substr( $value, 0, 5) === 'chmod') {
+                if (substr($value, 0, 5) === 'chmod') {
                     return $value;
                 }
 
