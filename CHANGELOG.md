@@ -1,6 +1,13 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.0.4...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.0.5...master)
+
+
+## [v4.0.5 (2020-09-22)](https://github.com/laravel/installer/compare/v4.0.4...v4.0.5)
+
+### Fixed
+- Ensure artisan command is executable ([#153](https://github.com/laravel/installer/pull/153))
+- Fix quiet and no-ansi flags ([#156](https://github.com/laravel/installer/pull/156))
 
 
 ## [v4.0.4 (2020-09-15)](https://github.com/laravel/installer/compare/v4.0.3...v4.0.4)
