@@ -159,23 +159,28 @@ class NewCommand extends Command
      */
     protected function checkAuthCompatibility($laravel_version)
     {
-        $version = explode('.', $laravel_version);
-        [$major, $minor] = $version;
+        if(!$laravel_version){
+            return;
+        }
 
-        if(!$version || ($major <= '5' && ($minor !== '*' && $minor < '8'))){
+        $version = explode('.', $laravel_version);
+        $major = $version[0];
+        $minor = $version[1] ?? '0';
+
+        if($major && ($major <= '5' && ($minor !== '*' && $minor < '8'))){
             throw new RuntimeException('It is not possible to install Laravel/UI on Laravel 5.7 or lower!');
         }
 
-        if($major >= '8'){
-            $this->auth_version = '^3';
+        if($major <= '6'){
+            $this->auth_version = '^1';
         }
 
         if($major === '7'){
             $this->auth_version = '^2';
         }
 
-        if($major <= '6'){
-            $this->auth_version = '^1';
+        if($major >= '8'){
+            $this->auth_version = '^3';
         }
     }
 
@@ -188,7 +193,7 @@ class NewCommand extends Command
     protected function checkJetstreamCompatibility($version)
     {
         $version = explode('.', $version)[0];
-        if(!$version || $version === '7'){
+        if($version && $version <= '7'){
             throw new RuntimeException('It is not possible to install Jetstream on Laravel 7 or lower!');
         }
     }
@@ -206,8 +211,9 @@ class NewCommand extends Command
     {
         chdir($directory);
 
+        $ui_command = $this->auth_version ? ' require laravel/ui "'.$this->auth_version.'"' : ' require laravel/ui';
         $commands = array_filter([
-            $this->findComposer().' require laravel/ui "'.$this->auth_version.'"',
+            $this->findComposer().$ui_command,
             PHP_BINARY.' artisan ui '.$preset.' --auth',
             'npm install && npm run dev',
         ]);
