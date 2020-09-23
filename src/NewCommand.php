@@ -15,6 +15,12 @@ use Symfony\Component\Process\Process;
 class NewCommand extends Command
 {
     /**
+     * Laravel/UI Version
+     * @var string
+     */
+    protected $auth_version;
+
+    /**
      * Configure the command options.
      *
      * @return void
@@ -25,10 +31,13 @@ class NewCommand extends Command
             ->setName('new')
             ->setDescription('Create a new Laravel application')
             ->addArgument('name', InputArgument::OPTIONAL)
+            ->addArgument('version', InputArgument::OPTIONAL)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack that should be installed')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
+            ->addOption('auth', null, InputOption::VALUE_NONE, 'Installs the Laravel authentication scaffolding')
+            ->addOption('preset', null, InputOption::VALUE_OPTIONAL, 'The Laravel/UI preset that should be installed')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
@@ -41,7 +50,24 @@ class NewCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        if ($input->getOption('jet') && $input->getOption('auth')) {
+            throw new RuntimeException('It is not possible to install Jetstream and Laravel/UI at the same time!');
+        }
+
+        if($input->getOption('auth')){
+            $this->checkAuthCompatibility($input->getArgument('version'));
+            $output->write(PHP_EOL."<fg=yellow>
+|                              |        .   .|
+|    ,---.,---.,---..    ,,---.|        |   ||
+|    ,---||    ,---| \  / |---'|        |   ||
+`---'`---^`    `---^  `'  `---'`---'    `---'`
+
+</>".PHP_EOL.PHP_EOL);
+            $preset = $this->authPreset($input, $output);
+        }
+
         if ($input->getOption('jet')) {
+            $this->checkJetstreamCompatibility($input->getArgument('version'));
             $output->write(PHP_EOL."<fg=magenta>
     |     |         |
     |,---.|--- ,---.|--- ,---.,---.,---.,-.-.
@@ -51,8 +77,8 @@ class NewCommand extends Command
             $stack = $this->jetstreamStack($input, $output);
 
             $teams = $input->getOption('teams') === true
-                    ? (bool) $input->getOption('teams')
-                    : (new SymfonyStyle($input, $output))->confirm('Will your application use teams?', false);
+                ? (bool) $input->getOption('teams')
+                : (new SymfonyStyle($input, $output))->confirm('Will your application use teams?', false);
         } else {
             $output->write(PHP_EOL.'<fg=red> _                               _
 | |                             | |
@@ -68,7 +94,7 @@ class NewCommand extends Command
 
         $directory = $name && $name !== '.' ? getcwd().'/'.$name : '.';
 
-        $version = $this->getVersion($input);
+        $version = $input->getArgument('version') ?? $this->getVersion($input);
 
         if (! $input->getOption('force')) {
             $this->verifyApplicationDoesntExist($directory);
@@ -115,10 +141,106 @@ class NewCommand extends Command
                 $this->installJetstream($directory, $stack, $teams, $input, $output);
             }
 
+            if ($input->getOption('auth')) {
+                $this->installAuth($directory, $preset, $input, $output);
+            }
+
             $output->writeln(PHP_EOL.'<comment>Application ready! Build something amazing.</comment>');
         }
 
         return $process->getExitCode();
+    }
+
+    /**
+     * Check compatibility between Laravel version and Laravel/UI
+     *
+     * @param string $laravel_version Laravel version
+     * @return void
+     */
+    protected function checkAuthCompatibility($laravel_version)
+    {
+        $version = explode('.', $laravel_version);
+        [$major, $minor] = $version;
+
+        if(!$version || ($major <= '5' && ($minor !== '*' && $minor < '8'))){
+            throw new RuntimeException('It is not possible to install Laravel/UI on Laravel 5.7 or lower!');
+        }
+
+        if($major >= '8'){
+            $this->auth_version = '^3';
+        }
+
+        if($major === '7'){
+            $this->auth_version = '^2';
+        }
+
+        if($major <= '6'){
+            $this->auth_version = '^1';
+        }
+    }
+
+    /**
+     * Check compatibility between Laravel version and Jetstream
+     *
+     * @param string $version Laravel version
+     * @return void
+     */
+    protected function checkJetstreamCompatibility($version)
+    {
+        $version = explode('.', $version)[0];
+        if(!$version || $version === '7'){
+            throw new RuntimeException('It is not possible to install Jetstream on Laravel 7 or lower!');
+        }
+    }
+
+    /**
+     * Install Laravel UI into the application.
+     *
+     * @param string $directory
+     * @param string $preset
+     * @param \Symfony\Component\Console\Input\InputInterface $input
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @return void
+     */
+    protected function installAuth(string $directory, string $preset, InputInterface $input, OutputInterface $output)
+    {
+        chdir($directory);
+
+        $commands = array_filter([
+            $this->findComposer().' require laravel/ui "'.$this->auth_version.'"',
+            PHP_BINARY.' artisan ui '.$preset.' --auth',
+            'npm install && npm run dev',
+        ]);
+
+        $this->runCommands($commands, $input, $output);
+    }
+
+    /**
+     * Determine the preset for Laravel/UI.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return string
+     */
+    protected function authPreset(InputInterface $input, OutputInterface $output)
+    {
+        $presets = [
+            'bootstrap',
+            'vue',
+            'react',
+        ];
+
+        if ($input->getOption('preset') && in_array($input->getOption('preset'), $presets)) {
+            return $input->getOption('preset');
+        }
+
+        $helper = $this->getHelper('question');
+
+        $question = new ChoiceQuestion('Which UI preset do you prefer?', $presets);
+
+        $output->write(PHP_EOL);
+
+        return $helper->ask($input, new SymfonyStyle($input, $output), $question);
     }
 
     /**
