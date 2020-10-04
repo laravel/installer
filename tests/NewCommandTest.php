@@ -67,8 +67,6 @@ class NewCommandTest extends TestCase
         $app = new Application('Laravel Installer');
         $app->add(new NewCommand);
 
-        echo "Current dir: " . getcwd() . "\n";
-
         $tester = new CommandTester($app->find('new'));
 
         $statusCode = $tester->execute($parameters);
