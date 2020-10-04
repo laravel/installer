@@ -11,7 +11,7 @@ class NewCommandTest extends TestCase
 {
     public function test_it_can_scaffold_a_new_laravel_app()
     {
-        $scaffoldDirectoryName = 'tests-output/my-app';
+        $scaffoldDirectoryName = 'tests-output'.DIRECTORY_SEPARATOR.'my-app';
         $scaffoldDirectory = $this->prepareScaffoldDirectory($scaffoldDirectoryName);
 
         $this->assertApplicationIsScaffolded($scaffoldDirectory, ['name' => $scaffoldDirectoryName]);
@@ -19,12 +19,16 @@ class NewCommandTest extends TestCase
 
     public function test_it_can_scaffold_a_new_laravel_app_in_the_current_directory()
     {
-        $scaffoldDirectoryName = 'tests-output/my-app';
+        $scaffoldDirectoryName = 'tests-output'.DIRECTORY_SEPARATOR.'my-app';
         $scaffoldDirectory = $this->prepareScaffoldDirectory($scaffoldDirectoryName);
 
         // Create directory and change into it.
-        mkdir($scaffoldDirectory);
-        chdir($scaffoldDirectory);
+        if (PHP_OS_FAMILY == 'Windows') {
+            exec("mkdir \"$scaffoldDirectory\" & cd \"$scaffoldDirectory\"");
+        } else {
+            mkdir($scaffoldDirectory);
+            chdir($scaffoldDirectory);
+        }
 
         $this->assertApplicationIsScaffolded($scaffoldDirectory, []);
     }
@@ -38,11 +42,7 @@ class NewCommandTest extends TestCase
      */
     protected function prepareScaffoldDirectory($scaffoldDirectoryName)
     {
-        $scaffoldDirectory = __DIR__.'/../'.$scaffoldDirectoryName;
-
-        if (PHP_OS_FAMILY == 'Windows') {
-            $scaffoldDirectory = preg_replace('/\//', '\\', $scaffoldDirectory);
-        }
+        $scaffoldDirectory = __DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.$scaffoldDirectoryName;
 
         if (file_exists($scaffoldDirectory)) {
             if (PHP_OS_FAMILY == 'Windows') {
@@ -66,12 +66,14 @@ class NewCommandTest extends TestCase
         $app = new Application('Laravel Installer');
         $app->add(new NewCommand);
 
+        echo "Current dir: " . getcwd() . "\n";
+
         $tester = new CommandTester($app->find('new'));
 
         $statusCode = $tester->execute($parameters);
 
         $this->assertSame(0, $statusCode);
-        $this->assertDirectoryExists($scaffoldDirectory.'/vendor');
-        $this->assertFileExists($scaffoldDirectory.'/.env');
+        $this->assertDirectoryExists($scaffoldDirectory.DIRECTORY_SEPARATOR.'vendor');
+        $this->assertFileExists($scaffoldDirectory.DIRECTORY_SEPARATOR.'.env');
     }
 }

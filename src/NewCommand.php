@@ -66,7 +66,7 @@ class NewCommand extends Command
 
         $name = $input->getArgument('name');
 
-        $directory = $name && $name !== '.' ? getcwd().'/'.$name : '.';
+        $directory = $name && $name !== '.' ? getcwd().DIRECTORY_SEPARATOR.$name : '.';
 
         $version = $this->getVersion($input);
 
@@ -101,13 +101,13 @@ class NewCommand extends Command
                 $this->replaceInFile(
                     'APP_URL=http://localhost',
                     'APP_URL=http://'.$name.'.test',
-                    $directory.'/.env'
+                    $directory.DIRECTORY_SEPARATOR.'.env'
                 );
 
                 $this->replaceInFile(
                     'DB_DATABASE=laravel',
                     'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
-                    $directory.'/.env'
+                    $directory.DIRECTORY_SEPARATOR.'.env'
                 );
             }
 
@@ -207,7 +207,7 @@ class NewCommand extends Command
      */
     protected function findComposer()
     {
-        $composerPath = getcwd().'/composer.phar';
+        $composerPath = getcwd().DIRECTORY_SEPARATOR.'composer.phar';
 
         if (file_exists($composerPath)) {
             return '"'.PHP_BINARY.'" '.$composerPath;
