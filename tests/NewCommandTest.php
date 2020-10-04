@@ -19,7 +19,7 @@ class NewCommandTest extends TestCase
 
     public function test_it_can_scaffold_a_new_laravel_app_in_the_current_directory()
     {
-        $scaffoldDirectoryName = 'tests-output'.DIRECTORY_SEPARATOR.'my-app';
+        $scaffoldDirectoryName = 'tests-output'.DIRECTORY_SEPARATOR.'my-app-cwd';
         $scaffoldDirectory = $this->prepareScaffoldDirectory($scaffoldDirectoryName);
 
         // Create directory and change into it.
