@@ -14,16 +14,7 @@ class NewCommandTest extends TestCase
         $scaffoldDirectoryName = 'tests-output/my-app';
         $scaffoldDirectory = $this->prepareScaffoldDirectory($scaffoldDirectoryName);
 
-        $app = new Application('Laravel Installer');
-        $app->add(new NewCommand);
-
-        $tester = new CommandTester($app->find('new'));
-
-        $statusCode = $tester->execute(['name' => $scaffoldDirectoryName]);
-
-        $this->assertSame(0, $statusCode);
-        $this->assertDirectoryExists($scaffoldDirectory.'/vendor');
-        $this->assertFileExists($scaffoldDirectory.'/.env');
+        $this->assertApplicationIsScaffolded($scaffoldDirectory, ['name' => $scaffoldDirectoryName]);
     }
 
     public function test_it_can_scaffold_a_new_laravel_app_in_the_current_directory()
@@ -35,19 +26,17 @@ class NewCommandTest extends TestCase
         mkdir($scaffoldDirectory);
         chdir($scaffoldDirectory);
 
-        $app = new Application('Laravel Installer');
-        $app->add(new NewCommand);
-
-        $tester = new CommandTester($app->find('new'));
-
-        $statusCode = $tester->execute([]);
-
-        $this->assertSame(0, $statusCode);
-        $this->assertDirectoryExists($scaffoldDirectory.'/vendor');
-        $this->assertFileExists($scaffoldDirectory.'/.env');
+        $this->assertApplicationIsScaffolded($scaffoldDirectory, []);
     }
 
-    public function prepareScaffoldDirectory($scaffoldDirectoryName)
+    /**
+     * Removes the scaffold test directory if existing and returns the absolute scaffold directory path.
+     *
+     * @param $scaffoldDirectoryName
+     *
+     * @return string
+     */
+    protected function prepareScaffoldDirectory($scaffoldDirectoryName)
     {
         $scaffoldDirectory = __DIR__.'/../'.$scaffoldDirectoryName;
 
@@ -60,5 +49,25 @@ class NewCommandTest extends TestCase
         }
 
         return $scaffoldDirectory;
+    }
+
+    /**
+     * Initiates the application scaffolding in the given directory and with the specified parameters and asserts it succeeded.
+     *
+     * @param string $scaffoldDirectory
+     * @param array  $parameters
+     */
+    protected function assertApplicationIsScaffolded(string $scaffoldDirectory, array $parameters): void
+    {
+        $app = new Application('Laravel Installer');
+        $app->add(new NewCommand);
+
+        $tester = new CommandTester($app->find('new'));
+
+        $statusCode = $tester->execute($parameters);
+
+        $this->assertSame(0, $statusCode);
+        $this->assertDirectoryExists($scaffoldDirectory . '/vendor');
+        $this->assertFileExists($scaffoldDirectory . '/.env');
     }
 }
