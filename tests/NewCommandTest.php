@@ -24,11 +24,12 @@ class NewCommandTest extends TestCase
 
         // Create directory and change into it.
         if (PHP_OS_FAMILY == 'Windows') {
-            exec("mkdir \"$scaffoldDirectory\" & cd \"$scaffoldDirectory\"");
+            exec("mkdir \"$scaffoldDirectory\"");
         } else {
             mkdir($scaffoldDirectory);
-            chdir($scaffoldDirectory);
         }
+
+        chdir($scaffoldDirectory);
 
         $this->assertApplicationIsScaffolded($scaffoldDirectory, []);
     }
