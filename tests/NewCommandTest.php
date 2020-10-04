@@ -40,6 +40,10 @@ class NewCommandTest extends TestCase
     {
         $scaffoldDirectory = __DIR__.'/../'.$scaffoldDirectoryName;
 
+        if (PHP_OS_FAMILY == 'Windows') {
+            $scaffoldDirectory = preg_replace('/\//', '\\', $scaffoldDirectory);
+        }
+
         if (file_exists($scaffoldDirectory)) {
             if (PHP_OS_FAMILY == 'Windows') {
                 exec("rd /s /q \"$scaffoldDirectory\"");
