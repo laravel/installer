@@ -109,6 +109,12 @@ class NewCommand extends Command
                     'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
                     $directory.'/.env'
                 );
+
+                $this->replaceInFile(
+                    'DB_DATABASE=laravel',
+                    'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
+                    $directory.'/.env.example'
+                );
             }
 
             if ($input->getOption('jet')) {
