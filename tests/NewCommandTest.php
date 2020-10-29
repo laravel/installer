@@ -27,7 +27,7 @@ class NewCommandTest extends TestCase
 
         $tester = new CommandTester($app->find('new'));
 
-        $statusCode = $tester->execute(['name' => $scaffoldDirectoryName]);
+        $statusCode = $tester->execute(['name' => $scaffoldDirectoryName], ['capture_stderr_separately' => true]);
 
         var_dump($tester->getErrorOutput());
 
