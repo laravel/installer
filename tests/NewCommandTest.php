@@ -27,9 +27,7 @@ class NewCommandTest extends TestCase
 
         $tester = new CommandTester($app->find('new'));
 
-        $statusCode = $tester->execute(['name' => $scaffoldDirectoryName], ['capture_stderr_separately' => true]);
-
-        var_dump($tester->getErrorOutput());
+        $statusCode = $tester->execute(['name' => $scaffoldDirectoryName]);
 
         $this->assertSame(0, $statusCode);
         $this->assertDirectoryExists($scaffoldDirectory.'/vendor');
