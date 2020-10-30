@@ -43,7 +43,7 @@ class NewCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $installJetstream = $input->getOption('jet') ||
-                            ($input->getOption('prompt-jetstream') && new SymfonyStyle($input, $output))->confirm('Would you like to install the Laravel Jetstream application scaffolding?', false);
+                            ($input->getOption('prompt-jetstream') && (new SymfonyStyle($input, $output))->confirm('Would you like to install the Laravel Jetstream application scaffolding?', false));
 
         if ($installJetstream) {
             $output->write(PHP_EOL."<fg=magenta>
