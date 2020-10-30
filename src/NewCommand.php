@@ -29,6 +29,7 @@ class NewCommand extends Command
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack that should be installed')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
+            ->addOption('prompt-jetstream', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Jetstream should be installed')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
@@ -41,7 +42,10 @@ class NewCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        if ($input->getOption('jet')) {
+        $installJetstream = $input->getOption('jet') ||
+                            (new SymfonyStyle($input, $output))->confirm('Would you like to install the Laravel Jetstream application scaffolding?', false);
+
+        if ($installJetstream) {
             $output->write(PHP_EOL."<fg=magenta>
     |     |         |
     |,---.|--- ,---.|--- ,---.,---.,---.,-.-.
@@ -117,7 +121,7 @@ class NewCommand extends Command
                 );
             }
 
-            if ($input->getOption('jet')) {
+            if ($installJetstream) {
                 $this->installJetstream($directory, $stack, $teams, $input, $output);
             }
 
