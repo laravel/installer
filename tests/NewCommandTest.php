@@ -22,11 +22,9 @@ class NewCommandTest extends TestCase
             }
         }
 
-
         if (! file_exists($scaffoldDirectory)) {
-            die($scaffoldDirectory . ' not existing');
+            exit($scaffoldDirectory.' not existing');
         }
-
 
         $app = new Application('Laravel Installer');
         $app->add(new NewCommand);
