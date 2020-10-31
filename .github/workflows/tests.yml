@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [7.3, 7.4]
+        php: [7.3, 7.4, 8.0]
 
     name: PHP ${{ matrix.php }}
 
@@ -25,7 +25,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip
+          extensions: dom, curl, libxml, mbstring, zip, fileinfo
           tools: composer:v2
           coverage: none
 
@@ -41,7 +41,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [7.3, 7.4]
+        php: [7.3, 7.4, 8.0]
 
     name: PHP ${{ matrix.php }} - Windows
 
@@ -58,7 +58,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip
+          extensions: dom, curl, libxml, mbstring, zip, fileinfo
           tools: composer:v2
           coverage: none
           ini-values: memory_limit=512M
