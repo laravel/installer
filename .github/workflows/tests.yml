@@ -7,33 +7,33 @@ on:
     - cron: '0 0 * * *'
 
 jobs:
-#  linux_tests:
-#
-#    runs-on: ubuntu-latest
-#    strategy:
-#      fail-fast: true
-#      matrix:
-#        php: [7.3, 7.4, 8.0]
-#
-#    name: PHP ${{ matrix.php }}
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v2
-#
-#      - name: Setup PHP
-#        uses: shivammathur/setup-php@v2
-#        with:
-#          php-version: ${{ matrix.php }}
-#          extensions: dom, curl, libxml, mbstring, zip
-#          tools: composer:v2
-#          coverage: none
-#
-#      - name: Install dependencies
-#        run: composer install --no-interaction --prefer-dist
-#
-#      - name: Execute tests
-#        run: vendor/bin/phpunit --verbose
+  linux_tests:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [7.3, 7.4, 8.0]
+
+    name: PHP ${{ matrix.php }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip, fileinfo
+          tools: composer:v2
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Execute tests
+        run: vendor/bin/phpunit --verbose
 
   windows_tests:
 
@@ -41,8 +41,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-#        php: [7.3, 7.4, 8.0]
-        php: [8.0]
+        php: [7.3, 7.4, 8.0]
 
     name: PHP ${{ matrix.php }} - Windows
 
