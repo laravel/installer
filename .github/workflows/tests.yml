@@ -8,8 +8,8 @@ on:
 
 jobs:
   linux_tests:
-
     runs-on: ubuntu-latest
+
     strategy:
       fail-fast: true
       matrix:
@@ -36,8 +36,8 @@ jobs:
         run: vendor/bin/phpunit --verbose
 
   windows_tests:
-
     runs-on: windows-latest
+
     strategy:
       fail-fast: true
       matrix:
