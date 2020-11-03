@@ -1,6 +1,30 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.0.5...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.1.0...master)
+
+
+## [v4.1.0 (2020-11-03)](https://github.com/laravel/installer/compare/v4.0.7...v4.1.0)
+
+### Added
+- PHP 8 Support ([#168](https://github.com/laravel/installer/pull/168))
+
+### Changed
+- Use `dev-master` for `dev` version ([9ce64f82](https://github.com/laravel/installer/commit/9ce64f82dcc6d700d91e34b7bcfc32f0b16e2839))
+
+
+## [v4.0.7 (2020-10-30)](https://github.com/laravel/installer/compare/v4.0.6...v4.0.7)
+
+### Fixed
+- Fixed some jetstream prompt issues
+
+
+## [v4.0.6 (2020-10-30)](https://github.com/laravel/installer/compare/v4.0.5...v4.0.6)
+
+### Added
+- Add prompt-jetstream switch ([95c3a00](https://github.com/laravel/installer/commit/95c3a00ee7fc188121ae3e90292f712eae19b26b))
+
+### Changed
+- Update `DB_DATABASE` in `.env.example` ([#167](https://github.com/laravel/installer/pull/167))
 
 
 ## [v4.0.5 (2020-09-22)](https://github.com/laravel/installer/compare/v4.0.4...v4.0.5)
