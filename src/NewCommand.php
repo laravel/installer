@@ -204,7 +204,7 @@ class NewCommand extends Command
     protected function getVersion(InputInterface $input)
     {
         if ($input->getOption('dev')) {
-            return 'dev-develop';
+            return 'dev-master';
         }
 
         return '';
