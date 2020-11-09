@@ -26,9 +26,11 @@ class NewCommand extends Command
             ->setDescription('Create a new Laravel application')
             ->addArgument('name', InputArgument::OPTIONAL)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
+            ->addOption('breeze', null, InputOption::VALUE_NONE, 'Installs the Laravel Breeze scaffolding')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack that should be installed')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
+            ->addOption('prompt-breeze', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Breeze should be installed')
             ->addOption('prompt-jetstream', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Jetstream should be installed')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
@@ -42,8 +44,15 @@ class NewCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $installBreeze = $input->getOption('breeze') ||
+                            ($input->getOption('prompt-breeze') && (new SymfonyStyle($input, $output))->confirm('Would you like to install the Laravel Breeze application scaffolding?', false));
+
         $installJetstream = $input->getOption('jet') ||
                             ($input->getOption('prompt-jetstream') && (new SymfonyStyle($input, $output))->confirm('Would you like to install the Laravel Jetstream application scaffolding?', false));
+
+        if ($installBreeze && $installJetstream) {
+            throw new RuntimeException('You can not install both Breeze and Jetstream in the same Application!');
+        }
 
         if ($installJetstream) {
             $output->write(PHP_EOL."<fg=magenta>
@@ -121,7 +130,9 @@ class NewCommand extends Command
                 );
             }
 
-            if ($installJetstream) {
+            if ($installBreeze) {
+                $this->installBreeze($directory, $input, $output);
+            } elseif ($installJetstream) {
                 $this->installJetstream($directory, $stack, $teams, $input, $output);
             }
 
@@ -129,6 +140,27 @@ class NewCommand extends Command
         }
 
         return $process->getExitCode();
+    }
+
+    /**
+     * Install Laravel Breeze into the application.
+     *
+     * @param  string  $directory
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function installBreeze(string $directory, InputInterface $input, OutputInterface $output)
+    {
+        chdir($directory);
+
+        $commands = array_filter([
+            $this->findComposer().' require laravel/breeze --dev',
+            trim(PHP_BINARY.' artisan breeze:install'),
+            'npm install && npm run dev',
+        ]);
+
+        $this->runCommands($commands, $input, $output);
     }
 
     /**
