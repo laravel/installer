@@ -24,7 +24,7 @@ class NewCommand extends Command
         $this
             ->setName('new')
             ->setDescription('Create a new Laravel application')
-            ->addArgument('name', InputArgument::OPTIONAL)
+            ->addArgument('name', InputArgument::REQUIRED)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack that should be installed')
@@ -70,7 +70,7 @@ class NewCommand extends Command
 
         $name = $input->getArgument('name');
 
-        $directory = $name && $name !== '.' ? getcwd().'/'.$name : '.';
+        $directory = $name !== '.' ? getcwd().'/'.$name : '.';
 
         $version = $this->getVersion($input);
 
@@ -101,7 +101,7 @@ class NewCommand extends Command
         }
 
         if (($process = $this->runCommands($commands, $input, $output))->isSuccessful()) {
-            if ($name && $name !== '.') {
+            if ($name !== '.') {
                 $this->replaceInFile(
                     'APP_URL=http://localhost',
                     'APP_URL=http://'.$name.'.test',
