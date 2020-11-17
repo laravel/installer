@@ -43,7 +43,7 @@ class NewCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $installJetstream = $input->getOption('jet') ||
-            ($input->getOption('prompt-jetstream') && (new SymfonyStyle($input, $output))->confirm('Would you like to install the Laravel Jetstream application scaffolding?', false));
+                            ($input->getOption('prompt-jetstream') && (new SymfonyStyle($input, $output))->confirm('Would you like to install the Laravel Jetstream application scaffolding?', false));
 
         if ($installJetstream) {
             $output->write(PHP_EOL."<fg=magenta>
@@ -55,8 +55,8 @@ class NewCommand extends Command
             $stack = $this->jetstreamStack($input, $output);
 
             $teams = $input->getOption('teams') === true
-                ? (bool) $input->getOption('teams')
-                : (new SymfonyStyle($input, $output))->confirm('Will your application use teams?', false);
+                    ? (bool) $input->getOption('teams')
+                    : (new SymfonyStyle($input, $output))->confirm('Will your application use teams?', false);
         } else {
             $output->write(PHP_EOL.'<fg=red> _                               _
 | |                             | |
@@ -78,7 +78,7 @@ class NewCommand extends Command
             $this->verifyApplicationDoesntExist($directory);
         }
 
-        if ($input->getOption('force') && (empty($name)  || $name === '.')) {
+        if ($input->getOption('force') && (empty($name) || $name === '.')) {
             throw new RuntimeException('Cannot use --force option when using current directory for installation!');
         }
 
