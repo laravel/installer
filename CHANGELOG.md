@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.1.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.1.1...master)
+
+
+## [v4.1.1 (2020-11-17)](https://github.com/laravel/installer/compare/v4.0.7...v4.1.1)
+
+### Changed
+- Require name argument ([#178](https://github.com/laravel/installer/pull/178))
 
 
 ## [v4.1.0 (2020-11-03)](https://github.com/laravel/installer/compare/v4.0.7...v4.1.0)
