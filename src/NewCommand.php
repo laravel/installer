@@ -262,7 +262,7 @@ class NewCommand extends Command
 
         chdir($directory);
 
-        $flags = $input->getOption('github') ?: "--private";
+        $flags = $input->getOption('github') ?: '--private';
 
         $commands = [
             "gh repo create $name -y $flags",
