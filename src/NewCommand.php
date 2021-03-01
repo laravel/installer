@@ -26,7 +26,8 @@ class NewCommand extends Command
             ->setDescription('Create a new Laravel application')
             ->addArgument('name', InputArgument::REQUIRED)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
-            ->addOption('git', null, InputOption::VALUE_NONE, 'Initialize a Git repository')
+            ->addOption('repo', null, InputOption::VALUE_NONE, 'Initialize a Git repository')
+            ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack that should be installed')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
@@ -126,8 +127,8 @@ class NewCommand extends Command
                 $this->installJetstream($directory, $stack, $teams, $input, $output);
             }
 
-            if ($input->getOption('git')) {
-                $this->setUpGitRepository($directory, $input, $output);
+            if ($input->hasOption('repo') || $input->hasOption('github')) {
+                $this->createRepository($name, $directory, $input, $output);
             }
 
             $output->writeln(PHP_EOL.'<comment>Application ready! Build something amazing.</comment>');
@@ -188,14 +189,15 @@ class NewCommand extends Command
     }
 
     /**
-     * Initialize a Git repository.
+     * Create a Git repository and optionally push it to GitHub.
      *
+     * @param  string  $name
      * @param  string  $directory
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
-    protected function setUpGitRepository(string $directory, InputInterface $input, OutputInterface $output)
+    protected function createRepository(string $name, string $directory, InputInterface $input, OutputInterface $output)
     {
         chdir($directory);
 
@@ -204,6 +206,13 @@ class NewCommand extends Command
             'git add .',
             'git commit -q -m "Set up a fresh Laravel app"',
         ];
+
+        if ($input->hasOption('github')) {
+            $flags = $input->getOption('github') ?: "--private";
+
+            $commands[] = "gh repo create $name -y $flags";
+            $commands[] = "git push -q -u origin main";
+        }
 
         $this->runCommands($commands, $input, $output);
     }
