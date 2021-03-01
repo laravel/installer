@@ -26,6 +26,7 @@ class NewCommand extends Command
             ->setDescription('Create a new Laravel application')
             ->addArgument('name', InputArgument::REQUIRED)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
+            ->addOption('git', null, InputOption::VALUE_NONE, 'Initialize a Git repository')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack that should be installed')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
@@ -125,6 +126,10 @@ class NewCommand extends Command
                 $this->installJetstream($directory, $stack, $teams, $input, $output);
             }
 
+            if ($input->getOption('git')) {
+                $this->setUpGitRepository($directory, $input, $output);
+            }
+
             $output->writeln(PHP_EOL.'<comment>Application ready! Build something amazing.</comment>');
         }
 
@@ -180,6 +185,27 @@ class NewCommand extends Command
         $output->write(PHP_EOL);
 
         return $helper->ask($input, new SymfonyStyle($input, $output), $question);
+    }
+
+    /**
+     * Initialize a Git repository.
+     *
+     * @param  string  $directory
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function setUpGitRepository(string $directory, InputInterface $input, OutputInterface $output)
+    {
+        chdir($directory);
+
+        $commands = [
+            'git init -q .',
+            'git add .',
+            'git commit -q -m "Set up a fresh Laravel app"',
+        ];
+
+        $this->runCommands($commands, $input, $output);
     }
 
     /**
