@@ -26,7 +26,7 @@ class NewCommand extends Command
             ->setDescription('Create a new Laravel application')
             ->addArgument('name', InputArgument::REQUIRED)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
-            ->addOption('repo', null, InputOption::VALUE_NONE, 'Initialize a Git repository')
+            ->addOption('git', null, InputOption::VALUE_NONE, 'Initialize a Git repository')
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack that should be installed')
@@ -123,12 +123,16 @@ class NewCommand extends Command
                 );
             }
 
+            if ($input->hasOption('git') || $input->hasOption('github')) {
+                $this->createRepository($directory, $input, $output);
+            }
+
             if ($installJetstream) {
                 $this->installJetstream($directory, $stack, $teams, $input, $output);
             }
 
-            if ($input->hasOption('repo') || $input->hasOption('github')) {
-                $this->createRepository($name, $directory, $input, $output);
+            if ($input->hasOption('github')) {
+                $this->pushToGitHub($name, $directory, $input, $output);
             }
 
             $output->writeln(PHP_EOL.'<comment>Application ready! Build something amazing.</comment>');
@@ -159,6 +163,8 @@ class NewCommand extends Command
         ]);
 
         $this->runCommands($commands, $input, $output);
+
+        $this->commitChanges('Install Jetstream', $directory, $input, $output);
     }
 
     /**
@@ -189,15 +195,14 @@ class NewCommand extends Command
     }
 
     /**
-     * Create a Git repository and optionally push it to GitHub.
+     * Create a Git repository and commit the base Laravel skeleton.
      *
-     * @param  string  $name
      * @param  string  $directory
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
-    protected function createRepository(string $name, string $directory, InputInterface $input, OutputInterface $output)
+    protected function createRepository(string $directory, InputInterface $input, OutputInterface $output)
     {
         chdir($directory);
 
@@ -207,12 +212,62 @@ class NewCommand extends Command
             'git commit -q -m "Set up a fresh Laravel app"',
         ];
 
-        if ($input->hasOption('github')) {
-            $flags = $input->getOption('github') ?: "--private";
+        $this->runCommands($commands, $input, $output);
+    }
 
-            $commands[] = "gh repo create $name -y $flags";
-            $commands[] = "git push -q -u origin main";
+    /**
+     * Commit any changes in the current working directory.
+     *
+     * @param  string  $message
+     * @param  string  $directory
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function commitChanges(string $message, string $directory, InputInterface $input, OutputInterface $output)
+    {
+        if (! $input->hasOption('git') && ! $input->hasOption('github')) {
+            return;
         }
+
+        chdir($directory);
+
+        $commands = [
+            'git add .',
+            "git commit -q -m \"$message\"",
+        ];
+
+        $this->runCommands($commands, $input, $output);
+    }
+
+    /**
+     * Create a GitHub repository and push the git log to it.
+     *
+     * @param  string  $name
+     * @param  string  $directory
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function pushToGitHub(string $name, string $directory, InputInterface $input, OutputInterface $output)
+    {
+        $process = new Process(['gh', 'auth', 'status']);
+        $process->run();
+
+        if (! $process->isSuccessful()) {
+            $output->writeln('Warning: make sure the "gh" CLI tool is installed and that you\'re authenticated to GitHub. Skipping...');
+
+            return;
+        }
+
+        chdir($directory);
+
+        $flags = $input->getOption('github') ?: "--private";
+
+        $commands = [
+            "gh repo create $name -y $flags",
+            'git push -q -u origin main',
+        ];
 
         $this->runCommands($commands, $input, $output);
     }
@@ -267,7 +322,7 @@ class NewCommand extends Command
      * @param  array  $commands
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-     * @return Process
+     * @return \Symfony\Component\Process\Process
      */
     protected function runCommands($commands, InputInterface $input, OutputInterface $output)
     {
