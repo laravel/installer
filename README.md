@@ -7,7 +7,7 @@
 
 ## Official Documentation
 
-Documentation for installing Laravel can be found on the [Laravel website](https://laravel.com/docs#installing-laravel).
+Documentation for installing Laravel can be found on the [Laravel website](https://laravel.com/docs/#the-laravel-installer).
 
 ## Contributing
 
