@@ -207,7 +207,7 @@ class NewCommand extends Command
         chdir($directory);
 
         $commands = [
-            'git init -q .',
+            'git init -q -b main .',
             'git add .',
             'git commit -q -m "Set up a fresh Laravel app"',
         ];
