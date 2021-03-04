@@ -123,7 +123,7 @@ class NewCommand extends Command
                 );
             }
 
-            if ($input->hasOption('git') || $input->hasOption('github')) {
+            if ($input->getOption('git') || $input->getOption('github')) {
                 $this->createRepository($directory, $input, $output);
             }
 
@@ -131,7 +131,7 @@ class NewCommand extends Command
                 $this->installJetstream($directory, $stack, $teams, $input, $output);
             }
 
-            if ($input->hasOption('github')) {
+            if ($input->getOption('github')) {
                 $this->pushToGitHub($name, $directory, $input, $output);
             }
 
@@ -226,7 +226,7 @@ class NewCommand extends Command
      */
     protected function commitChanges(string $message, string $directory, InputInterface $input, OutputInterface $output)
     {
-        if (! $input->hasOption('git') && ! $input->hasOption('github')) {
+        if (! $input->getOption('git') && ! $input->getOption('github')) {
             return;
         }
 
