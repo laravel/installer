@@ -27,7 +27,7 @@ class NewCommand extends Command
             ->addArgument('name', InputArgument::REQUIRED)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('git', null, InputOption::VALUE_NONE, 'Initialize a Git repository')
-            ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub')
+            ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack that should be installed')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
@@ -123,7 +123,7 @@ class NewCommand extends Command
                 );
             }
 
-            if ($input->hasOption('git') || $input->hasOption('github')) {
+            if ($input->getOption('git') || $input->getOption('github') !== false) {
                 $this->createRepository($directory, $input, $output);
             }
 
@@ -131,7 +131,7 @@ class NewCommand extends Command
                 $this->installJetstream($directory, $stack, $teams, $input, $output);
             }
 
-            if ($input->hasOption('github')) {
+            if ($input->getOption('github') !== false) {
                 $this->pushToGitHub($name, $directory, $input, $output);
             }
 
@@ -226,7 +226,7 @@ class NewCommand extends Command
      */
     protected function commitChanges(string $message, string $directory, InputInterface $input, OutputInterface $output)
     {
-        if (! $input->hasOption('git') && ! $input->hasOption('github')) {
+        if (! $input->getOption('git') && $input->getOption('github') === false) {
             return;
         }
 
