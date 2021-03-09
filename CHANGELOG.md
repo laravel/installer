@@ -1,9 +1,15 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.1.1...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.2.0...master)
 
 
-## [v4.1.1 (2020-11-17)](https://github.com/laravel/installer/compare/v4.0.7...v4.1.1)
+## [v4.2.0 (2021-03-09)](https://github.com/laravel/installer/compare/v4.1.1...v4.2.0)
+
+### Added
+- Git Support ([#185](https://github.com/laravel/installer/pull/185))
+
+
+## [v4.1.1 (2020-11-17)](https://github.com/laravel/installer/compare/v4.1.0...v4.1.1)
 
 ### Changed
 - Require name argument ([#178](https://github.com/laravel/installer/pull/178))
