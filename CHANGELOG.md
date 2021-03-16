@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.2.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.2.1...master)
+
+
+## [v4.2.1 (2021-03-16)](https://github.com/laravel/installer/compare/v4.2.0...v4.2.1)
+
+### Changed
+- Improve Git push ([#191](https://github.com/laravel/installer/pull/191))
 
 
 ## [v4.2.0 (2021-03-09)](https://github.com/laravel/installer/compare/v4.1.1...v4.2.0)
