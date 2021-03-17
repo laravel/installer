@@ -369,7 +369,7 @@ class NewCommand extends Command
      * @param  string  $search
      * @param  string  $replace
      * @param  string  $file
-     * @return string
+     * @return void
      */
     protected function replaceInFile(string $search, string $replace, string $file)
     {
