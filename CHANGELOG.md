@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.2.2...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.2.3...master)
+
+
+## [v4.2.3 (2021-03-18)](https://github.com/laravel/installer/compare/v4.2.2...v4.2.3)
+
+### Added
+- Add organization flag ([#194](https://github.com/laravel/installer/pull/194))
 
 
 ## [v4.2.2 (2021-03-16)](https://github.com/laravel/installer/compare/v4.2.1...v4.2.2)
