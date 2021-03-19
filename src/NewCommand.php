@@ -27,6 +27,7 @@ class NewCommand extends Command
             ->addArgument('name', InputArgument::REQUIRED)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('git', null, InputOption::VALUE_NONE, 'Initialize a Git repository')
+            ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'Set your branch name, defaults to "main"')
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
@@ -207,8 +208,10 @@ class NewCommand extends Command
     {
         chdir($directory);
 
+        $branch = $input->getOption('branch') ?: 'main';
+
         $commands = [
-            'git init -q -b main .',
+            "git init -q -b $branch .",
             'git add .',
             'git commit -q -m "Set up a fresh Laravel app"',
         ];
@@ -267,9 +270,11 @@ class NewCommand extends Command
 
         $flags = $input->getOption('github') ?: '--private';
 
+        $branch = $input->getOption('branch') ?: 'main';
+
         $commands = [
             "gh repo create $name -y $flags",
-            "git -c credential.helper= -c credential.helper='!gh auth git-credential' push -q -u origin main",
+            "git -c credential.helper= -c credential.helper='!gh auth git-credential' push -q -u origin $branch",
         ];
 
         $this->runCommands($commands, $input, $output, ['GIT_TERMINAL_PROMPT' => 0]);
