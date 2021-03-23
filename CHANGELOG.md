@@ -1,6 +1,15 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.2.3...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.2.4...master)
+
+
+## [v4.2.4 (2021-03-23)](https://github.com/laravel/installer/compare/v4.2.3...v4.2.4)
+
+### Added
+- Add branch flag ([#197](https://github.com/laravel/installer/pull/197), [a8d5c2d](https://github.com/laravel/installer/commit/a8d5c2d2ff7df892b567ffea19527b0c4451b750))
+
+### Changed
+- Update pushing branch ([#196](https://github.com/laravel/installer/pull/196))
 
 
 ## [v4.2.3 (2021-03-18)](https://github.com/laravel/installer/compare/v4.2.2...v4.2.3)
