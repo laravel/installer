@@ -211,9 +211,10 @@ class NewCommand extends Command
         $branch = $input->getOption('branch') ?: 'main';
 
         $commands = [
-            "git init -q -b {$branch} .",
+            'git init -q',
             'git add .',
             'git commit -q -m "Set up a fresh Laravel app"',
+            "git branch -M {$branch}",
         ];
 
         $this->runCommands($commands, $input, $output);
