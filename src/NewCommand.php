@@ -107,6 +107,12 @@ class NewCommand extends Command
         if (($process = $this->runCommands($commands, $input, $output))->isSuccessful()) {
             if ($name !== '.') {
                 $this->replaceInFile(
+                    'APP_NAME=Laravel',
+                    'APP_NAME="'.ucwords($name).'"',
+                    $directory.'/.env'
+                );
+
+                $this->replaceInFile(
                     'APP_URL=http://localhost',
                     'APP_URL=http://'.$name.'.test',
                     $directory.'/.env'
