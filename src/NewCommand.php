@@ -334,7 +334,7 @@ class NewCommand extends Command
      */
     protected function runCommands($commands, InputInterface $input, OutputInterface $output, array $env = [])
     {
-        if ($input->getOption('no-ansi')) {
+        if ($input->hasOption('no-ansi')) {
             $commands = array_map(function ($value) {
                 if (substr($value, 0, 5) === 'chmod') {
                     return $value;
