@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.2.5...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.2.6...master)
+
+
+## [v4.2.6 (2021-06-01)](https://github.com/laravel/installer/compare/v4.2.5...v4.2.6)
+
+### Fixed
+- Fix new command failing without `no-ansi` option ([#202](https://github.com/laravel/installer/pull/202))
 
 
 ## [v4.2.5 (2021-04-27)](https://github.com/laravel/installer/compare/v4.2.4...v4.2.5)
