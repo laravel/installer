@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.2.6...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.2.7...master)
+
+
+## [v4.2.7 (2021-06-08)](https://github.com/laravel/installer/compare/v4.2.6...v4.2.7)
+
+### Fixed
+- Use `isDecorated` for no-ansi detection ([#203](https://github.com/laravel/installer/pull/203))
 
 
 ## [v4.2.6 (2021-06-01)](https://github.com/laravel/installer/compare/v4.2.5...v4.2.6)
