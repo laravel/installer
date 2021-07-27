@@ -340,6 +340,10 @@ class NewCommand extends Command
                     return $value;
                 }
 
+                if (substr($value, 0, 2) === 'rm') {
+                    return $value;
+                }
+
                 return $value.' --no-ansi';
             }, $commands);
         }
