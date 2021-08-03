@@ -34,7 +34,8 @@ class NewCommand extends Command
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack that should be installed')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
             ->addOption('prompt-jetstream', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Jetstream should be installed')
-            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
+            ->addOption('template', 't', InputOption::VALUE_OPTIONAL, 'The laravel template to use', 'laravel/laravel');
     }
 
     /**
@@ -74,6 +75,8 @@ class NewCommand extends Command
 
         $name = $input->getArgument('name');
 
+        $template = $input->getOption('template');
+
         $directory = $name !== '.' ? getcwd().'/'.$name : '.';
 
         $version = $this->getVersion($input);
@@ -89,7 +92,7 @@ class NewCommand extends Command
         $composer = $this->findComposer();
 
         $commands = [
-            $composer." create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist",
+            $composer." create-project $template \"$directory\" $version --remove-vcs --prefer-dist",
         ];
 
         if ($directory != '.' && $input->getOption('force')) {
