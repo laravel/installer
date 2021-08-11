@@ -144,7 +144,7 @@ class NewCommand extends Command
     }
 
     /**
-     * Return `git config --global init.defaultBranch` if set or default to `main`
+     * Return `git config --global init.defaultBranch` if set or default to `main`.
      *
      * @return string
      */
