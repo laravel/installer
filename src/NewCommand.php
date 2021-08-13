@@ -144,13 +144,14 @@ class NewCommand extends Command
     }
 
     /**
-     * Return `git config --global init.defaultBranch` if set or default to `main`.
+     * Return the loacl machine's default Git branch if set or default to `main`.
      *
      * @return string
      */
     protected function defaultBranch()
     {
         $process = new Process(['git', 'config', '--global', 'init.defaultBranch']);
+
         $process->run();
 
         $output = trim($process->getOutput());
