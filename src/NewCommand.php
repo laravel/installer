@@ -27,7 +27,7 @@ class NewCommand extends Command
             ->addArgument('name', InputArgument::REQUIRED)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('git', null, InputOption::VALUE_NONE, 'Initialize a Git repository')
-            ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'The branch that should be created for a new repository', $this->defaultBranch('main'))
+            ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'The branch that should be created for a new repository', $this->defaultBranch())
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
@@ -148,14 +148,14 @@ class NewCommand extends Command
      *
      * @return string
      */
-    protected function defaultBranch($default)
+    protected function defaultBranch()
     {
         $process = new Process(['git', 'config', '--global', 'init.defaultBranch']);
         $process->run();
 
         $output = trim($process->getOutput());
 
-        return $process->isSuccessful() && $output ? $output : $default;
+        return $process->isSuccessful() && $output ? $output : 'main';
     }
 
     /**
@@ -223,7 +223,7 @@ class NewCommand extends Command
     {
         chdir($directory);
 
-        $branch = $input->getOption('branch') ?: $this->defaultBranch('main');
+        $branch = $input->getOption('branch') ?: $this->defaultBranch();
 
         $commands = [
             'git init -q',
@@ -284,7 +284,7 @@ class NewCommand extends Command
 
         $name = $input->getOption('organization') ? $input->getOption('organization')."/$name" : $name;
         $flags = $input->getOption('github') ?: '--private';
-        $branch = $input->getOption('branch') ?: $this->defaultBranch('main');
+        $branch = $input->getOption('branch') ?: $this->defaultBranch();
 
         $commands = [
             "gh repo create {$name} -y {$flags}",
