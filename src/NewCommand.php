@@ -144,7 +144,7 @@ class NewCommand extends Command
     }
 
     /**
-     * Return the loacl machine's default Git branch if set or default to `main`.
+     * Return the local machine's default Git branch if set or default to `main`.
      *
      * @return string
      */
