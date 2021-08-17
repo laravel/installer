@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.2.7...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.2.8...master)
+
+
+## [v4.2.8 (2021-08-17)](https://github.com/laravel/installer/compare/v4.2.7...v4.2.8)
+
+### Changed
+- Respect git global config for a default branch ([#207](https://github.com/laravel/installer/pull/207))
 
 
 ## [v4.2.7 (2021-06-08)](https://github.com/laravel/installer/compare/v4.2.6...v4.2.7)
