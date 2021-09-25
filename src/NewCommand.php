@@ -411,17 +411,17 @@ class NewCommand extends Command
     /**
      * Runs the "valet link" and "valet secure" commands.
      *
-     * @param string $name
-     * @param string $directory
-     * @param InputInterface $input
-     * @param OutputInterface $output
+     * @param  string  $name
+     * @param  string  $directory
+     * @param  InputInterface  $input
+     * @param  OutputInterface  $output
      */
     protected function linkAndSecureWithValet(string $name, string $directory, InputInterface $input, OutputInterface $output)
     {
         $commands = [
-            'cd ' . $name . '/public',
-            'valet link ' . $name,
-            'valet secure ' . $name,
+            'cd '.$name.'/public',
+            'valet link '.$name,
+            'valet secure '.$name,
         ];
 
         $this->runCommands($commands, $input, $output);
