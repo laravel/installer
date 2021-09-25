@@ -34,7 +34,8 @@ class NewCommand extends Command
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack that should be installed')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
             ->addOption('prompt-jetstream', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Jetstream should be installed')
-            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
+            ->addOption('valet', null, InputOption::VALUE_OPTIONAL, 'Links and secures your new installation with Valet');
     }
 
     /**
@@ -135,6 +136,10 @@ class NewCommand extends Command
 
             if ($input->getOption('github') !== false) {
                 $this->pushToGitHub($name, $directory, $input, $output);
+            }
+
+            if ($input->getOption('valet') !== false) {
+                $this->linkAndSecureWithValet($name, $directory, $input, $output);
             }
 
             $output->writeln(PHP_EOL.'<comment>Application ready! Build something amazing.</comment>');
@@ -401,5 +406,24 @@ class NewCommand extends Command
             $file,
             str_replace($search, $replace, file_get_contents($file))
         );
+    }
+
+    /**
+     * Runs the "valet link" and "valet secure" commands.
+     *
+     * @param string $name
+     * @param string $directory
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     */
+    protected function linkAndSecureWithValet(string $name, string $directory, InputInterface $input, OutputInterface $output)
+    {
+        $commands = [
+            'cd ' . $name . '/public',
+            'valet link ' . $name,
+            'valet secure ' . $name,
+        ];
+
+        $this->runCommands($commands, $input, $output);
     }
 }
