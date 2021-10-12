@@ -34,7 +34,8 @@ class NewCommand extends Command
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack that should be installed')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
             ->addOption('prompt-jetstream', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Jetstream should be installed')
-            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
+            ->addOption('pest', null, InputOption::VALUE_NONE, 'Installs the PEST as testing framework');
     }
 
     /**
@@ -133,6 +134,10 @@ class NewCommand extends Command
                 $this->installJetstream($directory, $stack, $teams, $input, $output);
             }
 
+            if ($input->getOption('pest') !== false) {
+                $this->installPest($directory, $input, $output);
+            }
+
             if ($input->getOption('github') !== false) {
                 $this->pushToGitHub($name, $directory, $input, $output);
             }
@@ -141,6 +146,50 @@ class NewCommand extends Command
         }
 
         return $process->getExitCode();
+    }
+
+    /**
+     * Install Pest as default testing framework into the application.
+     *
+     * @param  string  $directory
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function installPest(string $directory, InputInterface $input, OutputInterface $output)
+    {
+        chdir($directory);
+
+        $commands = array_filter([
+            $this->findComposer().' require pestphp/pest-plugin-laravel --dev',
+            PHP_BINARY.' artisan pest:install --no-interaction',
+        ]);
+
+        $this->runCommands($commands, $input, $output);
+
+        file_put_contents($directory.'/tests/Feature/ExampleTest.php', <<<'EOF'
+<?php
+
+test('example', function () {
+    $response = $this->get('/');
+
+    $response->assertStatus(200);
+});
+
+EOF
+);
+
+        file_put_contents($directory.'/tests/Unit/ExampleTest.php', <<<'EOF'
+<?php
+
+test('example', function () {
+    expect(true)->toBeTrue();
+});
+
+EOF
+        );
+
+        $this->commitChanges('Install Pest', $directory, $input, $output);
     }
 
     /**
