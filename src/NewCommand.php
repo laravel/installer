@@ -167,26 +167,14 @@ class NewCommand extends Command
 
         $this->runCommands($commands, $input, $output);
 
-        file_put_contents($directory.'/tests/Feature/ExampleTest.php', <<<'EOF'
-<?php
+        file_put_contents(
+            $directory.'/tests/Feature/ExampleTest.php',
+            file_get_contents($directory.'/vendor/laravel/framework/src/Illuminate/Foundation/Console/stubs/pest.stub')
+        );
 
-test('example', function () {
-    $response = $this->get('/');
-
-    $response->assertStatus(200);
-});
-
-EOF
-);
-
-        file_put_contents($directory.'/tests/Unit/ExampleTest.php', <<<'EOF'
-<?php
-
-test('example', function () {
-    expect(true)->toBeTrue();
-});
-
-EOF
+        file_put_contents(
+            $directory.'/tests/Unit/ExampleTest.php',
+            file_get_contents($directory.'/vendor/laravel/framework/src/Illuminate/Foundation/Console/stubs/pest.unit.stub')
         );
 
         $this->commitChanges('Install Pest', $directory, $input, $output);
