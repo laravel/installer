@@ -35,7 +35,7 @@ class NewCommand extends Command
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
             ->addOption('prompt-jetstream', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Jetstream should be installed')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
-            ->addOption('pest', null, InputOption::VALUE_NONE, 'Installs the PEST as testing framework');
+            ->addOption('pest', null, InputOption::VALUE_NONE, 'Installs PEST as testing framework');
     }
 
     /**
