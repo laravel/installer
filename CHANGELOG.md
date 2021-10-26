@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.2.8...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.2.9...master)
+
+
+## [v4.2.9 (2021-10-26)](https://github.com/laravel/installer/compare/v4.2.8...v4.2.9)
+
+### Changed
+- Always run NPM install ([#214](https://github.com/laravel/installer/pull/214))
 
 
 ## [v4.2.8 (2021-08-17)](https://github.com/laravel/installer/compare/v4.2.7...v4.2.8)
