@@ -288,7 +288,7 @@ class NewCommand extends Command
         $branch = $input->getOption('branch') ?: $this->defaultBranch();
 
         $commands = [
-            "gh repo create {$name} -y {$flags}",
+            "gh repo create {$name} --source=. {$flags}",
             "git -c credential.helper= -c credential.helper='!gh auth git-credential' push -q -u origin {$branch}",
         ];
 
