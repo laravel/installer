@@ -1,6 +1,15 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.2.9...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.2.10...master)
+
+
+## [v4.2.10 (2022-01-18)](https://github.com/laravel/installer/compare/v4.2.9...v4.2.10)
+
+### Changed
+- Symfony v6 support ([#217](https://github.com/laravel/installer/pull/217))
+
+### Fixed
+- Maintain current functionality with gh repo create rewrite ([#219](https://github.com/laravel/installer/pull/219))
 
 
 ## [v4.2.9 (2021-10-26)](https://github.com/laravel/installer/compare/v4.2.8...v4.2.9)
