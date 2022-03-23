@@ -137,6 +137,10 @@ class NewCommand extends Command
                 $this->pushToGitHub($name, $directory, $input, $output);
             }
 
+            chdir($directory);
+
+            $this->runCommands([PHP_BINARY.' artisan --version'], $input, $output);
+
             $output->writeln(PHP_EOL.'<comment>Application ready! Build something amazing.</comment>');
         }
 
