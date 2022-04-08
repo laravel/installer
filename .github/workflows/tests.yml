@@ -59,9 +59,9 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           extensions: dom, curl, libxml, mbstring, zip, fileinfo
+          ini-values: error_reporting=E_ALL, memory_limit=512M
           tools: composer:v2
           coverage: none
-          ini-values: memory_limit=512M
 
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
