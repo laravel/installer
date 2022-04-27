@@ -33,6 +33,7 @@ class NewCommand extends Command
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack that should be installed')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
+            ->addOption('ssr', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with inertia server-side rendering support')
             ->addOption('prompt-jetstream', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Jetstream should be installed')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
@@ -61,6 +62,10 @@ class NewCommand extends Command
             $teams = $input->getOption('teams') === true
                     ? (bool) $input->getOption('teams')
                     : (new SymfonyStyle($input, $output))->confirm('Will your application use teams?', false);
+
+            $ssr = $stack === 'inertia' && $input->getOption('ssr') === true
+                    ? (bool) $input->getOption('ssr')
+                    : (new SymfonyStyle($input, $output))->confirm('Will your application support inertia server-side rendering?', false);
         } else {
             $output->write(PHP_EOL.'<fg=red> _                               _
 | |                             | |
@@ -130,7 +135,7 @@ class NewCommand extends Command
             }
 
             if ($installJetstream) {
-                $this->installJetstream($directory, $stack, $teams, $input, $output);
+                $this->installJetstream($directory, $stack, $teams, $ssr, $input, $output);
             }
 
             if ($input->getOption('github') !== false) {
@@ -165,17 +170,18 @@ class NewCommand extends Command
      * @param  string  $directory
      * @param  string  $stack
      * @param  bool  $teams
+     * @param  bool  $ssr
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
-    protected function installJetstream(string $directory, string $stack, bool $teams, InputInterface $input, OutputInterface $output)
+    protected function installJetstream(string $directory, string $stack, bool $teams, bool $ssr, InputInterface $input, OutputInterface $output)
     {
         chdir($directory);
 
         $commands = array_filter([
             $this->findComposer().' require laravel/jetstream',
-            trim(sprintf(PHP_BINARY.' artisan jetstream:install %s %s', $stack, $teams ? '--teams' : '')),
+            trim(sprintf(PHP_BINARY.' artisan jetstream:install %s %s %s', $stack, $teams ? '--teams' : '', $ssr ? '--ssr' : '')),
             'npm install && npm run dev',
             PHP_BINARY.' artisan storage:link',
         ]);
