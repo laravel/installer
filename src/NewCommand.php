@@ -29,6 +29,7 @@ class NewCommand extends Command
             ->addOption('git', null, InputOption::VALUE_NONE, 'Initialize a Git repository')
             ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'The branch that should be created for a new repository', $this->defaultBranch())
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
+            ->addOption('gitlab', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on Gitlab', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack that should be installed')
@@ -125,7 +126,7 @@ class NewCommand extends Command
                 );
             }
 
-            if ($input->getOption('git') || $input->getOption('github') !== false) {
+            if ($input->getOption('git') || $input->getOption('github') !== false || $input->getOption('gitlab') !== false) {
                 $this->createRepository($directory, $input, $output);
             }
 
@@ -135,6 +136,10 @@ class NewCommand extends Command
 
             if ($input->getOption('github') !== false) {
                 $this->pushToGitHub($name, $directory, $input, $output);
+            }
+
+            if ($input->getOption('gitlab') !== false) {
+                $this->pushToGitLab($name, $directory, $input, $output);
             }
 
             $output->writeln(PHP_EOL.'<comment>Application ready! Build something amazing.</comment>');
@@ -247,7 +252,7 @@ class NewCommand extends Command
      */
     protected function commitChanges(string $message, string $directory, InputInterface $input, OutputInterface $output)
     {
-        if (! $input->getOption('git') && $input->getOption('github') === false) {
+        if (! $input->getOption('git') && $input->getOption('github') === false && $input->getOption('gitlab') === false) {
             return;
         }
 
@@ -290,6 +295,40 @@ class NewCommand extends Command
         $commands = [
             "gh repo create {$name} --source=. {$flags}",
             "git -c credential.helper= -c credential.helper='!gh auth git-credential' push -q -u origin {$branch}",
+        ];
+
+        $this->runCommands($commands, $input, $output, ['GIT_TERMINAL_PROMPT' => 0]);
+    }
+
+    /**
+     * Create a GitLab repository and push the git log to it.
+     *
+     * @param  string  $name
+     * @param  string  $directory
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function pushToGitLab(string $name, string $directory, InputInterface $input, OutputInterface $output)
+    {
+        $process = new Process(['glab', 'auth', 'status']);
+        $process->run();
+
+        if (! $process->isSuccessful()) {
+            $output->writeln('Warning: make sure the "glab" CLI tool is installed and that you\'re authenticated to GitLab. Skipping...');
+
+            return;
+        }
+
+        chdir($directory);
+
+        $name = $input->getOption('organization') ? $input->getOption('organization')."/$name" : $name;
+        $flags = $input->getOption('gitlab') ?: '--private';
+        $branch = $input->getOption('branch') ?: $this->defaultBranch();
+
+        $commands = [
+            "glab repo create --name {$name} {$flags}",
+            "git -c credential.helper= -c credential.helper='!glab auth git-credential' push -q -u origin {$branch}",
         ];
 
         $this->runCommands($commands, $input, $output, ['GIT_TERMINAL_PROMPT' => 0]);
