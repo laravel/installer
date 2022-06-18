@@ -34,6 +34,8 @@ class NewCommand extends Command
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack that should be installed')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
             ->addOption('prompt-jetstream', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Jetstream should be installed')
+            ->addOption('node-packages', null, InputOption::VALUE_NONE, 'Installs the required Node packages')
+            ->addOption('yarn', null, InputOption::VALUE_NONE, 'Use Yarn instead of NPM to install dependencies')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
@@ -49,6 +51,8 @@ class NewCommand extends Command
         $installJetstream = $input->getOption('jet') ||
                             ($input->getOption('prompt-jetstream') && (new SymfonyStyle($input, $output))->confirm('Would you like to install the Laravel Jetstream application scaffolding?', false));
 
+        $installNodePackages = $input->getOption('node-packages') || $installJetstream;
+
         if ($installJetstream) {
             $output->write(PHP_EOL."<fg=magenta>
     |     |         |
@@ -61,6 +65,8 @@ class NewCommand extends Command
             $teams = $input->getOption('teams') === true
                     ? (bool) $input->getOption('teams')
                     : (new SymfonyStyle($input, $output))->confirm('Will your application use teams?', false);
+
+            $nodePackageManager = $this->getNodePackageManager($input, $output);
         } else {
             $output->write(PHP_EOL.'<fg=red> _                               _
 | |                             | |
@@ -77,6 +83,10 @@ class NewCommand extends Command
         $directory = $name !== '.' ? getcwd().'/'.$name : '.';
 
         $version = $this->getVersion($input);
+
+        if($installNodePackages){
+            $nodePackageManager = $this->getNodePackageManager($input, $output);
+        }
 
         if (! $input->getOption('force')) {
             $this->verifyApplicationDoesntExist($directory);
@@ -130,7 +140,11 @@ class NewCommand extends Command
             }
 
             if ($installJetstream) {
-                $this->installJetstream($directory, $stack, $teams, $input, $output);
+                $this->installJetstream($directory, $stack, $teams, $input, $output, $nodePackageManager);
+            }
+
+            if ($installNodePackages) {
+                $this->installNodePackages($directory, $input, $output, $nodePackageManager);
             }
 
             if ($input->getOption('github') !== false) {
@@ -169,14 +183,14 @@ class NewCommand extends Command
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
-    protected function installJetstream(string $directory, string $stack, bool $teams, InputInterface $input, OutputInterface $output)
+    protected function installJetstream(string $directory, string $stack, bool $teams, InputInterface $input, OutputInterface $output, $nodePackageManager)
     {
         chdir($directory);
 
         $commands = array_filter([
             $this->findComposer().' require laravel/jetstream',
             trim(sprintf(PHP_BINARY.' artisan jetstream:install %s %s', $stack, $teams ? '--teams' : '')),
-            'npm install && npm run dev',
+            $nodePackageManager == 'yarn' ? 'yarn install && yarn dev' : 'npm install && npm run dev',
             PHP_BINARY.' artisan storage:link',
         ]);
 
@@ -401,5 +415,58 @@ class NewCommand extends Command
             $file,
             str_replace($search, $replace, file_get_contents($file))
         );
+    }
+
+    /**
+     * Determine which nodejs package manager to use.
+     * 
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return string
+     */
+
+    protected function getNodePackageManager(InputInterface $input, OutputInterface $output)
+    {
+        if($input->getOption('yarn')) {
+            return 'yarn';
+        }
+
+        $packageManagers = [
+           'npm',
+           'yarn',
+        ];
+
+        $helper = $this->getHelper('question');
+
+        $question = new ChoiceQuestion('Which node package manager do you want to use?', $packageManagers);
+        
+        $output->write(PHP_EOL);
+
+        return $helper->ask($input, new SymfonyStyle($input, $output), $question);
+
+    }
+
+    /**
+     * Install node packages.
+     *
+     * @param  string  $directory
+     * @param  string  $stack
+     * @param  bool  $teams
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+
+    protected function installNodePackages(string $directory, InputInterface $input, OutputInterface $output, $nodePackageManager)
+    {
+        chdir($directory);
+
+        $commands = [
+            $nodePackageManager.' install',
+        ];
+
+        $this->runCommands($commands, $input, $output);
+
+        $this->commitChanges('Install Node Modules', $directory, $input, $output);
     }
 }
