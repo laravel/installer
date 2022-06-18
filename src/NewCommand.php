@@ -84,7 +84,7 @@ class NewCommand extends Command
 
         $version = $this->getVersion($input);
 
-        if($installNodePackages){
+        if ($installNodePackages) {
             $nodePackageManager = $this->getNodePackageManager($input, $output);
         }
 
@@ -424,16 +424,15 @@ class NewCommand extends Command
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return string
      */
-
     protected function getNodePackageManager(InputInterface $input, OutputInterface $output)
     {
-        if($input->getOption('yarn')) {
+        if ($input->getOption('yarn')) {
             return 'yarn';
         }
 
         $packageManagers = [
-           'npm',
-           'yarn',
+            'npm',
+            'yarn',
         ];
 
         $helper = $this->getHelper('question');
@@ -456,7 +455,6 @@ class NewCommand extends Command
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
-
     protected function installNodePackages(string $directory, InputInterface $input, OutputInterface $output, $nodePackageManager)
     {
         chdir($directory);
