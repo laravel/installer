@@ -438,21 +438,19 @@ class NewCommand extends Command
         $helper = $this->getHelper('question');
 
         $question = new ChoiceQuestion('Which node package manager do you want to use?', $packageManagers);
-        
+
         $output->write(PHP_EOL);
 
         return $helper->ask($input, new SymfonyStyle($input, $output), $question);
-
     }
 
     /**
      * Install node packages.
      *
      * @param  string  $directory
-     * @param  string  $stack
-     * @param  bool  $teams
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @param  string  $nodePackageManager
      * @return void
      */
     protected function installNodePackages(string $directory, InputInterface $input, OutputInterface $output, $nodePackageManager)
