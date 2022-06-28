@@ -176,7 +176,7 @@ class NewCommand extends Command
         $commands = array_filter([
             $this->findComposer().' require laravel/jetstream',
             trim(sprintf(PHP_BINARY.' artisan jetstream:install %s %s', $stack, $teams ? '--teams' : '')),
-            'npm install && npm run dev',
+            'npm install && npm run build',
             PHP_BINARY.' artisan storage:link',
         ]);
 
