@@ -94,7 +94,7 @@ class NewCommand extends Command
 
         if ($directory != '.' && $input->getOption('force')) {
             if (PHP_OS_FAMILY == 'Windows') {
-                array_unshift($commands, "rd /s /q \"$directory\"");
+                array_unshift($commands, "(if exist \"$directory\" rd /s /q \"$directory\")");
             } else {
                 array_unshift($commands, "rm -rf \"$directory\"");
             }
