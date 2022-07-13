@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.2.11...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.2.12...master)
+
+## [v4.2.12](https://github.com/laravel/installer/compare/v4.2.11...v4.2.12) - 2022-07-13
+
+### Fixed
+
+- Check directory before deleting in Windows OS by @azizramdan in https://github.com/laravel/installer/pull/233
 
 ## [v4.2.11](https://github.com/laravel/installer/compare/v4.2.10...v4.2.11) - 2022-06-28
 
