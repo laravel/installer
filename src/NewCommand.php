@@ -50,11 +50,11 @@ class NewCommand extends Command
                             ($input->getOption('prompt-jetstream') && (new SymfonyStyle($input, $output))->confirm('Would you like to install the Laravel Jetstream application scaffolding?', false));
 
         if ($installJetstream) {
-            $output->write(PHP_EOL."<fg=magenta>
-    |     |         |
-    |,---.|--- ,---.|--- ,---.,---.,---.,-.-.
-    ||---'|    `---.|    |    |---',---|| | |
-`---'`---'`---'`---'`---'`    `---'`---^` ' '</>".PHP_EOL.PHP_EOL);
+            $output->write(PHP_EOL."  <fg=magenta>
+      |     |         |
+      |,---.|--- ,---.|--- ,---.,---.,---.,-.-.
+      ||---'|    `---.|    |    |---',---|| | |
+  `---'`---'`---'`---'`---'`    `---'`---^` ' '</>".PHP_EOL.PHP_EOL);
 
             $stack = $this->jetstreamStack($input, $output);
 
@@ -62,12 +62,12 @@ class NewCommand extends Command
                     ? (bool) $input->getOption('teams')
                     : (new SymfonyStyle($input, $output))->confirm('Will your application use teams?', false);
         } else {
-            $output->write(PHP_EOL.'<fg=red> _                               _
-| |                             | |
-| |     __ _ _ __ __ ___   _____| |
-| |    / _` | \'__/ _` \ \ / / _ \ |
-| |___| (_| | | | (_| |\ V /  __/ |
-|______\__,_|_|  \__,_| \_/ \___|_|</>'.PHP_EOL.PHP_EOL);
+            $output->write(PHP_EOL.'  <fg=red> _                               _
+  | |                             | |
+  | |     __ _ _ __ __ ___   _____| |
+  | |    / _` | \'__/ _` \ \ / / _ \ |
+  | |___| (_| | | | (_| |\ V /  __/ |
+  |______\__,_|_|  \__,_| \_/ \___|_|</>'.PHP_EOL.PHP_EOL);
         }
 
         sleep(1);
@@ -135,9 +135,10 @@ class NewCommand extends Command
 
             if ($input->getOption('github') !== false) {
                 $this->pushToGitHub($name, $directory, $input, $output);
+                $output->writeln('');
             }
 
-            $output->writeln(PHP_EOL.'<comment>Application ready! Build something amazing.</comment>');
+            $output->writeln('  <bg=blue;fg=white> INFO </> Application ready! <options=bold>Build something amazing.</>'.PHP_EOL);
         }
 
         return $process->getExitCode();
@@ -276,7 +277,7 @@ class NewCommand extends Command
         $process->run();
 
         if (! $process->isSuccessful()) {
-            $output->writeln('Warning: make sure the "gh" CLI tool is installed and that you\'re authenticated to GitHub. Skipping...');
+            $output->writeln('  <bg=yellow;fg=black> WARN </> Make sure the "gh" CLI tool is installed and that you\'re authenticated to GitHub. Skipping...'.PHP_EOL);
 
             return;
         }
@@ -376,7 +377,7 @@ class NewCommand extends Command
             try {
                 $process->setTty(true);
             } catch (RuntimeException $e) {
-                $output->writeln('Warning: '.$e->getMessage());
+                $output->writeln('  <bg=yellow;fg=black> WARN </> '.$e->getMessage().PHP_EOL);
             }
         }
 
