@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.2.12...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.2.13...master)
+
+## [v4.2.13](https://github.com/laravel/installer/compare/v4.2.12...v4.2.13) - 2022-07-26
+
+### Changed
+
+- Improved console output by @nunomaduro in https://github.com/laravel/installer/pull/235
 
 ## [v4.2.12](https://github.com/laravel/installer/compare/v4.2.11...v4.2.12) - 2022-07-13
 
