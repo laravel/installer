@@ -33,6 +33,7 @@ class NewCommand extends Command
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack that should be installed')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
+            ->addOption('test-suite', null, InputOption::VALUE_OPTIONAL, 'The Jetstream test suite that should be installed')
             ->addOption('prompt-jetstream', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Jetstream should be installed')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
@@ -61,6 +62,8 @@ class NewCommand extends Command
             $teams = $input->getOption('teams') === true
                     ? (bool) $input->getOption('teams')
                     : (new SymfonyStyle($input, $output))->confirm('Will your application use teams?', false);
+
+            $testSuite = $this->jetstreamTestSuite($input, $output);
         } else {
             $output->write(PHP_EOL.'  <fg=red> _                               _
   | |                             | |
@@ -130,7 +133,7 @@ class NewCommand extends Command
             }
 
             if ($installJetstream) {
-                $this->installJetstream($directory, $stack, $teams, $input, $output);
+                $this->installJetstream($directory, $stack, $teams, $testSuite, $input, $output);
             }
 
             if ($input->getOption('github') !== false) {
@@ -170,13 +173,14 @@ class NewCommand extends Command
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
-    protected function installJetstream(string $directory, string $stack, bool $teams, InputInterface $input, OutputInterface $output)
+    protected function installJetstream(string $directory, string $stack, bool $teams, string $testSuite, InputInterface $input, OutputInterface $output)
     {
         chdir($directory);
 
         $commands = array_filter([
             $this->findComposer().' require laravel/jetstream',
-            trim(sprintf(PHP_BINARY.' artisan jetstream:install %s %s', $stack, $teams ? '--teams' : '')),
+            trim(sprintf(PHP_BINARY.' artisan jetstream:install %s %s %s', $stack, $teams ? '--teams' : '',
+                $testSuite == 'pest' ? '--pest' : '')),
             'npm install && npm run build',
             PHP_BINARY.' artisan storage:link',
         ]);
@@ -207,6 +211,34 @@ class NewCommand extends Command
         $helper = $this->getHelper('question');
 
         $question = new ChoiceQuestion('Which Jetstream stack do you prefer?', $stacks);
+
+        $output->write(PHP_EOL);
+
+        return $helper->ask($input, new SymfonyStyle($input, $output), $question);
+    }
+
+
+    /**
+     * Determine the test suit for Jetstream.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return string
+     */
+    protected function jetstreamTestSuite(InputInterface $input, OutputInterface $output)
+    {
+        $testSuites = [
+            'phpunit',
+            'pest',
+        ];
+
+        if ($input->getOption('test-suite') && in_array($input->getOption('test-suite'), $testSuites)) {
+            return $input->getOption('test-suite');
+        }
+
+        $helper = $this->getHelper('question');
+
+        $question = new ChoiceQuestion('Which Jetstream test suite do you prefer?', $testSuites);
 
         $output->write(PHP_EOL);
 
