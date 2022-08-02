@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.2.13...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.2.14...master)
+
+## [v4.2.14](https://github.com/laravel/installer/compare/v4.2.13...v4.2.14) - 2022-08-02
+
+### Changed
+
+- Simplify push to GitHub by @driesvints in https://github.com/laravel/installer/pull/238
 
 ## [v4.2.13](https://github.com/laravel/installer/compare/v4.2.12...v4.2.13) - 2022-07-26
 
