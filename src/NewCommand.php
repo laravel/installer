@@ -108,7 +108,7 @@ class NewCommand extends Command
             if ($name !== '.') {
                 $this->replaceInFile(
                     'APP_URL=http://localhost',
-                    'APP_URL=http://'.$name.'.test',
+                    'APP_URL=http://'.strtolower($name).'.test',
                     $directory.'/.env'
                 );
 
