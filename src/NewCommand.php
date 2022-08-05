@@ -108,7 +108,7 @@ class NewCommand extends Command
             if ($name !== '.') {
                 $this->replaceInFile(
                     'APP_URL=http://localhost',
-                    'APP_URL=http://'.strtolower($name).'.test',
+                    'APP_URL='.$this->generateAppUrl($name),
                     $directory.'/.env'
                 );
 
@@ -306,6 +306,30 @@ class NewCommand extends Command
         if ((is_dir($directory) || is_file($directory)) && $directory != getcwd()) {
             throw new RuntimeException('Application already exists!');
         }
+    }
+
+    /**
+     * Generate a valid APP_URL for the given application name.
+     *
+     * @param  string  $name
+     * @return string
+     */
+    protected function generateAppUrl($name)
+    {
+        $hostname = mb_strtolower($name).'.test';
+
+        return $this->canResolveHostname($hostname) ? 'http://'.$hostname : 'http://localhost';
+    }
+
+    /**
+     * Determine whether the given hostname is resolvable.
+     *
+     * @param  string  $hostname
+     * @return bool
+     */
+    protected function canResolveHostname($hostname)
+    {
+        return gethostbyname($hostname.'.') !== $hostname.'.';
     }
 
     /**
