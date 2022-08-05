@@ -309,7 +309,7 @@ class NewCommand extends Command
     }
 
     /**
-     * Generate a valid APP_URL.
+     * Generate a valid APP_URL for the given application name.
      *
      * @param  string  $name
      * @return string
@@ -322,7 +322,7 @@ class NewCommand extends Command
     }
 
     /**
-     * Determine whether the given hostname resolves.
+     * Determine whether the given hostname is resolvable.
      *
      * @param  string  $hostname
      * @return bool
