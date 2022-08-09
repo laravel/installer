@@ -117,6 +117,12 @@ class NewCommand extends Command
                     'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
                     $directory.'/.env'
                 );
+                
+                $this->replaceInFile(
+                    'APP_URL=http://localhost',
+                    'APP_URL='.$this->generateAppUrl($name),
+                    $directory.'/.env.example'
+                );
 
                 $this->replaceInFile(
                     'DB_DATABASE=laravel',
