@@ -1,6 +1,13 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.2.14...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.2.15...master)
+
+## [v4.2.15](https://github.com/laravel/installer/compare/v4.2.14...v4.2.15) - 2022-08-09
+
+### Fixed
+
+- Changes APP_URL replacement with name to lower by @RhysLees in https://github.com/laravel/installer/pull/239
+- Prevent unresolvable `APP_URL` by @jessarcher in https://github.com/laravel/installer/pull/240
 
 ## [v4.2.14](https://github.com/laravel/installer/compare/v4.2.13...v4.2.14) - 2022-08-02
 
