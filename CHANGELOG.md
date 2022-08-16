@@ -1,6 +1,8 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.2.15...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.2.16...master)
+
+## [v4.2.16](https://github.com/laravel/installer/compare/v4.2.15...v4.2.16) - 2022-08-16
 
 ## [v4.2.15](https://github.com/laravel/installer/compare/v4.2.14...v4.2.15) - 2022-08-09
 
