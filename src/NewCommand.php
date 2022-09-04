@@ -125,6 +125,8 @@ class NewCommand extends Command
                 );
             }
 
+            $this->replacePhpVersion($directory);
+
             if ($input->getOption('git') || $input->getOption('github') !== false) {
                 $this->createRepository($directory, $input, $output);
             }
@@ -423,6 +425,24 @@ class NewCommand extends Command
         file_put_contents(
             $file,
             str_replace($search, $replace, file_get_contents($file))
+        );
+    }
+
+    /**
+     * Replace the default PHP version in composer.json.
+     *
+     * @param string $directory
+     * @return void
+     */
+    protected function replacePhpVersion(string $directory)
+    {
+        file_put_contents(
+            $file = $directory.'/composer.json',
+            preg_replace(
+                '/"php": ".*"/',
+                '"php": "^'.phpversion().'"',
+                file_get_contents($file)
+            )
         );
     }
 }
