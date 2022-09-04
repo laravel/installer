@@ -431,7 +431,7 @@ class NewCommand extends Command
     /**
      * Replace the default PHP version in composer.json.
      *
-     * @param string $directory
+     * @param  string $directory
      * @return void
      */
     protected function replacePhpVersion(string $directory)
