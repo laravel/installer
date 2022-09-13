@@ -1,11 +1,18 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.2.16...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.2.17...master)
+
+## [v4.2.17](https://github.com/laravel/installer/compare/v4.2.16...v4.2.17) - 2022-09-13
+
+### What's Changed
+
+- Remove `storage:link` command by @jessarcher in https://github.com/laravel/installer/pull/245
 
 ## [v4.2.16](https://github.com/laravel/installer/compare/v4.2.15...v4.2.16) - 2022-08-16
 
 ### Changed
-* Remove duplicate `npm install` and `npm run build` steps by @jessarcher in https://github.com/laravel/installer/pull/242
+
+- Remove duplicate `npm install` and `npm run build` steps by @jessarcher in https://github.com/laravel/installer/pull/242
 
 ## [v4.2.15](https://github.com/laravel/installer/compare/v4.2.14...v4.2.15) - 2022-08-09
 
