@@ -4,6 +4,9 @@
 
 ## [v4.2.16](https://github.com/laravel/installer/compare/v4.2.15...v4.2.16) - 2022-08-16
 
+### Changed
+* Remove duplicate `npm install` and `npm run build` steps by @jessarcher in https://github.com/laravel/installer/pull/242
+
 ## [v4.2.15](https://github.com/laravel/installer/compare/v4.2.14...v4.2.15) - 2022-08-09
 
 ### Fixed
