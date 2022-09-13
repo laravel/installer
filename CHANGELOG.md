@@ -4,7 +4,7 @@
 
 ## [v4.2.17](https://github.com/laravel/installer/compare/v4.2.16...v4.2.17) - 2022-09-13
 
-### What's Changed
+### Changed
 
 - Remove `storage:link` command by @jessarcher in https://github.com/laravel/installer/pull/245
 
