@@ -33,6 +33,7 @@ class NewCommand extends Command
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack that should be installed')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
+            ->addOption('pest', null, InputOption::VALUE_NONE, 'Installs a PestPHP test suite instead of the default PHPUnit test suite')
             ->addOption('prompt-jetstream', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Jetstream should be installed')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
@@ -61,6 +62,10 @@ class NewCommand extends Command
             $teams = $input->getOption('teams') === true
                     ? (bool) $input->getOption('teams')
                     : (new SymfonyStyle($input, $output))->confirm('Will your application use teams?', false);
+            
+            $pest = true === $input->getOption('pest')
+                    ? (bool) $input->getOption('pest')
+                    : (new SymfonyStyle($input, $output))->confirm('Would you like to use PestPHP for testing?', false);
         } else {
             $output->write(PHP_EOL.'  <fg=red> _                               _
   | |                             | |
@@ -130,7 +135,7 @@ class NewCommand extends Command
             }
 
             if ($installJetstream) {
-                $this->installJetstream($directory, $stack, $teams, $input, $output);
+                $this->installJetstream($directory, $stack, $teams, $pest, $input, $output);
             }
 
             if ($input->getOption('github') !== false) {
@@ -170,13 +175,13 @@ class NewCommand extends Command
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
-    protected function installJetstream(string $directory, string $stack, bool $teams, InputInterface $input, OutputInterface $output)
+    protected function installJetstream(string $directory, string $stack, bool $teams, bool $pest, InputInterface $input, OutputInterface $output)
     {
         chdir($directory);
 
         $commands = array_filter([
             $this->findComposer().' require laravel/jetstream',
-            trim(sprintf(PHP_BINARY.' artisan jetstream:install %s %s', $stack, $teams ? '--teams' : '')),
+            trim(sprintf(PHP_BINARY.' artisan jetstream:install %s %s %s', $stack, $teams ? '--teams' : '', $pest ? '--pest' : '')),
         ]);
 
         $this->runCommands($commands, $input, $output);
