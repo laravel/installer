@@ -284,7 +284,6 @@ class NewCommand extends Command
 
         $name = $input->getOption('organization') ? $input->getOption('organization')."/$name" : $name;
         $flags = $input->getOption('github') ?: '--private';
-        $branch = $input->getOption('branch') ?: $this->defaultBranch();
 
         $commands = [
             "gh repo create {$name} --source=. --push {$flags}",
