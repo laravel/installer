@@ -485,7 +485,7 @@ class NewCommand extends Command
      */
     protected function replaceFile(string $replace, string $file)
     {
-        $stubs = dirname(__DIR__) . '/stubs';
+        $stubs = dirname(__DIR__).'/stubs';
 
         file_put_contents(
             $file,
