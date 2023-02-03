@@ -33,6 +33,7 @@ class NewCommand extends Command
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack that should be installed')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
+            ->addOption('pest', null, InputOption::VALUE_NONE, 'Installs the Pest testing framework')
             ->addOption('prompt-jetstream', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Jetstream should be installed')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
@@ -57,6 +58,7 @@ class NewCommand extends Command
   `---'`---'`---'`---'`---'`    `---'`---^` ' '</>".PHP_EOL.PHP_EOL);
 
             $stack = $this->jetstreamStack($input, $output);
+            $testingFramework = $this->jetstreamTestingFramework($input, $output);
 
             $teams = $input->getOption('teams') === true
                     ? (bool) $input->getOption('teams')
@@ -130,7 +132,9 @@ class NewCommand extends Command
             }
 
             if ($installJetstream) {
-                $this->installJetstream($directory, $stack, $teams, $input, $output);
+                $this->installJetstream($directory, $stack, $testingFramework, $teams, $input, $output);
+            } elseif ($input->getOption('pest')) {
+                $this->installPest($directory, $input, $output);
             }
 
             if ($input->getOption('github') !== false) {
@@ -165,18 +169,24 @@ class NewCommand extends Command
      *
      * @param  string  $directory
      * @param  string  $stack
+     * @param  string  $testingFramework
      * @param  bool  $teams
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
-    protected function installJetstream(string $directory, string $stack, bool $teams, InputInterface $input, OutputInterface $output)
+    protected function installJetstream(string $directory, string $stack, string $testingFramework, bool $teams, InputInterface $input, OutputInterface $output)
     {
         chdir($directory);
 
         $commands = array_filter([
             $this->findComposer().' require laravel/jetstream',
-            trim(sprintf(PHP_BINARY.' artisan jetstream:install %s %s', $stack, $teams ? '--teams' : '')),
+            trim(sprintf(
+                PHP_BINARY.' artisan jetstream:install %s %s %s',
+                $stack,
+                $teams ? '--teams' : '',
+                $testingFramework == 'pest' ? '--pest' : '',
+            )),
         ]);
 
         $this->runCommands($commands, $input, $output);
@@ -209,6 +219,64 @@ class NewCommand extends Command
         $output->write(PHP_EOL);
 
         return $helper->ask($input, new SymfonyStyle($input, $output), $question);
+    }
+
+    /**
+     * Determine the testing framework for Jetstream.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return string
+     */
+    protected function jetstreamTestingFramework(InputInterface $input, OutputInterface $output)
+    {
+        if ($input->getOption('pest')) {
+            return 'pest';
+        }
+
+        $testingFrameworks = [
+            'pest',
+            'phpunit',
+        ];
+
+        $helper = $this->getHelper('question');
+
+        $question = new ChoiceQuestion('Which testing framework do you prefer?', $testingFrameworks);
+
+        $output->write(PHP_EOL);
+
+        return $helper->ask($input, new SymfonyStyle($input, $output), $question);
+    }
+
+    /**
+     * Install Pest into the application.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function installPest(string $directory, InputInterface $input, OutputInterface $output)
+    {
+        chdir($directory);
+
+        $commands = array_filter([
+            $this->findComposer().' require pestphp/pest pestphp/pest-plugin-laravel --dev',
+            PHP_BINARY.' artisan pest:install --no-interaction',
+        ]);
+
+        $this->runCommands($commands, $input, $output);
+
+        $this->replaceFile(
+            'pest/Feature.php',
+            $directory.'/tests/Feature/ExampleTest.php',
+        );
+
+        $this->replaceFile(
+            'pest/Unit.php',
+            $directory.'/tests/Unit/ExampleTest.php',
+        );
+
+        $this->commitChanges('Install Pest', $directory, $input, $output);
     }
 
     /**
@@ -406,6 +474,23 @@ class NewCommand extends Command
         });
 
         return $process;
+    }
+
+    /**
+     * Replace the given file.
+     *
+     * @param  string  $replace
+     * @param  string  $file
+     * @return void
+     */
+    protected function replaceFile(string $replace, string $file)
+    {
+        $stubs = dirname(__DIR__).'/stubs';
+
+        file_put_contents(
+            $file,
+            file_get_contents("$stubs/$replace"),
+        );
     }
 
     /**
