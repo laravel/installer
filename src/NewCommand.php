@@ -11,9 +11,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Process\Process;
+use Laravel\Installer\Console\Repositories\ConfigRepository;
+use Laravel\Installer\Console\Concerns\InteractsWithConfiguration;
 
 class NewCommand extends Command
 {
+    use InteractsWithConfiguration;
+
     /**
      * Configure the command options.
      *
@@ -27,14 +31,15 @@ class NewCommand extends Command
             ->addArgument('name', InputArgument::REQUIRED)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('git', null, InputOption::VALUE_NONE, 'Initialize a Git repository')
-            ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'The branch that should be created for a new repository', $this->defaultBranch())
+            ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'The branch that should be created for a new repository', $this->config('branch') ?? $this->defaultBranch())
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
-            ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
+            ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for', $this->config('organization'))
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
-            ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack that should be installed')
+            ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack that should be installed', $this->config('stack'))
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Installs the Pest testing framework')
             ->addOption('prompt-jetstream', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Jetstream should be installed')
+            ->addOption('save-defaults', null, InputOption::VALUE_NONE, 'Save options as defaults for future projects')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
@@ -48,6 +53,7 @@ class NewCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $installJetstream = $input->getOption('jet') ||
+                            $this->config('jet') ||
                             ($input->getOption('prompt-jetstream') && (new SymfonyStyle($input, $output))->confirm('Would you like to install the Laravel Jetstream application scaffolding?', false));
 
         if ($installJetstream) {
@@ -60,7 +66,7 @@ class NewCommand extends Command
             $stack = $this->jetstreamStack($input, $output);
             $testingFramework = $this->jetstreamTestingFramework($input, $output);
 
-            $teams = $input->getOption('teams') === true
+            $teams = $input->getOption('teams') === true || boolval($this->config('teams')) === true
                     ? (bool) $input->getOption('teams')
                     : (new SymfonyStyle($input, $output))->confirm('Will your application use teams?', false);
         } else {
@@ -80,11 +86,11 @@ class NewCommand extends Command
 
         $version = $this->getVersion($input);
 
-        if (! $input->getOption('force')) {
+        if (! $input->getOption('force') && ! boolval($this->config('force'))) {
             $this->verifyApplicationDoesntExist($directory);
         }
 
-        if ($input->getOption('force') && $directory === '.') {
+        if (($input->getOption('force') || boolval($this->config('force'))) && $directory === '.') {
             throw new RuntimeException('Cannot use --force option when using current directory for installation!');
         }
 
@@ -94,7 +100,7 @@ class NewCommand extends Command
             $composer." create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist",
         ];
 
-        if ($directory != '.' && $input->getOption('force')) {
+        if ($directory != '.' && ($input->getOption('force') || boolval($this->config('force')))) {
             if (PHP_OS_FAMILY == 'Windows') {
                 array_unshift($commands, "(if exist \"$directory\" rd /s /q \"$directory\")");
             } else {
@@ -127,13 +133,13 @@ class NewCommand extends Command
                 );
             }
 
-            if ($input->getOption('git') || $input->getOption('github') !== false) {
+            if ($input->getOption('git') || $input->getOption('github') !== false || $this->config('git')) {
                 $this->createRepository($directory, $input, $output);
             }
 
             if ($installJetstream) {
                 $this->installJetstream($directory, $stack, $testingFramework, $teams, $input, $output);
-            } elseif ($input->getOption('pest')) {
+            } elseif ($input->getOption('pest') || $this->config('pest')) {
                 $this->installPest($directory, $input, $output);
             }
 
@@ -143,6 +149,10 @@ class NewCommand extends Command
             }
 
             $output->writeln('  <bg=blue;fg=white> INFO </> Application ready! <options=bold>Build something amazing.</>'.PHP_EOL);
+        }
+
+        if ($input->getOption('save-defaults')) {
+            $this->saveDefaults($input);
         }
 
         return $process->getExitCode();
@@ -230,7 +240,7 @@ class NewCommand extends Command
      */
     protected function jetstreamTestingFramework(InputInterface $input, OutputInterface $output)
     {
-        if ($input->getOption('pest')) {
+        if ($input->getOption('pest') || $this->config('pest')) {
             return 'pest';
         }
 
@@ -314,7 +324,7 @@ class NewCommand extends Command
      */
     protected function commitChanges(string $message, string $directory, InputInterface $input, OutputInterface $output)
     {
-        if (! $input->getOption('git') && $input->getOption('github') === false) {
+        if (! $input->getOption('git') && $input->getOption('github') === false && ! $this->config('git')) {
             return;
         }
 
