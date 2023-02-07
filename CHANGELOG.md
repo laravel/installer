@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.2.17...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.3.0...master)
+
+## [v4.3.0](https://github.com/laravel/installer/compare/v4.2.17...v4.3.0) - 2023-02-07
+
+### Added
+
+- Adds `--pest` flag to use Pest by @nunomaduro in https://github.com/laravel/installer/pull/251
 
 ## [v4.2.17](https://github.com/laravel/installer/compare/v4.2.16...v4.2.17) - 2022-09-13
 
