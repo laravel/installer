@@ -34,7 +34,7 @@ class NewCommand extends Command
             ->addOption('dark', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with dark mode support')
             ->addOption('ssr', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with Inertia SSR support')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
-            ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Breeze/Jetstream stack that should be installed')
+            ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Breeze / Jetstream stack that should be installed')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Installs the Pest testing framework')
             ->addOption('prompt-breeze', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Breeze should be installed')
