@@ -30,10 +30,14 @@ class NewCommand extends Command
             ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'The branch that should be created for a new repository', $this->defaultBranch())
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
+            ->addOption('breeze', null, InputOption::VALUE_NONE, 'Installs the Laravel Breeze scaffolding')
+            ->addOption('dark', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with dark mode support')
+            ->addOption('ssr', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with Inertia SSR support')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
-            ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Jetstream stack that should be installed')
+            ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Breeze / Jetstream stack that should be installed')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Installs the Pest testing framework')
+            ->addOption('prompt-breeze', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Breeze should be installed')
             ->addOption('prompt-jetstream', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Jetstream should be installed')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
@@ -47,10 +51,38 @@ class NewCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $installBreeze = $input->getOption('breeze') ||
+                            ($input->getOption('prompt-breeze') && (new SymfonyStyle($input, $output))->confirm('Would you like to install the Laravel Breeze application scaffolding?', false));
+
         $installJetstream = $input->getOption('jet') ||
                             ($input->getOption('prompt-jetstream') && (new SymfonyStyle($input, $output))->confirm('Would you like to install the Laravel Jetstream application scaffolding?', false));
 
-        if ($installJetstream) {
+        if ($installBreeze) {
+            $output->write("<fg=blue>  ____
+ | __ ) _ __ ___  ___ _______
+ |  _ \| '__/ _ \/ _ \_  / _ \
+ | |_) | | |  __/  __// /  __/
+ |____/|_|  \___|\___/___\___|</>".PHP_EOL.PHP_EOL);
+
+            $stack = $this->breezeStack($input, $output);
+            $testingFramework = $this->testingFramework($input, $output);
+
+            $dark = false;
+
+            if (in_array($stack, ['blade', 'vue', 'react'])) {
+                $dark = $input->getOption('dark') === true
+                    ? (bool) $input->getOption('dark')
+                    : (new SymfonyStyle($input, $output))->confirm('Would you like to install dark mode support?', false);
+            }
+
+            $ssr = false;
+
+            if (in_array($stack, ['vue', 'react'])) {
+                $ssr = $input->getOption('ssr') === true
+                    ? (bool) $input->getOption('ssr')
+                    : (new SymfonyStyle($input, $output))->confirm('Would you like to install Inertia SSR support?', false);
+            }
+        } elseif ($installJetstream) {
             $output->write(PHP_EOL."  <fg=magenta>
       |     |         |
       |,---.|--- ,---.|--- ,---.,---.,---.,-.-.
@@ -58,7 +90,7 @@ class NewCommand extends Command
   `---'`---'`---'`---'`---'`    `---'`---^` ' '</>".PHP_EOL.PHP_EOL);
 
             $stack = $this->jetstreamStack($input, $output);
-            $testingFramework = $this->jetstreamTestingFramework($input, $output);
+            $testingFramework = $this->testingFramework($input, $output);
 
             $teams = $input->getOption('teams') === true
                     ? (bool) $input->getOption('teams')
@@ -131,7 +163,9 @@ class NewCommand extends Command
                 $this->createRepository($directory, $input, $output);
             }
 
-            if ($installJetstream) {
+            if ($installBreeze) {
+                $this->installBreeze($directory, $stack, $testingFramework, $dark, $ssr, $input, $output);
+            } elseif ($installJetstream) {
                 $this->installJetstream($directory, $stack, $testingFramework, $teams, $input, $output);
             } elseif ($input->getOption('pest')) {
                 $this->installPest($directory, $input, $output);
@@ -165,6 +199,38 @@ class NewCommand extends Command
     }
 
     /**
+     * Install Laravel Breeze into the application.
+     *
+     * @param  string  $directory
+     * @param  string  $stack
+     * @param  string  $testingFramework
+     * @param  bool  $dark
+     * @param  bool  $ssr
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function installBreeze(string $directory, string $stack, string $testingFramework, bool $dark, bool $ssr, InputInterface $input, OutputInterface $output)
+    {
+        chdir($directory);
+
+        $commands = array_filter([
+            $this->findComposer().' require laravel/breeze',
+            trim(sprintf(
+                PHP_BINARY.' artisan breeze:install %s %s %s %s',
+                $stack,
+                $testingFramework == 'pest' ? '--pest' : '',
+                $dark ? '--dark' : '',
+                $ssr ? '--ssr' : '',
+            )),
+        ]);
+
+        $this->runCommands($commands, $input, $output);
+
+        $this->commitChanges('Install Breeze', $directory, $input, $output);
+    }
+
+    /**
      * Install Laravel Jetstream into the application.
      *
      * @param  string  $directory
@@ -192,6 +258,35 @@ class NewCommand extends Command
         $this->runCommands($commands, $input, $output);
 
         $this->commitChanges('Install Jetstream', $directory, $input, $output);
+    }
+
+    /**
+     * Determine the stack for Breeze.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return string
+     */
+    protected function breezeStack(InputInterface $input, OutputInterface $output)
+    {
+        $stacks = [
+            'blade',
+            'react',
+            'vue',
+            'api',
+        ];
+
+        if ($input->getOption('stack') && in_array($input->getOption('stack'), $stacks)) {
+            return $input->getOption('stack');
+        }
+
+        $helper = $this->getHelper('question');
+
+        $question = new ChoiceQuestion('Which Breeze stack do you prefer?', $stacks);
+
+        $output->write(PHP_EOL);
+
+        return $helper->ask($input, new SymfonyStyle($input, $output), $question);
     }
 
     /**
@@ -228,7 +323,7 @@ class NewCommand extends Command
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return string
      */
-    protected function jetstreamTestingFramework(InputInterface $input, OutputInterface $output)
+    protected function testingFramework(InputInterface $input, OutputInterface $output)
     {
         if ($input->getOption('pest')) {
             return 'pest';
