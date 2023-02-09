@@ -355,7 +355,8 @@ class NewCommand extends Command
         chdir($directory);
 
         $commands = array_filter([
-            $this->findComposer().' require pestphp/pest pestphp/pest-plugin-laravel --dev',
+            $this->findComposer().' remove nunomaduro/collision phpunit/phpunit --dev',
+            $this->findComposer().' require nunomaduro/collision:^6.4 pestphp/pest:^1.22 pestphp/pest-plugin-laravel:^1.2 --dev',
             PHP_BINARY.' artisan pest:install --no-interaction',
         ]);
 
