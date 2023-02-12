@@ -36,9 +36,11 @@ class NewCommand extends Command
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Breeze / Jetstream stack that should be installed')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
+            ->addOption('fortify', null, InputOption::VALUE_NONE, 'Installs the Laravel Fortify scaffolding')
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Installs the Pest testing framework')
             ->addOption('prompt-breeze', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Breeze should be installed')
             ->addOption('prompt-jetstream', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Jetstream should be installed')
+            ->addOption('prompt-fortify', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Fortify should be installed')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
@@ -56,6 +58,9 @@ class NewCommand extends Command
 
         $installJetstream = $input->getOption('jet') ||
                             ($input->getOption('prompt-jetstream') && (new SymfonyStyle($input, $output))->confirm('Would you like to install the Laravel Jetstream application scaffolding?', false));
+
+        $installFortify = $input->getOption('fortify') ||
+                            ($input->getOption('prompt-fortify') && (new SymfonyStyle($input, $output))->confirm('Would you like to install the Laravel Fortify application scaffolding?', false));
 
         if ($installBreeze) {
             $output->write("<fg=blue>  ____
@@ -95,6 +100,14 @@ class NewCommand extends Command
             $teams = $input->getOption('teams') === true
                     ? (bool) $input->getOption('teams')
                     : (new SymfonyStyle($input, $output))->confirm('Will your application use teams?', false);
+        } elseif ($installFortify) {
+            $output->write(PHP_EOL."  <fg=yellow>
+   _____               _    _   __
+  |  ___|  ___   _ __ | |_ (_) / _| _   _
+  | |_    / _ \ | '__|| __|| || |_ | | | |
+  |  _|  | (_) || |   | |_ | ||  _|| |_| |
+  |_|     \___/ |_|    \__||_||_|   \__, |
+                                    |___/   </>".PHP_EOL.PHP_EOL);
         } else {
             $output->write(PHP_EOL.'  <fg=red> _                               _
   | |                             | |
@@ -167,6 +180,8 @@ class NewCommand extends Command
                 $this->installBreeze($directory, $stack, $testingFramework, $dark, $ssr, $input, $output);
             } elseif ($installJetstream) {
                 $this->installJetstream($directory, $stack, $testingFramework, $teams, $input, $output);
+            } elseif ($installFortify) {
+                $this->installFortify($directory, $input, $output);
             } elseif ($input->getOption('pest')) {
                 $this->installPest($directory, $input, $output);
             }
@@ -258,6 +273,31 @@ class NewCommand extends Command
         $this->runCommands($commands, $input, $output);
 
         $this->commitChanges('Install Jetstream', $directory, $input, $output);
+    }
+
+    /**
+     * Install Laravel Fortify into the application.
+     *
+     * @param  string  $directory
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function installFortify(string $directory, InputInterface $input, OutputInterface $output)
+    {
+        chdir($directory);
+
+        $commands = array_filter([
+            $this->findComposer().' require laravel/fortify',
+            trim(sprintf(
+                PHP_BINARY.' artisan vendor:publish --provider="%s"',
+                'Laravel\Fortify\FortifyServiceProvider',
+            )),
+        ]);
+
+        $this->runCommands($commands, $input, $output);
+
+        $this->commitChanges('Install Fortify', $directory, $input, $output);
     }
 
     /**
