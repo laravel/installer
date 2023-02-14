@@ -1,6 +1,16 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.3.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.4.0...master)
+
+## [v4.4.0](https://github.com/laravel/installer/compare/v4.3.0...v4.4.0) - 2023-02-14
+
+### Added
+
+- Adds Laravel Breeze scaffolding by @nunomaduro in https://github.com/laravel/installer/pull/253
+
+### Fixed
+
+- Fixes installation of Pest in Laravel 10 by @nunomaduro in https://github.com/laravel/installer/pull/254
 
 ## [v4.3.0](https://github.com/laravel/installer/compare/v4.2.17...v4.3.0) - 2023-02-07
 
