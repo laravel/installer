@@ -329,7 +329,7 @@ class NewCommand extends Command
         if ($input->getOption('pest')) {
             return 'pest';
         }
-        
+
         if ($input->getOption('phpunit')) {
             return 'phpunit';
         }
