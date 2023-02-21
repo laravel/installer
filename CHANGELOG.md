@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.4.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.4.1...master)
+
+## [v4.4.1](https://github.com/laravel/installer/compare/v4.4.0...v4.4.1) - 2023-02-21
+
+- Add an option to install PHPUnit by @likeadeckofcards in https://github.com/laravel/installer/pull/256
 
 ## [v4.4.0](https://github.com/laravel/installer/compare/v4.3.0...v4.4.0) - 2023-02-14
 
