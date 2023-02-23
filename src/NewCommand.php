@@ -242,6 +242,7 @@ class NewCommand extends Command
      * @param  string  $stack
      * @param  string  $testingFramework
      * @param  bool  $teams
+     * @param  bool  $dark
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
