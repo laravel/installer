@@ -31,7 +31,7 @@ class NewCommand extends Command
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
             ->addOption('breeze', null, InputOption::VALUE_NONE, 'Installs the Laravel Breeze scaffolding')
-            ->addOption('dark', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with dark mode support')
+            ->addOption('dark', null, InputOption::VALUE_NONE, 'Indicate whether Breeze or Jetstream should be scaffolded with dark mode support')
             ->addOption('ssr', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with Inertia SSR support')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Breeze / Jetstream stack that should be installed')
@@ -96,6 +96,10 @@ class NewCommand extends Command
             $teams = $input->getOption('teams') === true
                     ? (bool) $input->getOption('teams')
                     : (new SymfonyStyle($input, $output))->confirm('Will your application use teams?', false);
+
+            $dark = $input->getOption('dark') === true
+                ? (bool) $input->getOption('dark')
+                : (new SymfonyStyle($input, $output))->confirm('Would you like to install dark mode support?', false);
         } else {
             $output->write(PHP_EOL.'  <fg=red> _                               _
   | |                             | |
@@ -167,7 +171,7 @@ class NewCommand extends Command
             if ($installBreeze) {
                 $this->installBreeze($directory, $stack, $testingFramework, $dark, $ssr, $input, $output);
             } elseif ($installJetstream) {
-                $this->installJetstream($directory, $stack, $testingFramework, $teams, $input, $output);
+                $this->installJetstream($directory, $stack, $testingFramework, $teams, $dark, $input, $output);
             } elseif ($input->getOption('pest')) {
                 $this->installPest($directory, $input, $output);
             }
@@ -238,11 +242,12 @@ class NewCommand extends Command
      * @param  string  $stack
      * @param  string  $testingFramework
      * @param  bool  $teams
+     * @param  bool  $dark
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
-    protected function installJetstream(string $directory, string $stack, string $testingFramework, bool $teams, InputInterface $input, OutputInterface $output)
+    protected function installJetstream(string $directory, string $stack, string $testingFramework, bool $teams, bool $dark, InputInterface $input, OutputInterface $output)
     {
         chdir($directory);
 
@@ -252,6 +257,7 @@ class NewCommand extends Command
                 PHP_BINARY.' artisan jetstream:install %s %s %s',
                 $stack,
                 $teams ? '--teams' : '',
+                $dark ? '--dark' : '',
                 $testingFramework == 'pest' ? '--pest' : '',
             )),
         ]);
