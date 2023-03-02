@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.4.1...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.4.2...master)
+
+## [v4.4.2](https://github.com/laravel/installer/compare/v4.4.1...v4.4.2) - 2023-03-02
+
+- Adds option "dark" to jetstream installation by @MarioPerini in https://github.com/laravel/installer/pull/259
 
 ## [v4.4.1](https://github.com/laravel/installer/compare/v4.4.0...v4.4.1) - 2023-02-21
 
