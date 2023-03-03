@@ -552,6 +552,10 @@ class NewCommand extends Command
                     return $value;
                 }
 
+                if (substr($value, 0, 3) === 'git') {
+                    return $value;
+                }
+
                 return $value.' --no-ansi';
             }, $commands);
         }
@@ -559,6 +563,10 @@ class NewCommand extends Command
         if ($input->getOption('quiet')) {
             $commands = array_map(function ($value) {
                 if (substr($value, 0, 5) === 'chmod') {
+                    return $value;
+                }
+
+                if (substr($value, 0, 3) === 'git') {
                     return $value;
                 }
 
