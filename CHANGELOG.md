@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.4.2...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.4.3...master)
+
+## [v4.4.3](https://github.com/laravel/installer/compare/v4.4.2...v4.4.3) - 2023-03-07
+
+- Prevent unknown option with git commands by @zepfietje in https://github.com/laravel/installer/pull/260
 
 ## [v4.4.2](https://github.com/laravel/installer/compare/v4.4.1...v4.4.2) - 2023-03-02
 
