@@ -366,12 +366,14 @@ class NewCommand extends Command
         chdir($directory);
 
         $commands = array_filter([
-            $this->findComposer().' remove nunomaduro/collision phpunit/phpunit --dev',
-            $this->findComposer().' require nunomaduro/collision:^6.4 pestphp/pest:^1.22 pestphp/pest-plugin-laravel:^1.4 --dev',
-            PHP_BINARY.' artisan pest:install --no-interaction',
+            $this->findComposer().' remove phpunit/phpunit --dev',
+            $this->findComposer().' require pestphp/pest:^2.0 pestphp/pest-plugin-laravel:^2.0 --dev',
+            PHP_BINARY.' ./vendor/bin/pest --init',
         ]);
 
-        $this->runCommands($commands, $input, $output);
+        $this->runCommands($commands, $input, $output, [
+            'PEST_NO_SUPPORT' => 'true',
+        ]);
 
         $this->replaceFile(
             'pest/Feature.php',
