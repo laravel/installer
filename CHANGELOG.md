@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.4.3...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.5.0...master)
+
+## [v4.5.0](https://github.com/laravel/installer/compare/v4.4.3...v4.5.0) - 2023-03-20
+
+- Use Pest v2 by @nunomaduro in https://github.com/laravel/installer/pull/262
 
 ## [v4.4.3](https://github.com/laravel/installer/compare/v4.4.2...v4.4.3) - 2023-03-07
 
