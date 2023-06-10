@@ -68,6 +68,7 @@ class NewCommand extends Command
             $stack = $this->breezeStack($input, $output);
             $testingFramework = $this->testingFramework($input, $output);
 
+            $livewire = false;
             $dark = false;
 
             if (in_array($stack, ['blade', 'vue', 'react'])) {
@@ -82,6 +83,12 @@ class NewCommand extends Command
                 $ssr = $input->getOption('ssr') === true
                     ? (bool) $input->getOption('ssr')
                     : (new SymfonyStyle($input, $output))->confirm('Would you like to install Inertia SSR support?', false);
+            }
+
+            if ($stack === 'blade') {
+                $livewire = $input->getOption('livewire') === true
+                    ? (bool) $input->getOption('livewire')
+                    : (new SymfonyStyle($input, $output))->confirm('Would you like to install Livewire?', false);
             }
         } elseif ($installJetstream) {
             $output->write(PHP_EOL."  <fg=magenta>
@@ -169,7 +176,7 @@ class NewCommand extends Command
             }
 
             if ($installBreeze) {
-                $this->installBreeze($directory, $stack, $testingFramework, $dark, $ssr, $input, $output);
+                $this->installBreeze($directory, $stack, $testingFramework, $livewire, $dark, $ssr, $input, $output);
             } elseif ($installJetstream) {
                 $this->installJetstream($directory, $stack, $testingFramework, $teams, $dark, $input, $output);
             } elseif ($input->getOption('pest')) {
@@ -209,24 +216,26 @@ class NewCommand extends Command
      * @param  string  $directory
      * @param  string  $stack
      * @param  string  $testingFramework
+     * @param  bool  $livewire
      * @param  bool  $dark
      * @param  bool  $ssr
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
-    protected function installBreeze(string $directory, string $stack, string $testingFramework, bool $dark, bool $ssr, InputInterface $input, OutputInterface $output)
+    protected function installBreeze(string $directory, string $stack, string $testingFramework, bool $livewire, bool $dark, bool $ssr, InputInterface $input, OutputInterface $output)
     {
         chdir($directory);
 
         $commands = array_filter([
             $this->findComposer().' require laravel/breeze',
             trim(sprintf(
-                PHP_BINARY.' artisan breeze:install %s %s %s %s',
+                PHP_BINARY.' artisan breeze:install %s %s %s %s %s',
                 $stack,
                 $testingFramework == 'pest' ? '--pest' : '',
                 $dark ? '--dark' : '',
                 $ssr ? '--ssr' : '',
+                $livewire ? '--livewire' : '',
             )),
         ]);
 
