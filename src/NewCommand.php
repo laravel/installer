@@ -10,6 +10,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Process;
 
 class NewCommand extends Command
@@ -29,6 +30,7 @@ class NewCommand extends Command
             ->addOption('git', null, InputOption::VALUE_NONE, 'Initialize a Git repository')
             ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'The branch that should be created for a new repository', $this->defaultBranch())
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
+            ->addOption('ci', null, InputOption::VALUE_NONE, 'Include CI config for GitHub Actions')
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
             ->addOption('breeze', null, InputOption::VALUE_NONE, 'Installs the Laravel Breeze scaffolding')
             ->addOption('dark', null, InputOption::VALUE_NONE, 'Indicate whether Breeze or Jetstream should be scaffolded with dark mode support')
@@ -166,6 +168,10 @@ class NewCommand extends Command
 
             if ($input->getOption('git') || $input->getOption('github') !== false) {
                 $this->createRepository($directory, $input, $output);
+            }
+
+            if ($input->getOption('ci') !== false) {
+                (new Filesystem)->copy(dirname(__DIR__).'/stubs/ci/github-actions.yml', $directory.'/.github/workflows/laravel.yml');
             }
 
             if ($installBreeze) {
