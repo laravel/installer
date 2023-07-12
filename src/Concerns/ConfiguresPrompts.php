@@ -28,7 +28,7 @@ trait ConfiguresPrompts
         Prompt::fallbackWhen(! $input->isInteractive() || PHP_OS_FAMILY === 'Windows');
 
         TextPrompt::fallbackUsing(fn (TextPrompt $prompt) => $this->promptUntilValid(
-            fn () => (new SymfonyStyle($input, $output))->ask($prompt->label, $prompt->default) ?? '',
+            fn () => (new SymfonyStyle($input, $output))->ask($prompt->label, $prompt->default ?: null) ?? '',
             $prompt->required,
             $prompt->validate,
             $output
