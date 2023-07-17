@@ -222,7 +222,7 @@ class NewCommand extends Command
         $commands = array_filter([
             $this->findComposer().' require laravel/breeze',
             trim(sprintf(
-                PHP_BINARY.' artisan breeze:install %s %s %s %s',
+                '"'.PHP_BINARY.'" artisan breeze:install %s %s %s %s',
                 $stack,
                 $testingFramework == 'pest' ? '--pest' : '',
                 $dark ? '--dark' : '',
@@ -254,7 +254,7 @@ class NewCommand extends Command
         $commands = array_filter([
             $this->findComposer().' require laravel/jetstream',
             trim(sprintf(
-                PHP_BINARY.' artisan jetstream:install %s %s %s %s',
+                '"'.PHP_BINARY.'" artisan jetstream:install %s %s %s %s',
                 $stack,
                 $teams ? '--teams' : '',
                 $dark ? '--dark' : '',
@@ -368,7 +368,7 @@ class NewCommand extends Command
         $commands = array_filter([
             $this->findComposer().' remove phpunit/phpunit --dev',
             $this->findComposer().' require pestphp/pest:^2.0 pestphp/pest-plugin-laravel:^2.0 --dev',
-            PHP_BINARY.' ./vendor/bin/pest --init',
+            '"'.PHP_BINARY.'" ./vendor/bin/pest --init',
         ]);
 
         $this->runCommands($commands, $input, $output, [
