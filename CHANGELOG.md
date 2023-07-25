@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.5.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v4.5.1...master)
+
+## [v4.5.1](https://github.com/laravel/installer/compare/v4.5.0...v4.5.1) - 2023-07-25
+
+- Wrap PHP_BINARY in quotes by [@mpociot](https://github.com/mpociot) in https://github.com/laravel/installer/pull/268
 
 ## [v4.5.0](https://github.com/laravel/installer/compare/v4.4.3...v4.5.0) - 2023-03-20
 
