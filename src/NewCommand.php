@@ -73,6 +73,9 @@ class NewCommand extends Command
                 label: 'What is the name of your project?',
                 placeholder: 'E.g. example-app',
                 required: 'The project name is required.',
+                validate: fn ($value) => preg_match('/[^\pL\pN\-_.]/', $value) !== 0
+                    ? 'The name may only contain letters, numbers, dashes, underscores, and periods.'
+                    : null,
             ));
         }
 
