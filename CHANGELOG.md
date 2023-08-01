@@ -1,6 +1,14 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v4.5.1...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.0.0...master)
+
+## [v5.0.0](https://github.com/laravel/installer/compare/v4.5.1...v5.0.0) - 2023-08-01
+
+### What's Changed
+
+- Update prompts by [@jessarcher](https://github.com/jessarcher) in https://github.com/laravel/installer/pull/267
+
+**Full Changelog**: https://github.com/laravel/installer/compare/v4.5.1...v5.0.0
 
 ## [v4.5.1](https://github.com/laravel/installer/compare/v4.5.0...v4.5.1) - 2023-07-25
 
