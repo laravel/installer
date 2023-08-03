@@ -107,8 +107,8 @@ class NewCommand extends Command
             ) === 'Pest');
         }
 
-        if (! $input->getOption('git') && Process::fromShellCommandline('git --version')->run() === 0) {
-            $input->setOption('git', confirm(label: 'Would you like to initialize a Git repository?'));
+        if (! $input->getOption('git') && $input->getOption('github') === false && Process::fromShellCommandline('git --version')->run() === 0) {
+            $input->setOption('git', confirm(label: 'Would you like to initialize a Git repository?', default: false));
         }
     }
 
