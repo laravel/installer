@@ -1,6 +1,14 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.0.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.0.1...master)
+
+## [v5.0.1](https://github.com/laravel/installer/compare/v5.0.0...v5.0.1) - 2023-08-03
+
+### What's Changed
+
+- Don't prompt for Git if Github Option is found by [@Jubeki](https://github.com/Jubeki) in https://github.com/laravel/installer/pull/269
+
+**Full Changelog**: https://github.com/laravel/installer/compare/v5.0.0...v5.0.1
 
 ## [v5.0.0](https://github.com/laravel/installer/compare/v4.5.1...v5.0.0) - 2023-08-01
 
