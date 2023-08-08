@@ -4,19 +4,11 @@
 
 ## [v5.0.1](https://github.com/laravel/installer/compare/v5.0.0...v5.0.1) - 2023-08-03
 
-### What's Changed
-
 - Don't prompt for Git if Github Option is found by [@Jubeki](https://github.com/Jubeki) in https://github.com/laravel/installer/pull/269
-
-**Full Changelog**: https://github.com/laravel/installer/compare/v5.0.0...v5.0.1
 
 ## [v5.0.0](https://github.com/laravel/installer/compare/v4.5.1...v5.0.0) - 2023-08-01
 
-### What's Changed
-
 - Update prompts by [@jessarcher](https://github.com/jessarcher) in https://github.com/laravel/installer/pull/267
-
-**Full Changelog**: https://github.com/laravel/installer/compare/v4.5.1...v5.0.0
 
 ## [v4.5.1](https://github.com/laravel/installer/compare/v4.5.0...v4.5.1) - 2023-07-25
 
