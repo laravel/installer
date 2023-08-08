@@ -193,7 +193,7 @@ class NewCommand extends Command
                 $output->writeln('');
             }
 
-            $output->writeln('  <bg=blue;fg=white> INFO </> Application ready! <options=bold>Build something amazing.</>'.PHP_EOL);
+            $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. Build something amazing.".PHP_EOL);
         }
 
         return $process->getExitCode();
