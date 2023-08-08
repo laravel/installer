@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.0.1...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.0.2...master)
+
+## [v5.0.2](https://github.com/laravel/installer/compare/v5.0.1...v5.0.2) - 2023-08-08
+
+- Show the directory name at the end of the installer by [@jessarcher](https://github.com/jessarcher) in https://github.com/laravel/installer/pull/270
 
 ## [v5.0.1](https://github.com/laravel/installer/compare/v5.0.0...v5.0.1) - 2023-08-03
 
