@@ -37,7 +37,7 @@ class NewCommand extends Command
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
             ->addOption('breeze', null, InputOption::VALUE_NONE, 'Installs the Laravel Breeze scaffolding')
             ->addOption('dark', null, InputOption::VALUE_NONE, 'Indicate whether Breeze or Jetstream should be scaffolded with dark mode support')
-            ->addOption('typescript', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with Typescript support')
+            ->addOption('typescript', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with Typescript support (experimental)')
             ->addOption('ssr', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with Inertia SSR support')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Breeze / Jetstream stack that should be installed')
@@ -297,9 +297,9 @@ class NewCommand extends Command
             collect(multiselect(
                 label: 'Would you like any optional features?',
                 options: [
-                    'typescript' => 'Typescript',
                     'dark' => 'Dark mode',
                     'ssr' => 'Inertia SSR',
+                    'typescript' => 'Typescript (experimental)',
                 ],
                 default: array_filter([
                     $input->getOption('typescript') ? 'typescript' : null,
