@@ -302,9 +302,9 @@ class NewCommand extends Command
                     'typescript' => 'TypeScript (experimental)',
                 ],
                 default: array_filter([
-                    $input->getOption('typescript') ? 'typescript' : null,
                     $input->getOption('dark') ? 'dark' : null,
                     $input->getOption('ssr') ? 'ssr' : null,
+                    $input->getOption('typescript') ? 'typescript' : null,
                 ]),
             ))->each(fn ($option) => $input->setOption($option, true));
         } elseif ($input->getOption('stack') === 'blade' && ! $input->getOption('dark')) {
