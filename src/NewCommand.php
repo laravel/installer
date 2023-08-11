@@ -37,6 +37,7 @@ class NewCommand extends Command
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
             ->addOption('breeze', null, InputOption::VALUE_NONE, 'Installs the Laravel Breeze scaffolding')
             ->addOption('dark', null, InputOption::VALUE_NONE, 'Indicate whether Breeze or Jetstream should be scaffolded with dark mode support')
+            ->addOption('typescript', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with TypeScript support (Experimental)')
             ->addOption('ssr', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with Inertia SSR support')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Breeze / Jetstream stack that should be installed')
@@ -232,6 +233,7 @@ class NewCommand extends Command
             trim(sprintf(
                 '"'.PHP_BINARY.'" artisan breeze:install %s %s %s %s',
                 $input->getOption('stack'),
+                $input->getOption('typescript') ? '--typescript' : '',
                 $input->getOption('pest') ? '--pest' : '',
                 $input->getOption('dark') ? '--dark' : '',
                 $input->getOption('ssr') ? '--ssr' : '',
@@ -297,10 +299,12 @@ class NewCommand extends Command
                 options: [
                     'dark' => 'Dark mode',
                     'ssr' => 'Inertia SSR',
+                    'typescript' => 'TypeScript (experimental)',
                 ],
                 default: array_filter([
                     $input->getOption('dark') ? 'dark' : null,
                     $input->getOption('ssr') ? 'ssr' : null,
+                    $input->getOption('typescript') ? 'typescript' : null,
                 ]),
             ))->each(fn ($option) => $input->setOption($option, true));
         } elseif ($input->getOption('stack') === 'blade' && ! $input->getOption('dark')) {
