@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.0.2...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.0.3...master)
+
+## [v5.0.3](https://github.com/laravel/installer/compare/v5.0.2...v5.0.3) - 2023-08-15
+
+- Add option to indicate whether Breeze should be scaffolded with TypeScript support by [@weavdale](https://github.com/weavdale) in https://github.com/laravel/installer/pull/271
 
 ## [v5.0.2](https://github.com/laravel/installer/compare/v5.0.1...v5.0.2) - 2023-08-08
 
