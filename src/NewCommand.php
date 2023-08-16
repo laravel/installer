@@ -380,8 +380,8 @@ class NewCommand extends Command
     {
         chdir($directory);
 
-        if ($this->removeComposerPackages(['phpunit/phpunit'], true, $output)
-            && $this->requireComposerPackages(['pestphp/pest:^2.0', 'pestphp/pest-plugin-laravel:^2.0'], true, $output)) {
+        if ($this->removeComposerPackages(['phpunit/phpunit'], $output, true)
+            && $this->requireComposerPackages(['pestphp/pest:^2.0', 'pestphp/pest-plugin-laravel:^2.0'], $output, true)) {
             $commands = array_filter([
                 '"'.PHP_BINARY.'" ./vendor/bin/pest --init',
             ]);
@@ -556,11 +556,9 @@ class NewCommand extends Command
     /**
      * Installs the given Composer Packages into the application.
      *
-     * @param bool $asDev
-     *
      * @return bool
      */
-    protected function requireComposerPackages(array $packages, $asDev = false, OutputInterface $output)
+    protected function requireComposerPackages(array $packages,  OutputInterface $output, bool $asDev = false)
     {
         $composer = $this->findComposer();
         $command = explode(' ', $composer);
@@ -582,11 +580,9 @@ class NewCommand extends Command
     /**
      * Removes the given Composer Packages from the application.
      *
-     * @param bool $asDev
-     *
      * @return bool
      */
-    protected function removeComposerPackages(array $packages, $asDev = false, OutputInterface $output)
+    protected function removeComposerPackages(array $packages, OutputInterface $output, bool $asDev = false)
     {
         $composer = $this->findComposer();
         $command = explode(' ', $composer);
