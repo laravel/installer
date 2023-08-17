@@ -380,27 +380,28 @@ class NewCommand extends Command
     {
         chdir($directory);
 
-        $commands = array_filter([
-            $this->findComposer().' remove phpunit/phpunit --dev',
-            $this->findComposer().' require pestphp/pest:^2.0 pestphp/pest-plugin-laravel:^2.0 --dev',
-            '"'.PHP_BINARY.'" ./vendor/bin/pest --init',
-        ]);
+        if ($this->removeComposerPackages(['phpunit/phpunit'], $output, true)
+            && $this->requireComposerPackages(['pestphp/pest:^2.0', 'pestphp/pest-plugin-laravel:^2.0'], $output, true)) {
+            $commands = array_filter([
+                '"'.PHP_BINARY.'" ./vendor/bin/pest --init',
+            ]);
 
-        $this->runCommands($commands, $input, $output, [
-            'PEST_NO_SUPPORT' => 'true',
-        ]);
+            $this->runCommands($commands, $input, $output, [
+                'PEST_NO_SUPPORT' => 'true',
+            ]);
 
-        $this->replaceFile(
-            'pest/Feature.php',
-            $directory.'/tests/Feature/ExampleTest.php',
-        );
+            $this->replaceFile(
+                'pest/Feature.php',
+                $directory.'/tests/Feature/ExampleTest.php',
+            );
 
-        $this->replaceFile(
-            'pest/Unit.php',
-            $directory.'/tests/Unit/ExampleTest.php',
-        );
+            $this->replaceFile(
+                'pest/Unit.php',
+                $directory.'/tests/Unit/ExampleTest.php',
+            );
 
-        $this->commitChanges('Install Pest', $directory, $input, $output);
+            $this->commitChanges('Install Pest', $directory, $input, $output);
+        }
     }
 
     /**
@@ -550,6 +551,54 @@ class NewCommand extends Command
         }
 
         return 'composer';
+    }
+
+    /**
+     * Installs the given Composer Packages into the application.
+     *
+     * @return bool
+     */
+    protected function requireComposerPackages(array $packages, OutputInterface $output, bool $asDev = false)
+    {
+        $composer = $this->findComposer();
+        $command = explode(' ', $composer);
+        array_push($command, 'require');
+
+        $command = array_merge(
+            $command,
+            $packages,
+            $asDev ? ['--dev'] : [],
+        );
+
+        return 0 === (new Process($command, env: ['COMPOSER_MEMORY_LIMIT' => '-1']))
+            ->setTimeout(null)
+            ->run(function ($type, $line) use ($output) {
+                $output->write('    '.$line);
+            });
+    }
+
+    /**
+     * Removes the given Composer Packages from the application.
+     *
+     * @return bool
+     */
+    protected function removeComposerPackages(array $packages, OutputInterface $output, bool $asDev = false)
+    {
+        $composer = $this->findComposer();
+        $command = explode(' ', $composer);
+        array_push($command, 'remove');
+
+        $command = array_merge(
+            $command,
+            $packages,
+            $asDev ? ['--dev'] : [],
+        );
+
+        return 0 === (new Process($command, env: ['COMPOSER_MEMORY_LIMIT' => '-1']))
+            ->setTimeout(null)
+            ->run(function ($type, $line) use ($output) {
+                $output->write('    '.$line);
+            });
     }
 
     /**
