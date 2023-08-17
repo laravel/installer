@@ -2,6 +2,8 @@
 
 namespace Laravel\Installer\Console;
 
+use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Composer;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -9,7 +11,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
-
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\select;
@@ -18,6 +19,13 @@ use function Laravel\Prompts\text;
 class NewCommand extends Command
 {
     use Concerns\ConfiguresPrompts;
+
+    /**
+     * The Composer helper instance.
+     *
+     * @var \Illuminate\Support\Composer
+     */
+    protected $composer;
 
     /**
      * Configure the command options.
@@ -128,6 +136,8 @@ class NewCommand extends Command
 
         $directory = $name !== '.' ? getcwd().'/'.$name : '.';
 
+        $this->composer = new Composer(new Filesystem(), $directory);
+
         $version = $this->getVersion($input);
 
         if (! $input->getOption('force')) {
@@ -138,7 +148,7 @@ class NewCommand extends Command
             throw new RuntimeException('Cannot use --force option when using current directory for installation!');
         }
 
-        $composer = $this->findComposer();
+        $composer = implode(' ', $this->composer->findComposer());
 
         $commands = [
             $composer." create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist",
@@ -229,7 +239,7 @@ class NewCommand extends Command
         chdir($directory);
 
         $commands = array_filter([
-            $this->findComposer().' require laravel/breeze',
+            $this->composer->findComposer().' require laravel/breeze',
             trim(sprintf(
                 '"'.PHP_BINARY.'" artisan breeze:install %s %s %s %s',
                 $input->getOption('stack'),
@@ -240,7 +250,7 @@ class NewCommand extends Command
             )),
         ]);
 
-        $this->runCommands($commands, $input, $output);
+        $this->runCommands($commands, $input, $output, workingPath: $directory);
 
         $this->commitChanges('Install Breeze', $directory, $input, $output);
     }
@@ -258,7 +268,7 @@ class NewCommand extends Command
         chdir($directory);
 
         $commands = array_filter([
-            $this->findComposer().' require laravel/jetstream',
+            $this->composer->findComposer().' require laravel/jetstream',
             trim(sprintf(
                 '"'.PHP_BINARY.'" artisan jetstream:install %s %s %s %s',
                 $input->getOption('stack'),
@@ -378,15 +388,13 @@ class NewCommand extends Command
      */
     protected function installPest(string $directory, InputInterface $input, OutputInterface $output)
     {
-        chdir($directory);
-
         if ($this->removeComposerPackages(['phpunit/phpunit'], $output, true)
             && $this->requireComposerPackages(['pestphp/pest:^2.0', 'pestphp/pest-plugin-laravel:^2.0'], $output, true)) {
             $commands = array_filter([
                 '"'.PHP_BINARY.'" ./vendor/bin/pest --init',
             ]);
 
-            $this->runCommands($commands, $input, $output, [
+            $this->runCommands($commands, $input, $output, workingPath: $directory, env: [
                 'PEST_NO_SUPPORT' => 'true',
             ]);
 
@@ -414,8 +422,6 @@ class NewCommand extends Command
      */
     protected function createRepository(string $directory, InputInterface $input, OutputInterface $output)
     {
-        chdir($directory);
-
         $branch = $input->getOption('branch') ?: $this->defaultBranch();
 
         $commands = [
@@ -425,7 +431,7 @@ class NewCommand extends Command
             "git branch -M {$branch}",
         ];
 
-        $this->runCommands($commands, $input, $output);
+        $this->runCommands($commands, $input, $output, workingPath: $directory);
     }
 
     /**
@@ -443,14 +449,12 @@ class NewCommand extends Command
             return;
         }
 
-        chdir($directory);
-
         $commands = [
             'git add .',
             "git commit -q -m \"$message\"",
         ];
 
-        $this->runCommands($commands, $input, $output);
+        $this->runCommands($commands, $input, $output, workingPath: $directory);
     }
 
     /**
@@ -473,8 +477,6 @@ class NewCommand extends Command
             return;
         }
 
-        chdir($directory);
-
         $name = $input->getOption('organization') ? $input->getOption('organization')."/$name" : $name;
         $flags = $input->getOption('github') ?: '--private';
 
@@ -482,7 +484,7 @@ class NewCommand extends Command
             "gh repo create {$name} --source=. --push {$flags}",
         ];
 
-        $this->runCommands($commands, $input, $output, ['GIT_TERMINAL_PROMPT' => 0]);
+        $this->runCommands($commands, $input, $output, workingPath: $directory, env: ['GIT_TERMINAL_PROMPT' => 0]);
     }
 
     /**
@@ -538,43 +540,13 @@ class NewCommand extends Command
     }
 
     /**
-     * Get the composer command for the environment.
-     *
-     * @return string
-     */
-    protected function findComposer()
-    {
-        $composerPath = getcwd().'/composer.phar';
-
-        if (file_exists($composerPath)) {
-            return '"'.PHP_BINARY.'" '.$composerPath;
-        }
-
-        return 'composer';
-    }
-
-    /**
      * Installs the given Composer Packages into the application.
      *
      * @return bool
      */
     protected function requireComposerPackages(array $packages, OutputInterface $output, bool $asDev = false)
     {
-        $composer = $this->findComposer();
-        $command = explode(' ', $composer);
-        array_push($command, 'require');
-
-        $command = array_merge(
-            $command,
-            $packages,
-            $asDev ? ['--dev'] : [],
-        );
-
-        return 0 === (new Process($command, env: ['COMPOSER_MEMORY_LIMIT' => '-1']))
-            ->setTimeout(null)
-            ->run(function ($type, $line) use ($output) {
-                $output->write('    '.$line);
-            });
+        return $this->composer->requirePackages($packages, $asDev, $output);
     }
 
     /**
@@ -584,21 +556,7 @@ class NewCommand extends Command
      */
     protected function removeComposerPackages(array $packages, OutputInterface $output, bool $asDev = false)
     {
-        $composer = $this->findComposer();
-        $command = explode(' ', $composer);
-        array_push($command, 'remove');
-
-        $command = array_merge(
-            $command,
-            $packages,
-            $asDev ? ['--dev'] : [],
-        );
-
-        return 0 === (new Process($command, env: ['COMPOSER_MEMORY_LIMIT' => '-1']))
-            ->setTimeout(null)
-            ->run(function ($type, $line) use ($output) {
-                $output->write('    '.$line);
-            });
+        return $this->composer->removePackages($packages, $asDev, $output);
     }
 
     /**
@@ -607,10 +565,11 @@ class NewCommand extends Command
      * @param  array  $commands
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @param  string|null  $workingPath
      * @param  array  $env
      * @return \Symfony\Component\Process\Process
      */
-    protected function runCommands($commands, InputInterface $input, OutputInterface $output, array $env = [])
+    protected function runCommands($commands, InputInterface $input, OutputInterface $output, string $workingPath = null, array $env = [])
     {
         if (! $output->isDecorated()) {
             $commands = array_map(function ($value) {
@@ -640,7 +599,7 @@ class NewCommand extends Command
             }, $commands);
         }
 
-        $process = Process::fromShellCommandline(implode(' && ', $commands), null, $env, null, null);
+        $process = Process::fromShellCommandline(implode(' && ', $commands), $workingPath, $env, null, null);
 
         if ('\\' !== DIRECTORY_SEPARATOR && file_exists('/dev/tty') && is_readable('/dev/tty')) {
             try {
