@@ -148,7 +148,7 @@ class NewCommand extends Command
             throw new RuntimeException('Cannot use --force option when using current directory for installation!');
         }
 
-        $composer = implode(' ', $this->composer->findComposer());
+        $composer = $this->findComposer();
 
         $commands = [
             $composer." create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist",
@@ -236,10 +236,8 @@ class NewCommand extends Command
      */
     protected function installBreeze(string $directory, InputInterface $input, OutputInterface $output)
     {
-        chdir($directory);
-
         $commands = array_filter([
-            $this->composer->findComposer().' require laravel/breeze',
+            $this->findComposer().' require laravel/breeze',
             trim(sprintf(
                 '"'.PHP_BINARY.'" artisan breeze:install %s %s %s %s',
                 $input->getOption('stack'),
@@ -265,10 +263,8 @@ class NewCommand extends Command
      */
     protected function installJetstream(string $directory, InputInterface $input, OutputInterface $output)
     {
-        chdir($directory);
-
         $commands = array_filter([
-            $this->composer->findComposer().' require laravel/jetstream',
+            $this->findComposer().' require laravel/jetstream',
             trim(sprintf(
                 '"'.PHP_BINARY.'" artisan jetstream:install %s %s %s %s',
                 $input->getOption('stack'),
@@ -278,7 +274,7 @@ class NewCommand extends Command
             )),
         ]);
 
-        $this->runCommands($commands, $input, $output);
+        $this->runCommands($commands, $input, $output, workingPath: $directory);
 
         $this->commitChanges('Install Jetstream', $directory, $input, $output);
     }
@@ -537,6 +533,16 @@ class NewCommand extends Command
         }
 
         return '';
+    }
+
+    /**
+     * Get the composer command for the environment.
+     *
+     * @return string
+     */
+    protected function findComposer()
+    {
+        return implode(' ', $this->composer->findComposer());
     }
 
     /**
