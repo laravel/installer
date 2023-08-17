@@ -558,7 +558,7 @@ class NewCommand extends Command
      *
      * @return bool
      */
-    protected function requireComposerPackages(array $packages,  OutputInterface $output, bool $asDev = false)
+    protected function requireComposerPackages(array $packages, OutputInterface $output, bool $asDev = false)
     {
         $composer = $this->findComposer();
         $command = explode(' ', $composer);
