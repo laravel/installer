@@ -4,14 +4,15 @@ namespace Laravel\Installer\Console;
 
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Composer;
+use Illuminate\Support\ProcessUtils;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
-
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\select;
@@ -240,7 +241,7 @@ class NewCommand extends Command
         $commands = array_filter([
             $this->findComposer().' require laravel/breeze',
             trim(sprintf(
-                '"'.PHP_BINARY.'" artisan breeze:install %s %s %s %s',
+                $this->phpBinary().' artisan breeze:install %s %s %s %s',
                 $input->getOption('stack'),
                 $input->getOption('typescript') ? '--typescript' : '',
                 $input->getOption('pest') ? '--pest' : '',
@@ -267,7 +268,7 @@ class NewCommand extends Command
         $commands = array_filter([
             $this->findComposer().' require laravel/jetstream',
             trim(sprintf(
-                '"'.PHP_BINARY.'" artisan jetstream:install %s %s %s %s',
+                $this->phpBinary().' artisan jetstream:install %s %s %s %s',
                 $input->getOption('stack'),
                 $input->getOption('teams') ? '--teams' : '',
                 $input->getOption('dark') ? '--dark' : '',
@@ -388,7 +389,7 @@ class NewCommand extends Command
         if ($this->removeComposerPackages(['phpunit/phpunit'], $output, true)
             && $this->requireComposerPackages(['pestphp/pest:^2.0', 'pestphp/pest-plugin-laravel:^2.0'], $output, true)) {
             $commands = array_filter([
-                '"'.PHP_BINARY.'" ./vendor/bin/pest --init',
+                $this->phpBinary().' ./vendor/bin/pest --init',
             ]);
 
             $this->runCommands($commands, $input, $output, workingPath: $directory, env: [
@@ -544,6 +545,20 @@ class NewCommand extends Command
     protected function findComposer()
     {
         return implode(' ', $this->composer->findComposer());
+    }
+
+    /**
+     * Get the path to the appropriate PHP binary.
+     *
+     * @return string
+     */
+    protected function phpBinary()
+    {
+        $phpBinary = (new PhpExecutableFinder)->find(false);
+
+        return $phpBinary !== false
+            ? ProcessUtils::escapeArgument($phpBinary)
+            : 'php';
     }
 
     /**
