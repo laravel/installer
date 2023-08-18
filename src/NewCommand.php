@@ -164,17 +164,7 @@ class NewCommand extends Command
                     $directory.'/.env'
                 );
 
-                $this->replaceInFile(
-                    'DB_DATABASE=laravel',
-                    'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
-                    $directory.'/.env'
-                );
-
-                $this->replaceInFile(
-                    'DB_DATABASE=laravel',
-                    'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
-                    $directory.'/.env.example'
-                );
+                $this->configureDefaultDatabaseConnection($directory, $name);
             }
 
             if ($input->getOption('git') || $input->getOption('github') !== false) {
@@ -214,6 +204,52 @@ class NewCommand extends Command
         $output = trim($process->getOutput());
 
         return $process->isSuccessful() && $output ? $output : 'main';
+    }
+
+    /**
+     * Configure the default database connection
+     *
+     * @param  string $directory
+     * @param  string $name
+     * @return void
+     */
+    protected function configureDefaultDatabaseConnection(string $directory, string $name)
+    {
+        $database = select(
+            label: 'Choose Database Driver',
+            options: [
+                'mysql' => 'MySQL',
+                'sqlite' => 'SQLite',
+                'pgsql' => 'PostgreSQL',
+            ],
+            default: 'mysql'
+        );
+
+        $this->replaceInFile(
+            'DB_CONNECTION=mysql',
+            'DB_CONNECTION='.$database,
+            $directory.'/.env'
+        );
+
+        if ($database === 'sqlite') {
+            $this->replaceInFile(
+                'DB_DATABASE=laravel',
+                '# DB_DATABASE=',
+                $directory.'/.env'
+            );
+        } else {
+            $this->replaceInFile(
+                'DB_DATABASE=laravel',
+                'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
+                $directory.'/.env'
+            );
+
+            $this->replaceInFile(
+                'DB_DATABASE=laravel',
+                'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
+                $directory.'/.env.example'
+            );
+        }
     }
 
     /**
