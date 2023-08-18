@@ -327,8 +327,8 @@ class NewCommand extends Command
             $input->setOption('stack', select(
                 label: 'Which Jetstream stack would you like to install?',
                 options: [
-                    'inertia' => 'Vue with Inertia',
                     'livewire' => 'Livewire',
+                    'inertia' => 'Vue with Inertia',
                 ]
             ));
         }
