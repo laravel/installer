@@ -207,10 +207,10 @@ class NewCommand extends Command
     }
 
     /**
-     * Configure the default database connection
+     * Configure the default database connection.
      *
-     * @param  string $directory
-     * @param  string $name
+     * @param  string  $directory
+     * @param  string  $name
      * @return void
      */
     protected function configureDefaultDatabaseConnection(string $directory, string $name)
