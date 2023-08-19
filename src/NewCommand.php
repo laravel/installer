@@ -306,7 +306,7 @@ class NewCommand extends Command
      * Determine the default database connection.
      *
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @return void
+     * @return string
      */
     protected function promptForDatabaseOptions(InputInterface $input)
     {
