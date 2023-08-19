@@ -224,10 +224,19 @@ class NewCommand extends Command
             $directory.'/.env'
         );
 
+        $defaults = [
+            'DB_DATABASE=laravel',
+            'DB_HOST=127.0.0.1',
+            'DB_PORT=3306',
+            'DB_DATABASE=laravel',
+            'DB_USERNAME=root',
+            'DB_PASSWORD=',
+        ];
+
         if ($database === 'sqlite') {
             $this->replaceInFile(
-                'DB_DATABASE=laravel',
-                '# DB_DATABASE=',
+                $defaults,
+                collect($defaults)->map(fn ($default) => "# {$default}")->all(),
                 $directory.'/.env'
             );
         } else {
@@ -682,12 +691,12 @@ class NewCommand extends Command
     /**
      * Replace the given string in the given file.
      *
-     * @param  string  $search
-     * @param  string  $replace
+     * @param  string|array  $search
+     * @param  string|array  $replace
      * @param  string  $file
      * @return void
      */
-    protected function replaceInFile(string $search, string $replace, string $file)
+    protected function replaceInFile(string|array $search, string|array $replace, string $file)
     {
         file_put_contents(
             $file,
