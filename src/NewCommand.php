@@ -209,7 +209,7 @@ class NewCommand extends Command
     }
 
     /**
-     * Configure the default database connection
+     * Configure the default database connection.
      *
      * @param  string  $directory
      * @param  string  $database
