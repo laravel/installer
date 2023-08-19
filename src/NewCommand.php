@@ -164,7 +164,9 @@ class NewCommand extends Command
                     $directory.'/.env'
                 );
 
-                $this->configureDefaultDatabaseConnection($directory, $name);
+                $database = $this->promptForDatabaseOptions($input);
+
+                $this->configureDefaultDatabaseConnection($directory, $database, $name);
             }
 
             if ($input->getOption('git') || $input->getOption('github') !== false) {
@@ -209,22 +211,13 @@ class NewCommand extends Command
     /**
      * Configure the default database connection
      *
-     * @param  string $directory
-     * @param  string $name
+     * @param  string  $directory
+     * @param  string  $database
+     * @param  string  $name
      * @return void
      */
-    protected function configureDefaultDatabaseConnection(string $directory, string $name)
+    protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name)
     {
-        $database = select(
-            label: 'Choose Database Driver',
-            options: [
-                'mysql' => 'MySQL',
-                'sqlite' => 'SQLite',
-                'pgsql' => 'PostgreSQL',
-            ],
-            default: 'mysql'
-        );
-
         $this->replaceInFile(
             'DB_CONNECTION=mysql',
             'DB_CONNECTION='.$database,
@@ -307,6 +300,31 @@ class NewCommand extends Command
         $this->runCommands($commands, $input, $output);
 
         $this->commitChanges('Install Jetstream', $directory, $input, $output);
+    }
+
+    /**
+     * Determine the default database connection.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @return void
+     */
+    protected function promptForDatabaseOptions(InputInterface $input)
+    {
+        $database = 'mysql';
+
+        if ($input->isInteractive()) {
+            $database = select(
+                label: 'Choose Database Driver',
+                options: [
+                    'mysql' => 'MySQL',
+                    'sqlite' => 'SQLite',
+                    'pgsql' => 'PostgreSQL',
+                ],
+                default: $database
+            );
+        }
+
+        return $database;
     }
 
     /**
