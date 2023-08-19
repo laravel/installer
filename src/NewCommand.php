@@ -239,19 +239,21 @@ class NewCommand extends Command
                 collect($defaults)->map(fn ($default) => "# {$default}")->all(),
                 $directory.'/.env'
             );
-        } else {
-            $this->replaceInFile(
-                'DB_DATABASE=laravel',
-                'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
-                $directory.'/.env'
-            );
 
-            $this->replaceInFile(
-                'DB_DATABASE=laravel',
-                'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
-                $directory.'/.env.example'
-            );
+            return;
         }
+
+        $this->replaceInFile(
+            'DB_DATABASE=laravel',
+            'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
+            $directory.'/.env'
+        );
+
+        $this->replaceInFile(
+            'DB_DATABASE=laravel',
+            'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
+            $directory.'/.env.example'
+        );
     }
 
     /**
