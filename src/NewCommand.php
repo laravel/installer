@@ -252,7 +252,6 @@ class NewCommand extends Command
         }
 
         $defaultPorts = [
-            'mysql' => '3306',
             'pgsql' => '5432',
             'sqlsrv' => '1433',
         ];
