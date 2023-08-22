@@ -224,7 +224,7 @@ class NewCommand extends Command
             $directory.'/.env'
         );
 
-        if (! in_array($database, 'sqlite')) {
+        if (! in_array($database, ['sqlite'])) {
             $this->replaceInFile(
                 'DB_CONNECTION=mysql',
                 'DB_CONNECTION='.$database,
