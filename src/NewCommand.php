@@ -224,6 +224,14 @@ class NewCommand extends Command
             $directory.'/.env'
         );
 
+        if (! in_array($database, 'sqlite')) {
+            $this->replaceInFile(
+                'DB_CONNECTION=mysql',
+                'DB_CONNECTION='.$database,
+                $directory.'/.env.example'
+            );
+        }
+
         $defaults = [
             'DB_DATABASE=laravel',
             'DB_HOST=127.0.0.1',
@@ -241,6 +249,26 @@ class NewCommand extends Command
             );
 
             return;
+        }
+
+        $defaultPorts = [
+            'mysql' => '3306',
+            'pgsql' => '5432',
+            'sqlsrv' => '1433',
+        ];
+
+        if (isset($defaultPorts[$database])) {
+            $this->replaceInFile(
+                'DB_PORT=3306',
+                'DB_PORT='.$defaultPorts[$database],
+                $directory.'/.env'
+            );
+
+            $this->replaceInFile(
+                'DB_PORT=3306',
+                'DB_PORT='.$defaultPorts[$database],
+                $directory.'/.env.example'
+            );
         }
 
         $this->replaceInFile(
@@ -330,6 +358,7 @@ class NewCommand extends Command
                     'mysql' => 'MySQL',
                     'sqlite' => 'SQLite',
                     'pgsql' => 'PostgreSQL',
+                    'sqlsrv' => 'MSSQL',
                 ],
                 default: $database
             );
