@@ -231,7 +231,7 @@ class NewCommand extends Command
         $commands = array_filter([
             $this->findComposer().' require laravel/breeze',
             trim(sprintf(
-                '"'.PHP_BINARY.'" artisan breeze:install %s %s %s %s',
+                '"'.PHP_BINARY.'" artisan breeze:install %s %s %s %s %s',
                 $input->getOption('stack'),
                 $input->getOption('typescript') ? '--typescript' : '',
                 $input->getOption('pest') ? '--pest' : '',
