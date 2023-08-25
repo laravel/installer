@@ -46,13 +46,15 @@ class NewCommand extends Command
             ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'The branch that should be created for a new repository', $this->defaultBranch())
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
+            ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Breeze / Jetstream stack that should be installed')
             ->addOption('breeze', null, InputOption::VALUE_NONE, 'Installs the Laravel Breeze scaffolding')
+            ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('dark', null, InputOption::VALUE_NONE, 'Indicate whether Breeze or Jetstream should be scaffolded with dark mode support')
             ->addOption('typescript', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with TypeScript support (Experimental)')
             ->addOption('ssr', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with Inertia SSR support')
-            ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
-            ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Breeze / Jetstream stack that should be installed')
+            ->addOption('api', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with API support')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
+            ->addOption('verification', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with email verification support')
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Installs the Pest testing framework')
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Installs the PHPUnit testing framework')
             ->addOption('prompt-breeze', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Breeze should be installed (Deprecated)')
@@ -177,17 +179,9 @@ class NewCommand extends Command
                     $directory.'/.env'
                 );
 
-                $this->replaceInFile(
-                    'DB_DATABASE=laravel',
-                    'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
-                    $directory.'/.env'
-                );
+                $database = $this->promptForDatabaseOptions($input);
 
-                $this->replaceInFile(
-                    'DB_DATABASE=laravel',
-                    'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
-                    $directory.'/.env.example'
-                );
+                $this->configureDefaultDatabaseConnection($directory, $database, $name);
             }
 
             if ($input->getOption('git') || $input->getOption('github') !== false) {
@@ -230,6 +224,81 @@ class NewCommand extends Command
     }
 
     /**
+     * Configure the default database connection.
+     *
+     * @param  string  $directory
+     * @param  string  $database
+     * @param  string  $name
+     * @return void
+     */
+    protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name)
+    {
+        $this->replaceInFile(
+            'DB_CONNECTION=mysql',
+            'DB_CONNECTION='.$database,
+            $directory.'/.env'
+        );
+
+        if (! in_array($database, ['sqlite'])) {
+            $this->replaceInFile(
+                'DB_CONNECTION=mysql',
+                'DB_CONNECTION='.$database,
+                $directory.'/.env.example'
+            );
+        }
+
+        $defaults = [
+            'DB_DATABASE=laravel',
+            'DB_HOST=127.0.0.1',
+            'DB_PORT=3306',
+            'DB_DATABASE=laravel',
+            'DB_USERNAME=root',
+            'DB_PASSWORD=',
+        ];
+
+        if ($database === 'sqlite') {
+            $this->replaceInFile(
+                $defaults,
+                collect($defaults)->map(fn ($default) => "# {$default}")->all(),
+                $directory.'/.env'
+            );
+
+            return;
+        }
+
+        $defaultPorts = [
+            'pgsql' => '5432',
+            'sqlsrv' => '1433',
+        ];
+
+        if (isset($defaultPorts[$database])) {
+            $this->replaceInFile(
+                'DB_PORT=3306',
+                'DB_PORT='.$defaultPorts[$database],
+                $directory.'/.env'
+            );
+
+            $this->replaceInFile(
+                'DB_PORT=3306',
+                'DB_PORT='.$defaultPorts[$database],
+                $directory.'/.env.example'
+            );
+        }
+
+        $this->replaceInFile(
+            'DB_DATABASE=laravel',
+            'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
+            $directory.'/.env'
+        );
+
+        $this->replaceInFile(
+            'DB_DATABASE=laravel',
+            'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
+            $directory.'/.env.example'
+        );
+    }
+
+    /**
      * Install Laravel Breeze into the application.
      *
      * @param  string  $directory
@@ -242,7 +311,7 @@ class NewCommand extends Command
         $commands = array_filter([
             $this->findComposer().' require laravel/breeze',
             trim(sprintf(
-                $this->phpBinary().' artisan breeze:install %s %s %s %s',
+                $this->phpBinary().' artisan breeze:install %s %s %s %s %s',
                 $input->getOption('stack'),
                 $input->getOption('typescript') ? '--typescript' : '',
                 $input->getOption('pest') ? '--pest' : '',
@@ -269,17 +338,45 @@ class NewCommand extends Command
         $commands = array_filter([
             $this->findComposer().' require laravel/jetstream',
             trim(sprintf(
-                $this->phpBinary().' artisan jetstream:install %s %s %s %s',
+                $this->phpBinary().' artisan jetstream:install %s %s %s %s %s %s',
                 $input->getOption('stack'),
-                $input->getOption('teams') ? '--teams' : '',
+                $input->getOption('api') ? '--api' : '',
                 $input->getOption('dark') ? '--dark' : '',
+                $input->getOption('teams') ? '--teams' : '',
                 $input->getOption('pest') ? '--pest' : '',
+                $input->getOption('verification') ? '--verification' : '',
             )),
         ]);
 
         $this->runCommands($commands, $input, $output, workingPath: $directory);
 
         $this->commitChanges('Install Jetstream', $directory, $input, $output);
+    }
+
+    /**
+     * Determine the default database connection.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @return string
+     */
+    protected function promptForDatabaseOptions(InputInterface $input)
+    {
+        $database = 'mysql';
+
+        if ($input->isInteractive()) {
+            $database = select(
+                label: 'Which database will your application use?',
+                options: [
+                    'mysql' => 'MySQL',
+                    'pgsql' => 'PostgreSQL',
+                    'sqlite' => 'SQLite',
+                    'sqlsrv' => 'SQL Server',
+                ],
+                default: $database
+            );
+        }
+
+        return $database;
     }
 
     /**
@@ -336,8 +433,8 @@ class NewCommand extends Command
             $input->setOption('stack', select(
                 label: 'Which Jetstream stack would you like to install?',
                 options: [
-                    'inertia' => 'Vue with Inertia',
                     'livewire' => 'Livewire',
+                    'inertia' => 'Vue with Inertia',
                 ]
             ));
         }
@@ -345,15 +442,19 @@ class NewCommand extends Command
         collect(multiselect(
             label: 'Would you like any optional features?',
             options: collect([
-                'teams' => 'Team support',
+                'api' => 'API support',
                 'dark' => 'Dark mode',
+                'verification' => 'Email verification',
+                'teams' => 'Team support',
             ])->when(
                 $input->getOption('stack') === 'inertia',
                 fn ($options) => $options->put('ssr', 'Inertia SSR')
             )->all(),
             default: array_filter([
-                $input->getOption('teams') ? 'teams' : null,
+                $input->getOption('api') ? 'api' : null,
                 $input->getOption('dark') ? 'dark' : null,
+                $input->getOption('teams') ? 'teams' : null,
+                $input->getOption('verification') ? 'verification' : null,
                 $input->getOption('stack') === 'inertia' && $input->getOption('ssr') ? 'ssr' : null,
             ]),
         ))->each(fn ($option) => $input->setOption($option, true));
@@ -659,12 +760,12 @@ class NewCommand extends Command
     /**
      * Replace the given string in the given file.
      *
-     * @param  string  $search
-     * @param  string  $replace
+     * @param  string|array  $search
+     * @param  string|array  $replace
      * @param  string  $file
      * @return void
      */
-    protected function replaceInFile(string $search, string $replace, string $file)
+    protected function replaceInFile(string|array $search, string|array $replace, string $file)
     {
         file_put_contents(
             $file,

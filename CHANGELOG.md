@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.0.3...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.0.4...master)
+
+## [v5.0.4](https://github.com/laravel/installer/compare/v5.0.3...v5.0.4) - 2023-08-22
+
+No major changes.
 
 ## [v5.0.3](https://github.com/laravel/installer/compare/v5.0.2...v5.0.3) - 2023-08-15
 
