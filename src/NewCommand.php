@@ -166,17 +166,9 @@ class NewCommand extends Command
                     $directory.'/.env'
                 );
 
-                $this->replaceInFile(
-                    'DB_DATABASE=laravel',
-                    'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
-                    $directory.'/.env'
-                );
+                $database = $this->promptForDatabaseOptions($input);
 
-                $this->replaceInFile(
-                    'DB_DATABASE=laravel',
-                    'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
-                    $directory.'/.env.example'
-                );
+                $this->configureDefaultDatabaseConnection($directory, $database, $name);
             }
 
             if ($input->getOption('git') || $input->getOption('github') !== false) {
@@ -216,6 +208,81 @@ class NewCommand extends Command
         $output = trim($process->getOutput());
 
         return $process->isSuccessful() && $output ? $output : 'main';
+    }
+
+    /**
+     * Configure the default database connection.
+     *
+     * @param  string  $directory
+     * @param  string  $database
+     * @param  string  $name
+     * @return void
+     */
+    protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name)
+    {
+        $this->replaceInFile(
+            'DB_CONNECTION=mysql',
+            'DB_CONNECTION='.$database,
+            $directory.'/.env'
+        );
+
+        if (! in_array($database, ['sqlite'])) {
+            $this->replaceInFile(
+                'DB_CONNECTION=mysql',
+                'DB_CONNECTION='.$database,
+                $directory.'/.env.example'
+            );
+        }
+
+        $defaults = [
+            'DB_DATABASE=laravel',
+            'DB_HOST=127.0.0.1',
+            'DB_PORT=3306',
+            'DB_DATABASE=laravel',
+            'DB_USERNAME=root',
+            'DB_PASSWORD=',
+        ];
+
+        if ($database === 'sqlite') {
+            $this->replaceInFile(
+                $defaults,
+                collect($defaults)->map(fn ($default) => "# {$default}")->all(),
+                $directory.'/.env'
+            );
+
+            return;
+        }
+
+        $defaultPorts = [
+            'pgsql' => '5432',
+            'sqlsrv' => '1433',
+        ];
+
+        if (isset($defaultPorts[$database])) {
+            $this->replaceInFile(
+                'DB_PORT=3306',
+                'DB_PORT='.$defaultPorts[$database],
+                $directory.'/.env'
+            );
+
+            $this->replaceInFile(
+                'DB_PORT=3306',
+                'DB_PORT='.$defaultPorts[$database],
+                $directory.'/.env.example'
+            );
+        }
+
+        $this->replaceInFile(
+            'DB_DATABASE=laravel',
+            'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
+            $directory.'/.env'
+        );
+
+        $this->replaceInFile(
+            'DB_DATABASE=laravel',
+            'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
+            $directory.'/.env.example'
+        );
     }
 
     /**
@@ -275,6 +342,32 @@ class NewCommand extends Command
         $this->runCommands($commands, $input, $output);
 
         $this->commitChanges('Install Jetstream', $directory, $input, $output);
+    }
+
+    /**
+     * Determine the default database connection.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @return string
+     */
+    protected function promptForDatabaseOptions(InputInterface $input)
+    {
+        $database = 'mysql';
+
+        if ($input->isInteractive()) {
+            $database = select(
+                label: 'Which database will your application use?',
+                options: [
+                    'mysql' => 'MySQL',
+                    'pgsql' => 'PostgreSQL',
+                    'sqlite' => 'SQLite',
+                    'sqlsrv' => 'SQL Server',
+                ],
+                default: $database
+            );
+        }
+
+        return $database;
     }
 
     /**
@@ -636,12 +729,12 @@ class NewCommand extends Command
     /**
      * Replace the given string in the given file.
      *
-     * @param  string  $search
-     * @param  string  $replace
+     * @param  string|array  $search
+     * @param  string|array  $replace
      * @param  string  $file
      * @return void
      */
-    protected function replaceInFile(string $search, string $replace, string $file)
+    protected function replaceInFile(string|array $search, string|array $replace, string $file)
     {
         file_put_contents(
             $file,
