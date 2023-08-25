@@ -2,12 +2,16 @@
 
 namespace Laravel\Installer\Console;
 
+use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Composer;
+use Illuminate\Support\ProcessUtils;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 
 use function Laravel\Prompts\confirm;
@@ -18,6 +22,13 @@ use function Laravel\Prompts\text;
 class NewCommand extends Command
 {
     use Concerns\ConfiguresPrompts;
+
+    /**
+     * The Composer instance.
+     *
+     * @var \Illuminate\Support\Composer
+     */
+    protected $composer;
 
     /**
      * Configure the command options.
@@ -129,6 +140,8 @@ class NewCommand extends Command
         $name = $input->getArgument('name');
 
         $directory = $name !== '.' ? getcwd().'/'.$name : '.';
+
+        $this->composer = new Composer(new Filesystem(), $directory);
 
         $version = $this->getVersion($input);
 
@@ -295,12 +308,10 @@ class NewCommand extends Command
      */
     protected function installBreeze(string $directory, InputInterface $input, OutputInterface $output)
     {
-        chdir($directory);
-
         $commands = array_filter([
             $this->findComposer().' require laravel/breeze',
             trim(sprintf(
-                '"'.PHP_BINARY.'" artisan breeze:install %s %s %s %s %s',
+                $this->phpBinary().' artisan breeze:install %s %s %s %s %s',
                 $input->getOption('stack'),
                 $input->getOption('typescript') ? '--typescript' : '',
                 $input->getOption('pest') ? '--pest' : '',
@@ -309,7 +320,7 @@ class NewCommand extends Command
             )),
         ]);
 
-        $this->runCommands($commands, $input, $output);
+        $this->runCommands($commands, $input, $output, workingPath: $directory);
 
         $this->commitChanges('Install Breeze', $directory, $input, $output);
     }
@@ -324,12 +335,10 @@ class NewCommand extends Command
      */
     protected function installJetstream(string $directory, InputInterface $input, OutputInterface $output)
     {
-        chdir($directory);
-
         $commands = array_filter([
             $this->findComposer().' require laravel/jetstream',
             trim(sprintf(
-                '"'.PHP_BINARY.'" artisan jetstream:install %s %s %s %s %s %s',
+                $this->phpBinary().' artisan jetstream:install %s %s %s %s %s %s',
                 $input->getOption('stack'),
                 $input->getOption('api') ? '--api' : '',
                 $input->getOption('dark') ? '--dark' : '',
@@ -339,7 +348,7 @@ class NewCommand extends Command
             )),
         ]);
 
-        $this->runCommands($commands, $input, $output);
+        $this->runCommands($commands, $input, $output, workingPath: $directory);
 
         $this->commitChanges('Install Jetstream', $directory, $input, $output);
     }
@@ -479,29 +488,28 @@ class NewCommand extends Command
      */
     protected function installPest(string $directory, InputInterface $input, OutputInterface $output)
     {
-        chdir($directory);
+        if ($this->removeComposerPackages(['phpunit/phpunit'], $output, true)
+            && $this->requireComposerPackages(['pestphp/pest:^2.0', 'pestphp/pest-plugin-laravel:^2.0'], $output, true)) {
+            $commands = array_filter([
+                $this->phpBinary().' ./vendor/bin/pest --init',
+            ]);
 
-        $commands = array_filter([
-            $this->findComposer().' remove phpunit/phpunit --dev',
-            $this->findComposer().' require pestphp/pest:^2.0 pestphp/pest-plugin-laravel:^2.0 --dev',
-            '"'.PHP_BINARY.'" ./vendor/bin/pest --init',
-        ]);
+            $this->runCommands($commands, $input, $output, workingPath: $directory, env: [
+                'PEST_NO_SUPPORT' => 'true',
+            ]);
 
-        $this->runCommands($commands, $input, $output, [
-            'PEST_NO_SUPPORT' => 'true',
-        ]);
+            $this->replaceFile(
+                'pest/Feature.php',
+                $directory.'/tests/Feature/ExampleTest.php',
+            );
 
-        $this->replaceFile(
-            'pest/Feature.php',
-            $directory.'/tests/Feature/ExampleTest.php',
-        );
+            $this->replaceFile(
+                'pest/Unit.php',
+                $directory.'/tests/Unit/ExampleTest.php',
+            );
 
-        $this->replaceFile(
-            'pest/Unit.php',
-            $directory.'/tests/Unit/ExampleTest.php',
-        );
-
-        $this->commitChanges('Install Pest', $directory, $input, $output);
+            $this->commitChanges('Install Pest', $directory, $input, $output);
+        }
     }
 
     /**
@@ -514,8 +522,6 @@ class NewCommand extends Command
      */
     protected function createRepository(string $directory, InputInterface $input, OutputInterface $output)
     {
-        chdir($directory);
-
         $branch = $input->getOption('branch') ?: $this->defaultBranch();
 
         $commands = [
@@ -525,7 +531,7 @@ class NewCommand extends Command
             "git branch -M {$branch}",
         ];
 
-        $this->runCommands($commands, $input, $output);
+        $this->runCommands($commands, $input, $output, workingPath: $directory);
     }
 
     /**
@@ -543,14 +549,12 @@ class NewCommand extends Command
             return;
         }
 
-        chdir($directory);
-
         $commands = [
             'git add .',
             "git commit -q -m \"$message\"",
         ];
 
-        $this->runCommands($commands, $input, $output);
+        $this->runCommands($commands, $input, $output, workingPath: $directory);
     }
 
     /**
@@ -573,8 +577,6 @@ class NewCommand extends Command
             return;
         }
 
-        chdir($directory);
-
         $name = $input->getOption('organization') ? $input->getOption('organization')."/$name" : $name;
         $flags = $input->getOption('github') ?: '--private';
 
@@ -582,7 +584,7 @@ class NewCommand extends Command
             "gh repo create {$name} --source=. --push {$flags}",
         ];
 
-        $this->runCommands($commands, $input, $output, ['GIT_TERMINAL_PROMPT' => 0]);
+        $this->runCommands($commands, $input, $output, workingPath: $directory, env: ['GIT_TERMINAL_PROMPT' => 0]);
     }
 
     /**
@@ -644,13 +646,41 @@ class NewCommand extends Command
      */
     protected function findComposer()
     {
-        $composerPath = getcwd().'/composer.phar';
+        return implode(' ', $this->composer->findComposer());
+    }
 
-        if (file_exists($composerPath)) {
-            return '"'.PHP_BINARY.'" '.$composerPath;
-        }
+    /**
+     * Get the path to the appropriate PHP binary.
+     *
+     * @return string
+     */
+    protected function phpBinary()
+    {
+        $phpBinary = (new PhpExecutableFinder)->find(false);
 
-        return 'composer';
+        return $phpBinary !== false
+            ? ProcessUtils::escapeArgument($phpBinary)
+            : 'php';
+    }
+
+    /**
+     * Install the given Composer Packages into the application.
+     *
+     * @return bool
+     */
+    protected function requireComposerPackages(array $packages, OutputInterface $output, bool $asDev = false)
+    {
+        return $this->composer->requirePackages($packages, $asDev, $output);
+    }
+
+    /**
+     * Remove the given Composer Packages from the application.
+     *
+     * @return bool
+     */
+    protected function removeComposerPackages(array $packages, OutputInterface $output, bool $asDev = false)
+    {
+        return $this->composer->removePackages($packages, $asDev, $output);
     }
 
     /**
@@ -659,10 +689,11 @@ class NewCommand extends Command
      * @param  array  $commands
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @param  string|null  $workingPath
      * @param  array  $env
      * @return \Symfony\Component\Process\Process
      */
-    protected function runCommands($commands, InputInterface $input, OutputInterface $output, array $env = [])
+    protected function runCommands($commands, InputInterface $input, OutputInterface $output, string $workingPath = null, array $env = [])
     {
         if (! $output->isDecorated()) {
             $commands = array_map(function ($value) {
@@ -692,7 +723,7 @@ class NewCommand extends Command
             }, $commands);
         }
 
-        $process = Process::fromShellCommandline(implode(' && ', $commands), null, $env, null, null);
+        $process = Process::fromShellCommandline(implode(' && ', $commands), $workingPath, $env, null, null);
 
         if ('\\' !== DIRECTORY_SEPARATOR && file_exists('/dev/tty') && is_readable('/dev/tty')) {
             try {

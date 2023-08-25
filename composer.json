@@ -11,6 +11,8 @@
     ],
     "require": {
         "php": "^8.1",
+        "illuminate/filesystem": "^10.20",
+        "illuminate/support": "^10.20",
         "laravel/prompts": "^0.1",
         "symfony/console": "^6.0",
         "symfony/process": "^6.0"
