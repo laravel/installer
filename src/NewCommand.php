@@ -35,13 +35,15 @@ class NewCommand extends Command
             ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'The branch that should be created for a new repository', $this->defaultBranch())
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
+            ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Breeze / Jetstream stack that should be installed')
             ->addOption('breeze', null, InputOption::VALUE_NONE, 'Installs the Laravel Breeze scaffolding')
+            ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('dark', null, InputOption::VALUE_NONE, 'Indicate whether Breeze or Jetstream should be scaffolded with dark mode support')
             ->addOption('typescript', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with TypeScript support (Experimental)')
             ->addOption('ssr', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with Inertia SSR support')
-            ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
-            ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Breeze / Jetstream stack that should be installed')
+            ->addOption('api', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with API support')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
+            ->addOption('verification', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with email verification support')
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Installs the Pest testing framework')
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Installs the PHPUnit testing framework')
             ->addOption('prompt-breeze', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Breeze should be installed (Deprecated)')
@@ -260,11 +262,13 @@ class NewCommand extends Command
         $commands = array_filter([
             $this->findComposer().' require laravel/jetstream',
             trim(sprintf(
-                '"'.PHP_BINARY.'" artisan jetstream:install %s %s %s %s',
+                '"'.PHP_BINARY.'" artisan jetstream:install %s %s %s %s %s %s',
                 $input->getOption('stack'),
-                $input->getOption('teams') ? '--teams' : '',
+                $input->getOption('api') ? '--api' : '',
                 $input->getOption('dark') ? '--dark' : '',
+                $input->getOption('teams') ? '--teams' : '',
                 $input->getOption('pest') ? '--pest' : '',
+                $input->getOption('verification') ? '--verification' : '',
             )),
         ]);
 
@@ -336,15 +340,19 @@ class NewCommand extends Command
         collect(multiselect(
             label: 'Would you like any optional features?',
             options: collect([
-                'teams' => 'Team support',
+                'api' => 'API support',
                 'dark' => 'Dark mode',
+                'verification' => 'Email verification',
+                'teams' => 'Team support',
             ])->when(
                 $input->getOption('stack') === 'inertia',
                 fn ($options) => $options->put('ssr', 'Inertia SSR')
             )->all(),
             default: array_filter([
-                $input->getOption('teams') ? 'teams' : null,
+                $input->getOption('api') ? 'api' : null,
                 $input->getOption('dark') ? 'dark' : null,
+                $input->getOption('teams') ? 'teams' : null,
+                $input->getOption('verification') ? 'verification' : null,
                 $input->getOption('stack') === 'inertia' && $input->getOption('ssr') ? 'ssr' : null,
             ]),
         ))->each(fn ($option) => $input->setOption($option, true));
