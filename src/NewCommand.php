@@ -24,7 +24,7 @@ class NewCommand extends Command
     use Concerns\ConfiguresPrompts;
 
     /**
-     * The Composer helper instance.
+     * The Composer instance.
      *
      * @var \Illuminate\Support\Composer
      */
@@ -664,7 +664,7 @@ class NewCommand extends Command
     }
 
     /**
-     * Installs the given Composer Packages into the application.
+     * Install the given Composer Packages into the application.
      *
      * @return bool
      */
@@ -674,7 +674,7 @@ class NewCommand extends Command
     }
 
     /**
-     * Removes the given Composer Packages from the application.
+     * Remove the given Composer Packages from the application.
      *
      * @return bool
      */
