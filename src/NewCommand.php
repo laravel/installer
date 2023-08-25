@@ -352,12 +352,12 @@ class NewCommand extends Command
 
         if ($input->isInteractive()) {
             $database = select(
-                label: 'Choose Database Driver',
+                label: 'Which database will your application use?',
                 options: [
                     'mysql' => 'MySQL',
-                    'sqlite' => 'SQLite',
                     'pgsql' => 'PostgreSQL',
-                    'sqlsrv' => 'MSSQL',
+                    'sqlite' => 'SQLite',
+                    'sqlsrv' => 'SQL Server',
                 ],
                 default: $database
             );
