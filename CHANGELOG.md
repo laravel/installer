@@ -1,6 +1,13 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.0.4...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.1.0...master)
+
+## [v5.1.0](https://github.com/laravel/installer/compare/v5.0.4...v5.1.0) - 2023-08-29
+
+- Fixes breeze installation with `--ssr` options by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/278
+- Adds missing jetstream options by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/installer/pull/279
+- Add ability to select default database connection by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/275
+- Updated to use the Process constructor to install Pest and use `Composer` helper class by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/274
 
 ## [v5.0.4](https://github.com/laravel/installer/compare/v5.0.3...v5.0.4) - 2023-08-22
 
