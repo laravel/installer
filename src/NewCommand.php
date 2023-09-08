@@ -51,7 +51,7 @@ class NewCommand extends Command
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('dark', null, InputOption::VALUE_NONE, 'Indicate whether Breeze or Jetstream should be scaffolded with dark mode support')
             ->addOption('typescript', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with TypeScript support (Experimental)')
-            ->addOption('ssr', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with Inertia SSR support')
+            ->addOption('ssr', null, InputOption::VALUE_NONE, 'Indicate whether Breeze or Jetstream should be scaffolded with Inertia SSR support')
             ->addOption('api', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with API support')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
             ->addOption('verification', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with email verification support')
@@ -338,13 +338,14 @@ class NewCommand extends Command
         $commands = array_filter([
             $this->findComposer().' require laravel/jetstream',
             trim(sprintf(
-                $this->phpBinary().' artisan jetstream:install %s %s %s %s %s %s',
+                $this->phpBinary().' artisan jetstream:install %s %s %s %s %s %s %s',
                 $input->getOption('stack'),
                 $input->getOption('api') ? '--api' : '',
                 $input->getOption('dark') ? '--dark' : '',
                 $input->getOption('teams') ? '--teams' : '',
                 $input->getOption('pest') ? '--pest' : '',
                 $input->getOption('verification') ? '--verification' : '',
+                $input->getOption('ssr') ? '--ssr' : '',
             )),
         ]);
 
