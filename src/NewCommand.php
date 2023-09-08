@@ -338,13 +338,14 @@ class NewCommand extends Command
         $commands = array_filter([
             $this->findComposer().' require laravel/jetstream',
             trim(sprintf(
-                $this->phpBinary().' artisan jetstream:install %s %s %s %s %s %s',
+                $this->phpBinary().' artisan jetstream:install %s %s %s %s %s %s %s',
                 $input->getOption('stack'),
                 $input->getOption('api') ? '--api' : '',
                 $input->getOption('dark') ? '--dark' : '',
                 $input->getOption('teams') ? '--teams' : '',
                 $input->getOption('pest') ? '--pest' : '',
                 $input->getOption('verification') ? '--verification' : '',
+                $input->getOption('ssr') ? '--ssr' : '',
             )),
         ]);
 
