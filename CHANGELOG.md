@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.1.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.1.1...master)
+
+## [v5.1.1](https://github.com/laravel/installer/compare/v5.1.0...v5.1.1) - 2023-09-12
+
+- Fix Jetstream SSR option by [@jessarcher](https://github.com/jessarcher) in https://github.com/laravel/installer/pull/281
 
 ## [v5.1.0](https://github.com/laravel/installer/compare/v5.0.4...v5.1.0) - 2023-08-29
 
