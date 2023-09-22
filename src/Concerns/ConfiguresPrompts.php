@@ -25,7 +25,9 @@ trait ConfiguresPrompts
      */
     protected function configurePrompts(InputInterface $input, OutputInterface $output)
     {
-        Prompt::fallbackWhen(! $input->isInteractive() || PHP_OS_FAMILY === 'Windows');
+        Prompt::interactive($input->isInteractive() && stream_isatty(STDIN));
+
+        Prompt::fallbackWhen(PHP_OS_FAMILY === 'Windows');
 
         TextPrompt::fallbackUsing(fn (TextPrompt $prompt) => $this->promptUntilValid(
             fn () => (new SymfonyStyle($input, $output))->ask($prompt->label, $prompt->default ?: null) ?? '',
