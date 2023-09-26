@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.1.1...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.1.2...master)
+
+## [v5.1.2](https://github.com/laravel/installer/compare/v5.1.1...v5.1.2) - 2023-09-26
+
+- Add the Livewire stack by [@mpociot](https://github.com/mpociot) in https://github.com/laravel/installer/pull/285
 
 ## [v5.1.1](https://github.com/laravel/installer/compare/v5.1.0...v5.1.1) - 2023-09-12
 
