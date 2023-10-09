@@ -391,8 +391,9 @@ class NewCommand extends Command
             $input->setOption('stack', select(
                 label: 'Which Breeze stack would you like to install?',
                 options: [
-                    'blade' => 'Blade',
-                    'livewire' => 'Livewire with Alpine',
+                    'blade' => 'Blade with Alpine',
+                    'livewire' => 'Livewire (Volt Class API) with Alpine',
+                    'livewire-functional' => 'Livewire (Volt Functional API) with Alpine',
                     'react' => 'React with Inertia',
                     'vue' => 'Vue with Inertia',
                     'api' => 'API only',
@@ -414,7 +415,7 @@ class NewCommand extends Command
                     $input->getOption('typescript') ? 'typescript' : null,
                 ]),
             ))->each(fn ($option) => $input->setOption($option, true));
-        } elseif (in_array($input->getOption('stack'), ['blade', 'livewire']) && ! $input->getOption('dark')) {
+        } elseif (in_array($input->getOption('stack'), ['blade', 'livewire', 'livewire-functional']) && ! $input->getOption('dark')) {
             $input->setOption('dark', confirm(
                 label: 'Would you like dark mode support?',
                 default: false,
@@ -464,7 +465,7 @@ class NewCommand extends Command
     protected function validateStackOption(InputInterface $input)
     {
         if ($input->getOption('breeze')) {
-            if (! in_array($input->getOption('stack'), $stacks = ['blade', 'livewire', 'react', 'vue', 'api'])) {
+            if (! in_array($input->getOption('stack'), $stacks = ['blade', 'livewire', 'livewire-functional', 'react', 'vue', 'api'])) {
                 throw new \InvalidArgumentException("Invalid Breeze stack [{$input->getOption('stack')}]. Valid options are: ".implode(', ', $stacks).'.');
             }
 
