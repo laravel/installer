@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.1.2...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.1.3...master)
+
+## [v5.1.3](https://github.com/laravel/installer/compare/v5.1.2...v5.1.3) - 2023-10-10
+
+- Remove extra DB_DATABASE by [@ConnySjoblom](https://github.com/ConnySjoblom) in https://github.com/laravel/installer/pull/287
+- Adjusts new command with new Breeze options by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/installer/pull/288
 
 ## [v5.1.2](https://github.com/laravel/installer/compare/v5.1.1...v5.1.2) - 2023-09-26
 
