@@ -699,11 +699,11 @@ class NewCommand extends Command
     {
         if (! $output->isDecorated()) {
             $commands = array_map(function ($value) {
-                if (substr($value, 0, 5) === 'chmod') {
+                if (str_starts_with($value, 'chmod')) {
                     return $value;
                 }
 
-                if (substr($value, 0, 3) === 'git') {
+                if (str_starts_with($value, 'git')) {
                     return $value;
                 }
 
@@ -713,11 +713,11 @@ class NewCommand extends Command
 
         if ($input->getOption('quiet')) {
             $commands = array_map(function ($value) {
-                if (substr($value, 0, 5) === 'chmod') {
+                if (str_starts_with($value, 'chmod')) {
                     return $value;
                 }
 
-                if (substr($value, 0, 3) === 'git') {
+                if (str_starts_with($value, 'git')) {
                     return $value;
                 }
 
