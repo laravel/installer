@@ -661,7 +661,7 @@ class NewCommand extends Command
     protected function getVersion(InputInterface $input)
     {
         if ($input->getOption('dev')) {
-            return 'dev-master';
+            return 'dev-slim-skeleton-11.x';
         }
 
         return '';
