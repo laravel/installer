@@ -116,16 +116,14 @@ class NewCommand extends Command
             $this->promptForJetstreamOptions($input);
         }
 
-        if (! $input->getOption('telescope') && ! $input->getOption('telescope-local')) {
+        if ($input->getOption('telescope') && ! $input->getOption('telescope-local')) {
             match (select(
-                label: 'Would you like to install Laravel Telescope?',
+                label: 'What type of installation would you like for Telescope?',
                 options: [
-                    'none' => 'No',
-                    'telescope' => 'Yes',
-                    'telescope-local' => 'Yes, but local only installation',
+                    'telescope' => 'Default installation',
+                    'telescope-local' => 'Local only installation',
                 ],
             )) {
-                'telescope' => $input->setOption('telescope', true),
                 'telescope-local' => $input->setOption('telescope-local', true),
                 default => null,
             };
