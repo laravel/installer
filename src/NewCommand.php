@@ -120,8 +120,9 @@ class NewCommand extends Command
             match (select(
                 label: 'Would you like to install Laravel Telescope?',
                 options: [
-                    'telescope' => 'Laravel Telescope',
-                    'telescope-local' => 'Laravel Telescope (local)',
+                    'none' => 'No',
+                    'telescope' => 'Yes',
+                    'telescope-local' => 'Yes, but local only installation',
                 ],
             )) {
                 'telescope' => $input->setOption('telescope', true),
