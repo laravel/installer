@@ -116,7 +116,7 @@ class NewCommand extends Command
             $this->promptForJetstreamOptions($input);
         }
 
-        if (!$input->getOption('telescope') && !$input->getOption('telescope-local')) {
+        if (! $input->getOption('telescope') && ! $input->getOption('telescope-local')) {
             match (select(
                 label: 'Would you like to install Laravel Telescope?',
                 options: [
@@ -363,7 +363,6 @@ class NewCommand extends Command
         ]);
 
         $this->runCommands($commands, $input, $output, workingPath: $directory);
-
 
         if ($input->getOption('telescope-local')) {
             $this->replaceInFile(
