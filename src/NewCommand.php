@@ -57,6 +57,8 @@ class NewCommand extends Command
             ->addOption('verification', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with email verification support')
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Installs the Pest testing framework')
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Installs the PHPUnit testing framework')
+            ->addOption('telescope', null, InputOption::VALUE_NONE, 'Installs Laravel Telescope')
+            ->addOption('telescope-local', null, InputOption::VALUE_NONE, 'Installs Laravel Telescope locally')
             ->addOption('prompt-breeze', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Breeze should be installed (Deprecated)')
             ->addOption('prompt-jetstream', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Jetstream should be installed (Deprecated)')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
@@ -112,6 +114,20 @@ class NewCommand extends Command
             $this->promptForBreezeOptions($input);
         } elseif ($input->getOption('jet')) {
             $this->promptForJetstreamOptions($input);
+        }
+
+        if (!$input->getOption('telescope') && !$input->getOption('telescope-local')) {
+            match (select(
+                label: 'Would you like to install Laravel Telescope?',
+                options: [
+                    'telescope' => 'Laravel Telescope',
+                    'telescope-local' => 'Laravel Telescope (local)',
+                ],
+            )) {
+                'telescope' => $input->setOption('telescope', true),
+                'telescope-local' => $input->setOption('telescope-local', true),
+                default => null,
+            };
         }
 
         if (! $input->getOption('phpunit') && ! $input->getOption('pest')) {
@@ -194,6 +210,10 @@ class NewCommand extends Command
                 $this->installJetstream($directory, $input, $output);
             } elseif ($input->getOption('pest')) {
                 $this->installPest($directory, $input, $output);
+            }
+
+            if ($input->getOption('telescope') || $input->getOption('telescope-local')) {
+                $this->installTelescope($directory, $input, $output);
             }
 
             if ($input->getOption('github') !== false) {
@@ -322,6 +342,69 @@ class NewCommand extends Command
         $this->runCommands($commands, $input, $output, workingPath: $directory);
 
         $this->commitChanges('Install Breeze', $directory, $input, $output);
+    }
+
+    /**
+     * Install Laravel Telescope into the application.
+     *
+     * @param  string  $directory
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function installTelescope(string $directory, InputInterface $input, OutputInterface $output)
+    {
+        $commands = array_filter([
+            trim(sprintf(
+                $this->findComposer().' require laravel/telescope %s',
+                $input->getOption('telescope-local') ? '--dev' : '',
+            )),
+            $this->phpBinary().' artisan telescope:install',
+        ]);
+
+        $this->runCommands($commands, $input, $output, workingPath: $directory);
+
+
+        if ($input->getOption('telescope-local')) {
+            $this->replaceInFile(
+                '        App\Providers\TelescopeServiceProvider::class,',
+                '',
+                $directory.'/config/app.php',
+            );
+
+            $this->replaceInFile(
+                '"extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },',
+                '"extra": {
+        "laravel": {
+            "dont-discover": [
+                "laravel/telescope"
+            ]
+        }
+    },',
+                $directory.'/composer.json',
+            );
+
+            $this->replaceInFile(
+                'public function register(): void
+    {
+        //
+    }',
+                'public function register(): void
+    {
+        if ($this->app->environment(\'local\')) {
+            $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
+            $this->app->register(TelescopeServiceProvider::class);
+        }
+    }',
+                $directory.'/app/Providers/AppServiceProvider.php',
+            );
+        }
+
+        $this->commitChanges('Install Telescope', $directory, $input, $output);
     }
 
     /**
