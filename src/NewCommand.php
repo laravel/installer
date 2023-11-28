@@ -233,7 +233,7 @@ class NewCommand extends Command
      */
     protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name)
     {
-        // MariaDB Configuration only exists as of Laravel 11
+        // MariaDB configuration only exists as of Laravel 11...
         if ($database === 'mariadb' && ! $this->hasMariaDBConfig($directory)) {
             $database = 'mysql';
         }
@@ -310,12 +310,11 @@ class NewCommand extends Command
      */
     protected function hasMariaDBConfig(string $directory): bool
     {
-        // Laravel 11+ has moved the config files into the framework and there exists the mariadb configuration
+        // Laravel 11+ has moved the configuration files into the framework... which contains the MariaDB configuration entry...
         if (! file_exists($directory.'/config/database.php')) {
             return true;
         }
 
-        // Check if for whatever reasons there exists a mariadb configuration in the database config
         return str_contains(
             file_get_contents($directory.'/config/database.php'),
             "'mariadb' =>"
