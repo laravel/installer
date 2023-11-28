@@ -310,7 +310,7 @@ class NewCommand extends Command
      */
     protected function hasMariaDBConfig(string $directory): bool
     {
-        // Laravel 11+ has moved the configuration files into the framework... which contains the MariaDB configuration entry...
+        // Laravel 11+ has moved the configuration files into the framework...
         if (! file_exists($directory.'/config/database.php')) {
             return true;
         }
