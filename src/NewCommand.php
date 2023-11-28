@@ -303,7 +303,7 @@ class NewCommand extends Command
     }
 
     /**
-     * Determine if the application has a MariaDB configuration.
+     * Determine if the application has a MariaDB configuration entry.
      *
      * @param  string  $directory
      * @return bool
