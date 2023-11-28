@@ -233,6 +233,11 @@ class NewCommand extends Command
      */
     protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name)
     {
+        // MariaDB configuration only exists as of Laravel 11...
+        if ($database === 'mariadb' && ! $this->hasMariaDBConfig($directory)) {
+            $database = 'mysql';
+        }
+
         $this->replaceInFile(
             'DB_CONNECTION=mysql',
             'DB_CONNECTION='.$database,
@@ -294,6 +299,25 @@ class NewCommand extends Command
             'DB_DATABASE=laravel',
             'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
             $directory.'/.env.example'
+        );
+    }
+
+    /**
+     * Determine if the application has a MariaDB configuration entry.
+     *
+     * @param  string  $directory
+     * @return bool
+     */
+    protected function hasMariaDBConfig(string $directory): bool
+    {
+        // Laravel 11+ has moved the configuration files into the framework...
+        if (! file_exists($directory.'/config/database.php')) {
+            return true;
+        }
+
+        return str_contains(
+            file_get_contents($directory.'/config/database.php'),
+            "'mariadb' =>"
         );
     }
 
@@ -368,6 +392,7 @@ class NewCommand extends Command
                 label: 'Which database will your application use?',
                 options: [
                     'mysql' => 'MySQL',
+                    'mariadb' => 'MariaDB',
                     'pgsql' => 'PostgreSQL',
                     'sqlite' => 'SQLite',
                     'sqlsrv' => 'SQL Server',
