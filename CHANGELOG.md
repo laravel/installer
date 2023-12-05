@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.1.3...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.2.0...5.x)
+
+## [v5.2.0](https://github.com/laravel/installer/compare/v5.1.3...v5.2.0) - 2023-12-05
+
+* Apply using the str_starts_with function by [@peter279k](https://github.com/peter279k) in https://github.com/laravel/installer/pull/289
+* Add mariadb installation option by [@Jubeki](https://github.com/Jubeki) in https://github.com/laravel/installer/pull/292
+* [5.x] Removes alias by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/installer/pull/293
 
 ## [v5.1.3](https://github.com/laravel/installer/compare/v5.1.2...v5.1.3) - 2023-10-10
 
