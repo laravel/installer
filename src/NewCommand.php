@@ -133,7 +133,7 @@ class NewCommand extends Command
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return int
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): void
     {
         $this->validateStackOption($input);
 
