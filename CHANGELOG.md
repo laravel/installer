@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.2.0...5.x)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.2.1...5.x)
+
+## [v5.2.1](https://github.com/laravel/installer/compare/v5.2.0...v5.2.1) - 2024-01-09
+
+* Adjust link to docs by [@driesvints](https://github.com/driesvints) in https://github.com/laravel/installer/pull/299
+* [5.x] Added default value on selection question while creating new application by [@bigship-prashant](https://github.com/bigship-prashant) in https://github.com/laravel/installer/pull/300
 
 ## [v5.2.0](https://github.com/laravel/installer/compare/v5.1.3...v5.2.0) - 2023-12-05
 
