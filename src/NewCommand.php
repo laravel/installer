@@ -101,6 +101,7 @@ class NewCommand extends Command
                     'breeze' => 'Laravel Breeze',
                     'jetstream' => 'Laravel Jetstream',
                 ],
+                default: 'none',
             )) {
                 'breeze' => $input->setOption('breeze', true),
                 'jetstream' => $input->setOption('jet', true),
@@ -118,6 +119,7 @@ class NewCommand extends Command
             $input->setOption('pest', select(
                 label: 'Which testing framework do you prefer?',
                 options: ['PHPUnit', 'Pest'],
+                default: 'PHPUnit',
             ) === 'Pest');
         }
 
@@ -422,7 +424,8 @@ class NewCommand extends Command
                     'react' => 'React with Inertia',
                     'vue' => 'Vue with Inertia',
                     'api' => 'API only',
-                ]
+                ],
+                default: 'blade',
             ));
         }
 
@@ -462,7 +465,8 @@ class NewCommand extends Command
                 options: [
                     'livewire' => 'Livewire',
                     'inertia' => 'Vue with Inertia',
-                ]
+                ],
+                default: 'livewire',
             ));
         }
 
