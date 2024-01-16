@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.2.1...5.x)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.3.0...master)
+
+## [v5.3.0](https://github.com/laravel/installer/compare/v5.2.1...v5.3.0) - 2024-01-16
+
+* [5.x]  Laravel v11 support by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/installer/pull/302
 
 ## [v5.2.1](https://github.com/laravel/installer/compare/v5.2.0...v5.2.1) - 2024-01-09
 
