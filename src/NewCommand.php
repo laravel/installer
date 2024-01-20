@@ -266,13 +266,13 @@ class NewCommand extends Command
 
         $this->replaceInFile(
             $defaults,
-            collect($defaults)->map(fn ($default) => "{$default}")->all(),
+            collect($defaults)->map(fn ($default) => substr($default, 2))->all(),
             $directory.'/.env'
         );
 
         $this->replaceInFile(
             $defaults,
-            collect($defaults)->map(fn ($default) => "{$default}")->all(),
+            collect($defaults)->map(fn ($default) => substr($default, 2))->all(),
             $directory.'/.env.example'
         );
 
