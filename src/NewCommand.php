@@ -246,13 +246,13 @@ class NewCommand extends Command
             $directory.'/.env'
         );
 
-        if (! in_array($database, ['sqlite'])) {
-            $this->replaceInFile(
-                'DB_CONNECTION=mysql',
-                'DB_CONNECTION='.$database,
-                $directory.'/.env.example'
-            );
-        }
+        // if (! in_array($database, ['sqlite'])) {
+        //     $this->replaceInFile(
+        //         'DB_CONNECTION=mysql',
+        //         'DB_CONNECTION='.$database,
+        //         $directory.'/.env.example'
+        //     );
+        // }
 
         $defaults = [
             'DB_HOST=127.0.0.1',
@@ -267,6 +267,12 @@ class NewCommand extends Command
                 $defaults,
                 collect($defaults)->map(fn ($default) => "# {$default}")->all(),
                 $directory.'/.env'
+            );
+
+            $this->replaceInFile(
+                $defaults,
+                collect($defaults)->map(fn ($default) => "# {$default}")->all(),
+                $directory.'/.env.example'
             );
 
             return;
@@ -387,7 +393,7 @@ class NewCommand extends Command
      */
     protected function promptForDatabaseOptions(InputInterface $input)
     {
-        $database = 'mysql';
+        $database = 'sqlite';
 
         if ($input->isInteractive()) {
             $database = select(
