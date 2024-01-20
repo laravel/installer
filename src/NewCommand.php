@@ -235,46 +235,46 @@ class NewCommand extends Command
      */
     protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name)
     {
+        if ($database === 'sqlite') {
+            return;
+        }
+
         // MariaDB configuration only exists as of Laravel 11...
         if ($database === 'mariadb' && ! $this->hasMariaDBConfig($directory)) {
             $database = 'mysql';
         }
 
         $this->replaceInFile(
-            'DB_CONNECTION=mysql',
+            'DB_CONNECTION=sqlite',
             'DB_CONNECTION='.$database,
             $directory.'/.env'
         );
 
         $this->replaceInFile(
-            'DB_CONNECTION=mysql',
+            'DB_CONNECTION=sqlite',
             'DB_CONNECTION='.$database,
             $directory.'/.env.example'
         );
 
         $defaults = [
-            'DB_HOST=127.0.0.1',
-            'DB_PORT=3306',
-            'DB_DATABASE=laravel',
-            'DB_USERNAME=root',
-            'DB_PASSWORD=',
+            '# DB_HOST=127.0.0.1',
+            '# DB_PORT=3306',
+            '# DB_DATABASE=laravel',
+            '# DB_USERNAME=root',
+            '# DB_PASSWORD=',
         ];
 
-        if ($database === 'sqlite') {
-            $this->replaceInFile(
-                $defaults,
-                collect($defaults)->map(fn ($default) => "# {$default}")->all(),
-                $directory.'/.env'
-            );
+        $this->replaceInFile(
+            $defaults,
+            collect($defaults)->map(fn ($default) => "{$default}")->all(),
+            $directory.'/.env'
+        );
 
-            $this->replaceInFile(
-                $defaults,
-                collect($defaults)->map(fn ($default) => "# {$default}")->all(),
-                $directory.'/.env.example'
-            );
-
-            return;
-        }
+        $this->replaceInFile(
+            $defaults,
+            collect($defaults)->map(fn ($default) => "{$default}")->all(),
+            $directory.'/.env.example'
+        );
 
         $defaultPorts = [
             'pgsql' => '5432',
