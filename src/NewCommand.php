@@ -491,6 +491,11 @@ class NewCommand extends Command
         ))->each(fn ($option) => $input->setOption($option, true));
     }
 
+    /**
+     * Validate the starter kit stack input.
+     *
+     * @param  \Symfony\Components\Console\Input\InputInterface
+     */
     protected function validateStackOption(InputInterface $input)
     {
         if ($input->getOption('breeze')) {
