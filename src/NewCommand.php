@@ -246,13 +246,11 @@ class NewCommand extends Command
             $directory.'/.env'
         );
 
-        // if (! in_array($database, ['sqlite'])) {
-        //     $this->replaceInFile(
-        //         'DB_CONNECTION=mysql',
-        //         'DB_CONNECTION='.$database,
-        //         $directory.'/.env.example'
-        //     );
-        // }
+        $this->replaceInFile(
+            'DB_CONNECTION=mysql',
+            'DB_CONNECTION='.$database,
+            $directory.'/.env.example'
+        );
 
         $defaults = [
             'DB_HOST=127.0.0.1',
