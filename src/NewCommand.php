@@ -181,9 +181,15 @@ class NewCommand extends Command
                     $directory.'/.env'
                 );
 
-                $database = $this->promptForDatabaseOptions($input);
+                [$database, $migrate] = $this->promptForDatabaseOptions($input);
 
-                $this->configureDefaultDatabaseConnection($directory, $database, $name);
+                $this->configureDefaultDatabaseConnection($directory, $database, $name, $migrate);
+
+                if ($migrate) {
+                    $this->runCommands([
+                        $this->phpBinary().' artisan migrate',
+                    ], $input, $output, workingPath: $directory);
+                }
             }
 
             if ($input->getOption('git') || $input->getOption('github') !== false) {
@@ -231,9 +237,10 @@ class NewCommand extends Command
      * @param  string  $directory
      * @param  string  $database
      * @param  string  $name
+     * @param  bool  $migrate
      * @return void
      */
-    protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name)
+    protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name, bool $migrate)
     {
         if ($database === 'sqlite') {
             return;
@@ -405,9 +412,13 @@ class NewCommand extends Command
                 ],
                 default: $database
             );
+
+            if ($database !== 'sqlite') {
+                $migrate = confirm(label: 'Would you like to run the default database migrations?', default: true);
+            }
         }
 
-        return $database;
+        return [$database, $migrate ?? false];
     }
 
     /**
