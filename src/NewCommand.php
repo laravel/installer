@@ -414,7 +414,7 @@ class NewCommand extends Command
             );
 
             if ($database !== 'sqlite') {
-                $migrate = confirm(label: 'Would you like to run the default database migrations?', default: true);
+                $migrate = confirm(label: 'Default database updated. Would you like to run the default database migrations?', default: true);
             }
         }
 
