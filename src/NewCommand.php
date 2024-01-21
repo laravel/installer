@@ -446,7 +446,8 @@ class NewCommand extends Command
      */
     protected function promptForDatabaseOptions(InputInterface $input)
     {
-        $database = 'sqlite';
+        // Laravel 11.x appliations use SQLite as default...
+        $defaultDatabase = $this->hasMariaDBConfig() ? 'sqlite' : 'mysql';
 
         if ($input->isInteractive()) {
             $database = select(
@@ -458,10 +459,10 @@ class NewCommand extends Command
                     'sqlite' => 'SQLite',
                     'sqlsrv' => 'SQL Server',
                 ],
-                default: $database
+                default: $defaultDatabase
             );
 
-            if ($database !== 'sqlite') {
+            if ($database !== $defaultDatabase) {
                 $migrate = confirm(label: 'Default database updated. Would you like to run the default database migrations?', default: true);
             }
         }
