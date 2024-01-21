@@ -468,7 +468,7 @@ class NewCommand extends Command
             }
         }
 
-        return [$database, $migrate ?? false];
+        return [$database ?? $defaultDatabase, $migrate ?? false];
     }
 
     /**
