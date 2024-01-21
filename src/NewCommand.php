@@ -242,10 +242,6 @@ class NewCommand extends Command
      */
     protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name, bool $migrate)
     {
-        if ($database === 'sqlite') {
-            return;
-        }
-
         // MariaDB configuration only exists as of Laravel 11...
         if ($database === 'mariadb' && ! $this->hasMariaDBConfig($directory)) {
             $database = 'mysql';
@@ -263,25 +259,19 @@ class NewCommand extends Command
             $directory.'/.env.example'
         );
 
-        $defaults = [
-            '# DB_HOST=127.0.0.1',
-            '# DB_PORT=3306',
-            '# DB_DATABASE=laravel',
-            '# DB_USERNAME=root',
-            '# DB_PASSWORD=',
-        ];
+        if ($database === 'sqlite') {
+            $environment = file_get_contents($directory.'/.env');
 
-        $this->replaceInFile(
-            $defaults,
-            collect($defaults)->map(fn ($default) => substr($default, 2))->all(),
-            $directory.'/.env'
-        );
+            // If database options aren't commented, comment them for SQLite...
+            if (! str_contains($environment, '# DB_HOST=127.0.0.1')) {
+                return $this->commentDatabaseConfigurationForSqlite($directory);
+            }
 
-        $this->replaceInFile(
-            $defaults,
-            collect($defaults)->map(fn ($default) => substr($default, 2))->all(),
-            $directory.'/.env.example'
-        );
+            return;
+        }
+
+        // Any commented database configuration options should be uncommented when not on SQLite...
+        $this->uncommentDatabaseConfiguration($directory);
 
         $defaultPorts = [
             'pgsql' => '5432',
@@ -331,6 +321,64 @@ class NewCommand extends Command
         return str_contains(
             file_get_contents($directory.'/config/database.php'),
             "'mariadb' =>"
+        );
+    }
+
+    /**
+     * Comment the irrelevant database configuration entries for SQLite applications.
+     *
+     * @param  string  $directory
+     * @return void
+     */
+    protected function commentDatabaseConfigurationForSqlite(string $directory)
+    {
+        $defaults = [
+            'DB_HOST=127.0.0.1',
+            'DB_PORT=3306',
+            'DB_DATABASE=laravel',
+            'DB_USERNAME=root',
+            'DB_PASSWORD=',
+        ];
+
+        $this->replaceInFile(
+            $defaults,
+            collect($defaults)->map(fn ($default) => "# {$default}")->all(),
+            $directory.'/.env'
+        );
+
+        $this->replaceInFile(
+            $defaults,
+            collect($defaults)->map(fn ($default) => "# {$default}")->all(),
+            $directory.'/.env.example'
+        );
+    }
+
+    /**
+     * Uncomment the relevant database configuration entries for non SQLite applications.
+     *
+     * @param  string  $directory
+     * @return void
+     */
+    protected function uncommentDatabaseConfiguration(string $directory)
+    {
+        $defaults = [
+            '# DB_HOST=127.0.0.1',
+            '# DB_PORT=3306',
+            '# DB_DATABASE=laravel',
+            '# DB_USERNAME=root',
+            '# DB_PASSWORD=',
+        ];
+
+        $this->replaceInFile(
+            $defaults,
+            collect($defaults)->map(fn ($default) => substr($default, 2))->all(),
+            $directory.'/.env'
+        );
+
+        $this->replaceInFile(
+            $defaults,
+            collect($defaults)->map(fn ($default) => substr($default, 2))->all(),
+            $directory.'/.env.example'
         );
     }
 
