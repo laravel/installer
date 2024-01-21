@@ -181,7 +181,7 @@ class NewCommand extends Command
                     $directory.'/.env'
                 );
 
-                [$database, $migrate] = $this->promptForDatabaseOptions($input);
+                [$database, $migrate] = $this->promptForDatabaseOptions($directory, $input);
 
                 $this->configureDefaultDatabaseConnection($directory, $database, $name, $migrate);
 
@@ -441,13 +441,14 @@ class NewCommand extends Command
     /**
      * Determine the default database connection.
      *
+     * @param  string  $directory
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @return string
      */
-    protected function promptForDatabaseOptions(InputInterface $input)
+    protected function promptForDatabaseOptions(string $directory, InputInterface $input)
     {
         // Laravel 11.x appliations use SQLite as default...
-        $defaultDatabase = $this->hasMariaDBConfig() ? 'sqlite' : 'mysql';
+        $defaultDatabase = $this->hasMariaDBConfig($directory) ? 'sqlite' : 'mysql';
 
         if ($input->isInteractive()) {
             $database = select(
