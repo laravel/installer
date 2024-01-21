@@ -252,13 +252,13 @@ class NewCommand extends Command
         }
 
         $this->pregReplaceInFile(
-            'DB_CONNECTION=.*',
+            '/DB_CONNECTION=.*/',
             'DB_CONNECTION='.$database,
             $directory.'/.env'
         );
 
         $this->pregReplaceInFile(
-            'DB_CONNECTION=.*',
+            '/DB_CONNECTION=.*/',
             'DB_CONNECTION='.$database,
             $directory.'/.env.example'
         );
