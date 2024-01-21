@@ -251,14 +251,14 @@ class NewCommand extends Command
             $database = 'mysql';
         }
 
-        $this->replaceInFile(
-            'DB_CONNECTION=sqlite',
+        $this->pregReplaceInFile(
+            'DB_CONNECTION=.*',
             'DB_CONNECTION='.$database,
             $directory.'/.env'
         );
 
-        $this->replaceInFile(
-            'DB_CONNECTION=sqlite',
+        $this->pregReplaceInFile(
+            'DB_CONNECTION=.*',
             'DB_CONNECTION='.$database,
             $directory.'/.env.example'
         );
@@ -821,6 +821,22 @@ class NewCommand extends Command
         file_put_contents(
             $file,
             str_replace($search, $replace, file_get_contents($file))
+        );
+    }
+
+    /**
+     * Replace the given string in the given file using regular expressions.
+     *
+     * @param  string|array  $search
+     * @param  string|array  $replace
+     * @param  string  $file
+     * @return void
+     */
+    protected function pregReplaceInFile(string $pattern, string $replace, string $file)
+    {
+        file_put_contents(
+            $file,
+            preg_replace($pattern, $replace, file_get_contents($file))
         );
     }
 }
