@@ -264,7 +264,9 @@ class NewCommand extends Command
 
             // If database options aren't commented, comment them for SQLite...
             if (! str_contains($environment, '# DB_HOST=127.0.0.1')) {
-                return $this->commentDatabaseConfigurationForSqlite($directory);
+                $this->commentDatabaseConfigurationForSqlite($directory);
+
+                return;
             }
 
             return;
@@ -330,7 +332,7 @@ class NewCommand extends Command
      * @param  string  $directory
      * @return void
      */
-    protected function commentDatabaseConfigurationForSqlite(string $directory)
+    protected function commentDatabaseConfigurationForSqlite(string $directory): void
     {
         $defaults = [
             'DB_HOST=127.0.0.1',
