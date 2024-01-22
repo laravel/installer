@@ -465,7 +465,7 @@ class NewCommand extends Command
                 default: $defaultDatabase
             );
 
-            if ($database !== $defaultDatabase) {
+            if ($database !== $defaultDatabase && $this->hasMariaDBConfig($directory)) {
                 $migrate = confirm(label: 'Default database updated. Would you like to run the default database migrations?', default: true);
             }
         }
