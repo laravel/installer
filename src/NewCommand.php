@@ -243,7 +243,7 @@ class NewCommand extends Command
     protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name, bool $migrate)
     {
         // MariaDB configuration only exists as of Laravel 11...
-        if ($database === 'mariadb' && ! $this->hasMariaDBConfig($directory)) {
+        if ($database === 'mariadb' && ! $this->usingLaravel11OrNewer($directory)) {
             $database = 'mysql';
         }
 
@@ -308,22 +308,18 @@ class NewCommand extends Command
     }
 
     /**
-     * Determine if the application has a MariaDB configuration entry.
+     * Determine if the application is using Laravel 11 or newer.
      *
      * @param  string  $directory
      * @return bool
      */
-    protected function hasMariaDBConfig(string $directory): bool
+    public function usingLaravel11OrNewer(string $directory): bool
     {
-        // Laravel 11+ has moved the configuration files into the framework...
-        if (! file_exists($directory.'/config/database.php')) {
-            return true;
-        }
+        $version = json_decode(file_get_contents($directory.'/composer.json'), true)['require']['laravel/framework'];
+        $version = str_replace('^', '', $version);
+        $version = explode('.', $version)[0];
 
-        return str_contains(
-            file_get_contents($directory.'/config/database.php'),
-            "'mariadb' =>"
-        );
+        return $version >= 11;
     }
 
     /**
@@ -450,7 +446,7 @@ class NewCommand extends Command
     protected function promptForDatabaseOptions(string $directory, InputInterface $input)
     {
         // Laravel 11.x appliations use SQLite as default...
-        $defaultDatabase = $this->hasMariaDBConfig($directory) ? 'sqlite' : 'mysql';
+        $defaultDatabase = $this->usingLaravel11OrNewer($directory) ? 'sqlite' : 'mysql';
 
         if ($input->isInteractive()) {
             $database = select(
@@ -465,7 +461,7 @@ class NewCommand extends Command
                 default: $defaultDatabase
             );
 
-            if ($database !== $defaultDatabase && $this->hasMariaDBConfig($directory)) {
+            if ($this->usingLaravel11OrNewer($directory) && $database !== $defaultDatabase) {
                 $migrate = confirm(label: 'Default database updated. Would you like to run the default database migrations?', default: true);
             }
         }

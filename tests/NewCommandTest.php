@@ -33,4 +33,17 @@ class NewCommandTest extends TestCase
         $this->assertDirectoryExists($scaffoldDirectory.'/vendor');
         $this->assertFileExists($scaffoldDirectory.'/.env');
     }
+
+    public function test_on_at_least_laravel_11()
+    {
+        $command = new NewCommand;
+
+        $onLaravel10 = $command->usingLaravel11OrNewer(__DIR__.'/fixtures/laravel10');
+        $onLaravel11 = $command->usingLaravel11OrNewer(__DIR__.'/fixtures/laravel11');
+        $onLaravel12 = $command->usingLaravel11OrNewer(__DIR__.'/fixtures/laravel12');
+
+        $this->assertFalse($onLaravel10);
+        $this->assertTrue($onLaravel11);
+        $this->assertTrue($onLaravel12);
+    }
 }
