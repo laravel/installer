@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.3.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.4.0...master)
+
+## [v5.4.0](https://github.com/laravel/installer/compare/v5.3.0...v5.4.0) - 2024-01-23
+
+* SQLite by [@taylorotwell](https://github.com/taylorotwell) in https://github.com/laravel/installer/pull/304
+* [5.x] Implies only the new migrations behaviour on L11 by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/installer/pull/305
+* [5.x] Improves ending message by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/installer/pull/307
 
 ## [v5.3.0](https://github.com/laravel/installer/compare/v5.2.1...v5.3.0) - 2024-01-16
 
