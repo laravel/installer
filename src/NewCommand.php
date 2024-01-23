@@ -209,7 +209,7 @@ class NewCommand extends Command
                 $output->writeln('');
             }
 
-            $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You may start your local development using:".PHP_EOL);
+            $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:".PHP_EOL);
 
             $output->writeln('<fg=gray>➜</> <options=bold>cd '.$name.'</>');
             $output->writeln('<fg=gray>➜</> <options=bold>php artisan serve</>');
