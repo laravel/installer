@@ -209,7 +209,14 @@ class NewCommand extends Command
                 $output->writeln('');
             }
 
-            $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. Build something amazing.".PHP_EOL);
+            $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:".PHP_EOL);
+
+            $output->writeln('<fg=gray>➜</> <options=bold>cd '.$name.'</>');
+            $output->writeln('<fg=gray>➜</> <options=bold>php artisan serve</>');
+            $output->writeln('');
+
+            $output->writeln('  New to Laravel? Check out our <href=https://bootcamp.laravel.com>bootcamp</> and <href=https://laravel.com/docs/installation#next-steps>documentation</>. <options=bold>Build something amazing!</>');
+            $output->writeln('');
         }
 
         return $process->getExitCode();
