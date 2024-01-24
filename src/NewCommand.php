@@ -843,6 +843,10 @@ class NewCommand extends Command
             $output->write('    '.$line);
         });
 
+        if($this->existsNewerInstallerVersion()) {
+            $output->writeln('  <bg=green;fg=white> NEW VERSION </> A newer version of Laravel Installer is available. To update simply run <options=bold>`composer global update`</>'.PHP_EOL);
+        }
+
         return $process;
     }
 
@@ -893,5 +897,55 @@ class NewCommand extends Command
             $file,
             preg_replace($pattern, $replace, file_get_contents($file))
         );
+    }
+
+    /**
+     * Check if there is a newer version of Laravel Installer.
+     */
+    protected function existsNewerInstallerVersion(): bool
+    {
+        $appVersion = $this->getApplication()->getVersion();
+        $latestVersion = $this->getLatestVersion();
+
+        return version_compare($appVersion, $latestVersion, '<');
+    }
+
+    /**
+     * Get latest version without leading "v"
+     */
+    protected function getLatestVersion(): string
+    {
+        $latestRelease = $this->getLatestRelease();
+
+        $tag = $latestRelease['tag_name'];
+
+        if(str_starts_with($tag, 'v')) {
+            $tag = substr($tag, 1);
+        }
+
+        return $tag;
+    }
+
+    /**
+     * Get latest release information
+     */
+    protected function getLatestRelease(): array
+    {
+        // Required for GitHub API, otherwise the request will be 403 Forbidden
+        $context = stream_context_create([
+            'http' => [
+                'header' => [
+                    'User-Agent: Laravel Installer',
+                ],
+            ],
+        ]);
+
+        $json = file_get_contents(
+            'https://api.github.com/repos/laravel/installer/releases/latest',
+            false,
+            $context
+        );
+
+        return json_decode($json, true);
     }
 }
