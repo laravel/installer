@@ -843,7 +843,7 @@ class NewCommand extends Command
             $output->write('    '.$line);
         });
 
-        if($this->existsNewerInstallerVersion()) {
+        if ($this->existsNewerInstallerVersion()) {
             $output->writeln('  <bg=green;fg=white> NEW VERSION </> A newer version of Laravel Installer is available. To update simply run <options=bold>`composer global update`</>'.PHP_EOL);
         }
 
@@ -911,7 +911,7 @@ class NewCommand extends Command
     }
 
     /**
-     * Get latest version without leading "v"
+     * Get latest version without leading "v".
      */
     protected function getLatestVersion(): string
     {
@@ -919,7 +919,7 @@ class NewCommand extends Command
 
         $tag = $latestRelease['tag_name'];
 
-        if(str_starts_with($tag, 'v')) {
+        if (str_starts_with($tag, 'v')) {
             $tag = substr($tag, 1);
         }
 
@@ -927,7 +927,7 @@ class NewCommand extends Command
     }
 
     /**
-     * Get latest release information
+     * Get latest release information.
      */
     protected function getLatestRelease(): array
     {
