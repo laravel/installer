@@ -95,7 +95,6 @@ class NewCommand extends Command
             );
 
             if ($shouldUpdate === 'yes') {
-
                 $this->composer = new Composer(new Filesystem());
 
                 $output->writeln('  <bg=green;fg=white> NEW VERSION </> Updating Laravel Installer...'.PHP_EOL);
