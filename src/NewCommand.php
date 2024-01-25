@@ -82,6 +82,36 @@ class NewCommand extends Command
   | |___| (_| | | | (_| |\ V /  __/ |
   |______\__,_|_|  \__,_| \_/ \___|_|</>'.PHP_EOL.PHP_EOL);
 
+        if ($this->existsNewerInstallerVersion()) {
+            $output->writeln(PHP_EOL.'  <bg=green;fg=white> NEW VERSION </> A newer version of Laravel Installer is available.'.PHP_EOL);
+
+            $shouldUpdate = select(
+                label: 'Do you want to update your Laravel Installer before continuing?',
+                options: [
+                    'yes' => 'Yes, please update the Laravel Installer',
+                    'no' => 'No, continue with the current version',
+                ],
+                default: 'yes',
+            );
+
+            if ($shouldUpdate === 'yes') {
+
+                $this->composer = new Composer(new Filesystem());
+
+                $output->writeln('  <bg=green;fg=white> NEW VERSION </> Updating Laravel Installer...'.PHP_EOL);
+
+                $this->runCommands([
+                    $this->findComposer().' global update laravel/installer',
+                ], $input, $output);
+
+                $output->writeln(PHP_EOL.'  <bg=green;fg=white> NEW VERSION </> The Laravel Installer was sucessfully updated.'.PHP_EOL);
+
+                $output->writeln('  <fg=gray>➜</> Please run <options=bold>laravel new</> again.'.PHP_EOL);
+
+                exit(0);
+            }
+        }
+
         if (! $input->getArgument('name')) {
             $input->setArgument('name', text(
                 label: 'What is the name of your project?',
@@ -842,10 +872,6 @@ class NewCommand extends Command
         $process->run(function ($type, $line) use ($output) {
             $output->write('    '.$line);
         });
-
-        if ($this->existsNewerInstallerVersion()) {
-            $output->writeln('  <bg=green;fg=white> NEW VERSION </> A newer version of Laravel Installer is available. To update simply run <options=bold>`composer global update`</>'.PHP_EOL);
-        }
 
         return $process;
     }
