@@ -118,8 +118,8 @@ class NewCommand extends Command
         if (! $input->getOption('phpunit') && ! $input->getOption('pest')) {
             $input->setOption('pest', select(
                 label: 'Which testing framework do you prefer?',
-                options: ['PHPUnit', 'Pest'],
-                default: 'PHPUnit',
+                options: ['Pest', 'PHPUnit',],
+                default: 'Pest',
             ) === 'Pest');
         }
 
@@ -594,7 +594,7 @@ class NewCommand extends Command
      */
     protected function installPest(string $directory, InputInterface $input, OutputInterface $output)
     {
-        if ($this->removeComposerPackages(['phpunit/phpunit'], $output, true)
+        if ($this->removeComposerPackages(['phpunit/phpunit', '--no-update'], $output, true)
             && $this->requireComposerPackages(['pestphp/pest:^2.0', 'pestphp/pest-plugin-laravel:^2.0'], $output, true)) {
             $commands = array_filter([
                 $this->phpBinary().' ./vendor/bin/pest --init',
