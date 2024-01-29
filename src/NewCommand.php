@@ -594,28 +594,30 @@ class NewCommand extends Command
      */
     protected function installPest(string $directory, InputInterface $input, OutputInterface $output)
     {
-        if ($this->removeComposerPackages(['phpunit/phpunit', '--no-update'], $output, true)
-            && $this->requireComposerPackages(['pestphp/pest:^2.0', 'pestphp/pest-plugin-laravel:^2.0'], $output, true)) {
-            $commands = array_filter([
-                $this->phpBinary().' ./vendor/bin/pest --init',
-            ]);
+        $composerBinary = $this->findComposer();
 
-            $this->runCommands($commands, $input, $output, workingPath: $directory, env: [
-                'PEST_NO_SUPPORT' => 'true',
-            ]);
+        $commands = [
+            $composerBinary.' remove phpunit/phpunit --dev --no-update',
+            $composerBinary.' require pestphp/pest:^2.0 pestphp/pest-plugin-laravel:^2.0 --no-update --dev',
+            $composerBinary.' update',
+            $this->phpBinary().' ./vendor/bin/pest --init',
+        ];
 
-            $this->replaceFile(
-                'pest/Feature.php',
-                $directory.'/tests/Feature/ExampleTest.php',
-            );
+        $this->runCommands($commands, $input, $output, workingPath: $directory, env: [
+            'PEST_NO_SUPPORT' => 'true',
+        ]);
 
-            $this->replaceFile(
-                'pest/Unit.php',
-                $directory.'/tests/Unit/ExampleTest.php',
-            );
+        $this->replaceFile(
+            'pest/Feature.php',
+            $directory.'/tests/Feature/ExampleTest.php',
+        );
 
-            $this->commitChanges('Install Pest', $directory, $input, $output);
-        }
+        $this->replaceFile(
+            'pest/Unit.php',
+            $directory.'/tests/Unit/ExampleTest.php',
+        );
+
+        $this->commitChanges('Install Pest', $directory, $input, $output);
     }
 
     /**
@@ -767,26 +769,6 @@ class NewCommand extends Command
         return $phpBinary !== false
             ? ProcessUtils::escapeArgument($phpBinary)
             : 'php';
-    }
-
-    /**
-     * Install the given Composer Packages into the application.
-     *
-     * @return bool
-     */
-    protected function requireComposerPackages(array $packages, OutputInterface $output, bool $asDev = false)
-    {
-        return $this->composer->requirePackages($packages, $asDev, $output);
-    }
-
-    /**
-     * Remove the given Composer Packages from the application.
-     *
-     * @return bool
-     */
-    protected function removeComposerPackages(array $packages, OutputInterface $output, bool $asDev = false)
-    {
-        return $this->composer->removePackages($packages, $asDev, $output);
     }
 
     /**
