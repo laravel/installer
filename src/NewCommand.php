@@ -598,7 +598,7 @@ class NewCommand extends Command
 
         $commands = [
             $composerBinary.' remove phpunit/phpunit --dev --no-update',
-            $composerBinary.' require pestphp/pest:^2.0 pestphp/pest-plugin-laravel:^2.0 --no-update --dev',
+            $composerBinary.' require pestphp/pest pestphp/pest-plugin-laravel --no-update --dev',
             $composerBinary.' update',
             $this->phpBinary().' ./vendor/bin/pest --init',
         ];
