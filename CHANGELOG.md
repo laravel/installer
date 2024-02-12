@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.5.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.5.1...master)
+
+## [v5.5.1](https://github.com/laravel/installer/compare/v5.5.0...v5.5.1) - 2024-02-12
+
+* [5.x] Fixes Pest installation on Windows by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/installer/pull/314
 
 ## [v5.5.0](https://github.com/laravel/installer/compare/v5.4.0...v5.5.0) - 2024-01-30
 
