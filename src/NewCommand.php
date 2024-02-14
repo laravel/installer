@@ -174,6 +174,16 @@ class NewCommand extends Command
         }
 
         if (($process = $this->runCommands($commands, $input, $output))->isSuccessful()) {
+            if ($this->usingLaravel11OrNewer($directory)) {
+                if (confirm(label: 'Would you like to publish Laravel\'s configuration files?', default: false)) {
+                    $this->runCommands([
+                        $this->phpBinary().' artisan config:publish --all',
+                    ], $input, $output, workingPath: $directory);
+
+                    @unlink($directory.'/config/.gitkeep');
+                }
+            }
+
             if ($name !== '.') {
                 $this->replaceInFile(
                     'APP_URL=http://localhost',
