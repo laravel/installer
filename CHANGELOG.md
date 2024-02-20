@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.5.1...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.5.2...master)
+
+## [v5.5.2](https://github.com/laravel/installer/compare/v5.5.1...v5.5.2) - 2024-02-20
+
+- Prompt for config publish by [@taylorotwell](https://github.com/taylorotwell) in https://github.com/laravel/installer/commit/c3b3c661ffc1323951537b5ff470ec706357fa1f
 
 ## [v5.5.1](https://github.com/laravel/installer/compare/v5.5.0...v5.5.1) - 2024-02-12
 
