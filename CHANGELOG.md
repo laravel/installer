@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.5.2...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.5.3...master)
+
+## [v5.5.3](https://github.com/laravel/installer/compare/v5.5.2...v5.5.3) - 2024-03-05
+
+* [11.x] Removes `publish config` files by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/installer/pull/317
 
 ## [v5.5.2](https://github.com/laravel/installer/compare/v5.5.1...v5.5.2) - 2024-02-20
 
