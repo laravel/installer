@@ -187,7 +187,7 @@ class NewCommand extends Command
 
                 if ($migrate) {
                     $this->runCommands([
-                        $this->phpBinary().' artisan migrate',
+                        $this->phpBinary().' artisan migrate:fresh',
                     ], $input, $output, workingPath: $directory);
                 }
             }
@@ -469,7 +469,7 @@ class NewCommand extends Command
             );
 
             if ($this->usingLaravel11OrNewer($directory) && $database !== $defaultDatabase) {
-                $migrate = confirm(label: 'Default database updated. Would you like to run the default database migrations?', default: true);
+                $migrate = confirm(label: 'Default database updated. Would you like to run the [migrate:fresh] Artisan command?', default: false);
             }
         }
 
