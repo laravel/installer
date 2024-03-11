@@ -249,11 +249,6 @@ class NewCommand extends Command
      */
     protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name, bool $migrate)
     {
-        // MariaDB configuration only exists as of Laravel 11...
-        if ($database === 'mariadb' && ! $this->usingLaravel11OrNewer($directory)) {
-            $database = 'mysql';
-        }
-
         $this->pregReplaceInFile(
             '/DB_CONNECTION=.*/',
             'DB_CONNECTION='.$database,
@@ -320,13 +315,13 @@ class NewCommand extends Command
      * @param  string  $directory
      * @return bool
      */
-    public function usingLaravel11OrNewer(string $directory): bool
+    public function usingLaravelVersionOrNewer(int $usingVersion, string $directory): bool
     {
         $version = json_decode(file_get_contents($directory.'/composer.json'), true)['require']['laravel/framework'];
         $version = str_replace('^', '', $version);
         $version = explode('.', $version)[0];
 
-        return $version >= 11;
+        return $version >= $usingVersion;
     }
 
     /**
@@ -452,8 +447,7 @@ class NewCommand extends Command
      */
     protected function promptForDatabaseOptions(string $directory, InputInterface $input)
     {
-        // Laravel 11.x appliations use SQLite as default...
-        $defaultDatabase = $this->usingLaravel11OrNewer($directory) ? 'sqlite' : 'mysql';
+        $defaultDatabase = 'sqlite';
 
         if ($input->isInteractive()) {
             $database = select(
@@ -468,7 +462,7 @@ class NewCommand extends Command
                 default: $defaultDatabase
             );
 
-            if ($this->usingLaravel11OrNewer($directory) && $database !== $defaultDatabase) {
+            if ($database !== $defaultDatabase) {
                 $migrate = confirm(label: 'Default database updated. Would you like to run the default database migrations?', default: true);
             }
         }
