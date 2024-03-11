@@ -38,9 +38,9 @@ class NewCommandTest extends TestCase
     {
         $command = new NewCommand;
 
-        $onLaravel10 = $command->usingLaravel11OrNewer(__DIR__.'/fixtures/laravel10');
-        $onLaravel11 = $command->usingLaravel11OrNewer(__DIR__.'/fixtures/laravel11');
-        $onLaravel12 = $command->usingLaravel11OrNewer(__DIR__.'/fixtures/laravel12');
+        $onLaravel10 = $command->usingLaravelVersionOrNewer(11, __DIR__.'/fixtures/laravel10');
+        $onLaravel11 = $command->usingLaravelVersionOrNewer(11, __DIR__.'/fixtures/laravel11');
+        $onLaravel12 = $command->usingLaravelVersionOrNewer(11, __DIR__.'/fixtures/laravel12');
 
         $this->assertFalse($onLaravel10);
         $this->assertTrue($onLaravel11);
