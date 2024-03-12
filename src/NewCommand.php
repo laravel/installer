@@ -183,7 +183,7 @@ class NewCommand extends Command
 
                 [$database, $migrate] = $this->promptForDatabaseOptions($directory, $input);
 
-                $this->configureDefaultDatabaseConnection($directory, $database, $name, $migrate);
+                $this->configureDefaultDatabaseConnection($directory, $database, $name);
 
                 if ($migrate) {
                     $this->runCommands([
@@ -244,10 +244,9 @@ class NewCommand extends Command
      * @param  string  $directory
      * @param  string  $database
      * @param  string  $name
-     * @param  bool  $migrate
      * @return void
      */
-    protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name, bool $migrate)
+    protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name)
     {
         $this->pregReplaceInFile(
             '/DB_CONNECTION=.*/',
