@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.5.3...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.6.0...master)
+
+## [v5.6.0](https://github.com/laravel/installer/compare/v5.5.3...v5.6.0) - 2024-03-12
+
+* Remove Laravel 11 Checks by [@Jubeki](https://github.com/Jubeki) in https://github.com/laravel/installer/pull/319
 
 ## [v5.5.3](https://github.com/laravel/installer/compare/v5.5.2...v5.5.3) - 2024-03-05
 
