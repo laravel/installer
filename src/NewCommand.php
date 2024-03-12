@@ -44,6 +44,7 @@ class NewCommand extends Command
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
             ->addOption('git', null, InputOption::VALUE_NONE, 'Initialize a Git repository')
             ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'The branch that should be created for a new repository', $this->defaultBranch())
+            ->addOption('ver', null, InputOption::VALUE_REQUIRED, 'For special laravel version,e.g --ver=10.x')
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Breeze / Jetstream stack that should be installed')
@@ -738,7 +739,7 @@ class NewCommand extends Command
             return 'dev-master';
         }
 
-        return '';
+        return $input->getOption('ver');
     }
 
     /**
