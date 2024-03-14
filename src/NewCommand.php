@@ -46,6 +46,7 @@ class NewCommand extends Command
             ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'The branch that should be created for a new repository', $this->defaultBranch())
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
+            ->addOption('database', null, InputOption::VALUE_REQUIRED, 'The database driver your application will use')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Breeze / Jetstream stack that should be installed')
             ->addOption('breeze', null, InputOption::VALUE_NONE, 'Installs the Laravel Breeze scaffolding')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
@@ -137,6 +138,7 @@ class NewCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $this->validateDatabaseOption($input);
         $this->validateStackOption($input);
 
         $name = $input->getArgument('name');
@@ -448,8 +450,8 @@ class NewCommand extends Command
     {
         $defaultDatabase = 'sqlite';
 
-        if ($input->isInteractive()) {
-            $database = select(
+        if (! $input->getOption('database') && $input->isInteractive()) {
+            $input->setOption('database', select(
                 label: 'Which database will your application use?',
                 options: [
                     'mysql' => 'MySQL',
@@ -459,20 +461,19 @@ class NewCommand extends Command
                     'sqlsrv' => 'SQL Server',
                 ],
                 default: $defaultDatabase
-            );
+            ));
 
-            if ($database !== $defaultDatabase) {
+            if ($input->getOption('database') !== $defaultDatabase) {
                 $migrate = confirm(label: 'Default database updated. Would you like to run the default database migrations?', default: true);
             }
         }
 
-        return [$database ?? $defaultDatabase, $migrate ?? false];
+        return [$input->getOption('database') ?? $defaultDatabase, $migrate ?? false];
     }
 
     /**
      * Determine the stack for Breeze.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @return void
      */
     protected function promptForBreezeOptions(InputInterface $input)
@@ -552,6 +553,18 @@ class NewCommand extends Command
                 $input->getOption('stack') === 'inertia' && $input->getOption('ssr') ? 'ssr' : null,
             ]),
         ))->each(fn ($option) => $input->setOption($option, true));
+    }
+
+    /**
+     * Validate the database driver input.
+     *
+     * @param  \Symfony\Components\Console\Input\InputInterface
+     */
+    protected function validateDatabaseOption(InputInterface $input)
+    {
+        if ($input->getOption('database') && ! in_array($input->getOption('database'), $drivers = ['mysql', 'mariadb', 'pgsql', 'sqlite', 'sqlsrv'])) {
+            throw new \InvalidArgumentException("Invalid database driver [{$input->getOption('database')}]. Valid options are: ".implode(', ', $drivers).'.');
+        }
     }
 
     /**
