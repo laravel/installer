@@ -16,9 +16,9 @@ use Symfony\Component\Process\Process;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
+use function Laravel\Prompts\password;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
-use function Laravel\Prompts\password;
 
 class NewCommand extends Command
 {
@@ -249,7 +249,7 @@ class NewCommand extends Command
      * @param  string  $name
      * @return void
      */
-    protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name, array | bool $config)
+    protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name, array|bool $config)
     {
         $this->pregReplaceInFile(
             '/DB_CONNECTION=.*/',
@@ -292,7 +292,7 @@ class NewCommand extends Command
             'sqlsrv' => '1433',
         ];
 
-        $defaults = collect($defaults)->map(fn ($default) => explode('=', $default))->pluck(1,0)->all();
+        $defaults = collect($defaults)->map(fn ($default) => explode('=', $default))->pluck(1, 0)->all();
 
         if (! $config) {
             if (isset($defaultPorts[$database])) {
