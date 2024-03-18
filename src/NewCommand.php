@@ -18,6 +18,7 @@ use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
+use function Laravel\Prompts\password;
 
 class NewCommand extends Command
 {
@@ -183,9 +184,9 @@ class NewCommand extends Command
                     $directory.'/.env'
                 );
 
-                [$database, $migrate] = $this->promptForDatabaseOptions($directory, $input);
+                [$database, $migrate, $config] = $this->promptForDatabaseOptions($directory, $input);
 
-                $this->configureDefaultDatabaseConnection($directory, $database, $name);
+                $this->configureDefaultDatabaseConnection($directory, $database, $name, $config);
 
                 if ($migrate) {
                     $this->runCommands([
@@ -248,7 +249,7 @@ class NewCommand extends Command
      * @param  string  $name
      * @return void
      */
-    protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name)
+    protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name, array | bool $config)
     {
         $this->pregReplaceInFile(
             '/DB_CONNECTION=.*/',
@@ -262,12 +263,20 @@ class NewCommand extends Command
             $directory.'/.env.example'
         );
 
+        $defaults = [
+            'DB_HOST=127.0.0.1',
+            'DB_PORT=3306',
+            'DB_DATABASE=laravel',
+            'DB_USERNAME=root',
+            'DB_PASSWORD=',
+        ];
+
         if ($database === 'sqlite') {
             $environment = file_get_contents($directory.'/.env');
 
             // If database options aren't commented, comment them for SQLite...
             if (! str_contains($environment, '# DB_HOST=127.0.0.1')) {
-                $this->commentDatabaseConfigurationForSqlite($directory);
+                $this->commentDatabaseConfigurationForSqlite($directory, $defaults);
 
                 return;
             }
@@ -283,31 +292,49 @@ class NewCommand extends Command
             'sqlsrv' => '1433',
         ];
 
-        if (isset($defaultPorts[$database])) {
+        $defaults = collect($defaults)->map(fn ($default) => explode('=', $default))->pluck(1,0)->all();
+
+        if (! $config) {
+            if (isset($defaultPorts[$database])) {
+                $this->replaceInFile(
+                    'DB_PORT=3306',
+                    'DB_PORT='.$defaultPorts[$database],
+                    $directory.'/.env'
+                );
+
+                $this->replaceInFile(
+                    'DB_PORT=3306',
+                    'DB_PORT='.$defaultPorts[$database],
+                    $directory.'/.env.example'
+                );
+            }
+
             $this->replaceInFile(
-                'DB_PORT=3306',
-                'DB_PORT='.$defaultPorts[$database],
+                'DB_DATABASE=laravel',
+                'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
                 $directory.'/.env'
             );
 
             $this->replaceInFile(
-                'DB_PORT=3306',
-                'DB_PORT='.$defaultPorts[$database],
+                'DB_DATABASE=laravel',
+                'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
                 $directory.'/.env.example'
             );
+        } else {
+            foreach ($config as $key => $value) {
+                $this->replaceInFile(
+                    $key.'='.$defaults[$key],
+                    $key.'='.$value,
+                    $directory.'/.env'
+                );
+
+                $this->replaceInFile(
+                    $key.'='.$defaults[$key],
+                    $key.'='.$value,
+                    $directory.'/.env.example'
+                );
+            }
         }
-
-        $this->replaceInFile(
-            'DB_DATABASE=laravel',
-            'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
-            $directory.'/.env'
-        );
-
-        $this->replaceInFile(
-            'DB_DATABASE=laravel',
-            'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
-            $directory.'/.env.example'
-        );
     }
 
     /**
@@ -329,18 +356,11 @@ class NewCommand extends Command
      * Comment the irrelevant database configuration entries for SQLite applications.
      *
      * @param  string  $directory
+     * @param  array  $defaults
      * @return void
      */
-    protected function commentDatabaseConfigurationForSqlite(string $directory): void
+    protected function commentDatabaseConfigurationForSqlite(string $directory, array $defaults): void
     {
-        $defaults = [
-            'DB_HOST=127.0.0.1',
-            'DB_PORT=3306',
-            'DB_DATABASE=laravel',
-            'DB_USERNAME=root',
-            'DB_PASSWORD=',
-        ];
-
         $this->replaceInFile(
             $defaults,
             collect($defaults)->map(fn ($default) => "# {$default}")->all(),
@@ -450,25 +470,77 @@ class NewCommand extends Command
     {
         $defaultDatabase = 'sqlite';
 
-        if (! $input->getOption('database') && $input->isInteractive()) {
-            $input->setOption('database', select(
-                label: 'Which database will your application use?',
-                options: [
-                    'mysql' => 'MySQL',
-                    'mariadb' => 'MariaDB',
-                    'pgsql' => 'PostgreSQL',
-                    'sqlite' => 'SQLite',
-                    'sqlsrv' => 'SQL Server',
-                ],
-                default: $defaultDatabase
-            ));
+        if ($input->isInteractive()) {
+            if (! $input->getOption('database')) {
+                $input->setOption('database', select(
+                    label: 'Which database will your application use?',
+                    options: [
+                        'mysql' => 'MySQL',
+                        'mariadb' => 'MariaDB',
+                        'pgsql' => 'PostgreSQL',
+                        'sqlite' => 'SQLite',
+                        'sqlsrv' => 'SQL Server',
+                    ],
+                    default: $defaultDatabase
+                ));
+            }
 
             if ($input->getOption('database') !== $defaultDatabase) {
-                $migrate = confirm(label: 'Default database updated. Would you like to run the default database migrations?', default: true);
+                $setting = confirm(label: 'Would you like to specify the database connection config?', default: false);
+                if ($setting) {
+                    $config = $this->promptForDatabaseConfig($input, $input->getOption('database'));
+                }
+                $migrate = confirm(label: 'Default database updated. Would you like to run the default database migrations?', default: $setting);
             }
         }
 
-        return [$input->getOption('database') ?? $defaultDatabase, $migrate ?? false];
+        return [$input->getOption('database') ?? $defaultDatabase, $migrate ?? false, $config ?? false];
+    }
+
+    /**
+     * Prompt for the database connection settings.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  string  $database
+     * @return array
+     */
+    protected function promptForDatabaseConfig(InputInterface $input, $database)
+    {
+        $defaultPorts = [
+            'pgsql' => '5432',
+            'sqlsrv' => '1433',
+        ];
+
+        $name = $input->getArgument('name');
+
+        $config = [
+            'DB_HOST' => text(
+                label: 'Enter the database host. default -',
+                placeholder: 'E.g. 127.0.0.1',
+                default: '127.0.0.1',
+            ),
+            'DB_PORT' => text(
+                label: 'Enter the database port. default -',
+                placeholder: 'E.g. '.($defaultPorts[$database] ?? '3306'),
+                default: $defaultPorts[$database] ?? '3306',
+            ),
+            'DB_DATABASE' => text(
+                label: 'Enter the database name. default -',
+                placeholder: 'E.g. laravel',
+                default: str_replace('-', '_', strtolower($name)),
+            ),
+            'DB_USERNAME' => text(
+                label: 'Enter the database username. default -',
+                placeholder: 'E.g. root',
+                default: 'root',
+            ),
+            'DB_PASSWORD' => password(
+                label: 'Enter the database password. (default: blank)',
+                placeholder: 'E.g. password',
+            ),
+        ];
+
+        return $config;
     }
 
     /**
