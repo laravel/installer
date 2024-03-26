@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.6.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.7.0...master)
+
+## [v5.7.0](https://github.com/laravel/installer/compare/v5.6.0...v5.7.0) - 2024-03-26
+
+* Remove unused `migrate` parameter by [@nshiro](https://github.com/nshiro) in https://github.com/laravel/installer/pull/323
+* Add `--database` option by [@CasEbb](https://github.com/CasEbb) in https://github.com/laravel/installer/pull/320
 
 ## [v5.6.0](https://github.com/laravel/installer/compare/v5.5.3...v5.6.0) - 2024-03-12
 
