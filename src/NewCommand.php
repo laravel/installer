@@ -58,6 +58,7 @@ class NewCommand extends Command
             ->addOption('verification', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with email verification support')
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Installs the Pest testing framework')
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Installs the PHPUnit testing framework')
+            ->addOption('migration', null, InputOption::VALUE_NONE, 'Automatically run the default database migrations after installation')
             ->addOption('prompt-breeze', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Breeze should be installed (Deprecated)')
             ->addOption('prompt-jetstream', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Jetstream should be installed (Deprecated)')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
@@ -463,9 +464,13 @@ class NewCommand extends Command
                 default: $defaultDatabase
             ));
 
-            if ($input->getOption('database') !== $defaultDatabase) {
+            if (! $input->getOption('migration') && $input->getOption('database') !== $defaultDatabase) {
                 $migrate = confirm(label: 'Default database updated. Would you like to run the default database migrations?', default: true);
             }
+        }
+
+        if ($input->getOption('migration')) {
+            $migrate = true;
         }
 
         return [$input->getOption('database') ?? $defaultDatabase, $migrate ?? false];
