@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.7.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.7.1...master)
+
+## [v5.7.1](https://github.com/laravel/installer/compare/v5.7.0...v5.7.1) - 2024-04-02
+
+* [5.x] Removes "(experimental)" label by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/installer/pull/330
 
 ## [v5.7.0](https://github.com/laravel/installer/compare/v5.6.0...v5.7.0) - 2024-03-26
 
