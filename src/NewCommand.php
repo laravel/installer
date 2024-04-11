@@ -394,7 +394,7 @@ class NewCommand extends Command
     protected function installBreeze(string $directory, InputInterface $input, OutputInterface $output)
     {
         $commands = array_filter([
-            $this->findComposer().' require laravel/breeze',
+            $this->findComposer().' require laravel/breeze --dev',
             trim(sprintf(
                 $this->phpBinary().' artisan breeze:install %s %s %s %s %s',
                 $input->getOption('stack'),
@@ -444,7 +444,7 @@ class NewCommand extends Command
      *
      * @param  string  $directory
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @return string
+     * @return array
      */
     protected function promptForDatabaseOptions(string $directory, InputInterface $input)
     {
