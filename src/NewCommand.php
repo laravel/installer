@@ -722,7 +722,7 @@ class NewCommand extends Command
      */
     protected function generateAppUrl($name)
     {
-        $hostname = mb_strtolower($name).'.test';
+        $hostname = mb_strtolower($name).'.localhost';
 
         return $this->canResolveHostname($hostname) ? 'http://'.$hostname : 'http://localhost';
     }
