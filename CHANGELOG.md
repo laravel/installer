@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.7.1...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.7.2...master)
+
+## [v5.7.2](https://github.com/laravel/installer/compare/v5.7.1...v5.7.2) - 2024-04-16
+
+* Install Breeze with dev flag by [@driesvints](https://github.com/driesvints) in https://github.com/laravel/installer/pull/332
 
 ## [v5.7.1](https://github.com/laravel/installer/compare/v5.7.0...v5.7.1) - 2024-04-02
 
