@@ -44,15 +44,6 @@ jobs:
   windows_tests:
     runs-on: windows-latest
 
-    services:
-      sqlsrv:
-        image: mcr.microsoft.com/mssql/server:2019-latest
-        env:
-          ACCEPT_EULA: Y
-          SA_PASSWORD: Forge123
-        ports:
-          - 1433:1433
-
     strategy:
       fail-fast: true
       matrix:
@@ -74,7 +65,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip, fileinfo, sqlsrv, pdo, pdo_sqlsrv,
+          extensions: dom, curl, libxml, mbstring, zip, fileinfo, pdo, pdo_sqlsrv,
           ini-values: error_reporting=E_ALL, memory_limit=512M
           tools: composer:v2
           coverage: none
