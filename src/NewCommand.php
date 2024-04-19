@@ -448,27 +448,56 @@ class NewCommand extends Command
      */
     protected function promptForDatabaseOptions(string $directory, InputInterface $input)
     {
-        $defaultDatabase = 'sqlite';
+        $databaseOptions = $this->databaseOptions();
+
+        if (empty($databaseOptions)) {
+            throw new RuntimeException('No database drivers are available. Please ensure the required PHP extensions are installed.');
+        }
+
+        $defaultDatabase = collect($databaseOptions)->keys()->first();
 
         if (! $input->getOption('database') && $input->isInteractive()) {
             $input->setOption('database', select(
                 label: 'Which database will your application use?',
-                options: [
-                    'mysql' => 'MySQL',
-                    'mariadb' => 'MariaDB',
-                    'pgsql' => 'PostgreSQL',
-                    'sqlite' => 'SQLite',
-                    'sqlsrv' => 'SQL Server',
-                ],
+                options: $databaseOptions,
                 default: $defaultDatabase
             ));
 
             if ($input->getOption('database') !== $defaultDatabase) {
-                $migrate = confirm(label: 'Default database updated. Would you like to run the default database migrations?', default: true);
+                $migrate = confirm(
+                    label: 'Default database updated. Would you like to run the default database migrations?',
+                    default: true
+                );
             }
         }
 
         return [$input->getOption('database') ?? $defaultDatabase, $migrate ?? false];
+    }
+
+    /**
+     * Return the available database options.
+     *
+     * @return array
+     */
+    public function databaseOptions(): array
+    {
+        return collect([
+            // Sequence is that of the default selected database option.
+            'sqlite' => 'SQLite',
+            'mysql' => 'MySQL',
+            'mariadb' => 'MariaDB',
+            'pgsql' => 'PostgreSQL',
+            'sqlsrv' => 'SQL Server',
+        ])->filter(function ($label, $type) {
+            return match ($type) {
+                'mysql',
+                'mariadb' => extension_loaded('pdo_mysql'),
+                'pgsql' => extension_loaded('pdo_pgsql'),
+                'sqlite' => extension_loaded('pdo_sqlite'),
+                'sqlsrv' => extension_loaded('pdo_sqlsrv'),
+                default => false,
+            };
+        })->all();
     }
 
     /**
