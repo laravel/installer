@@ -456,7 +456,10 @@ class NewCommand extends Command
             $input->setOption('database', select(
                 label: 'Which database will your application use?',
                 options: $databaseOptions,
-                default: $defaultDatabase
+                default: $defaultDatabase,
+                validate: fn (string $engine) => ! $this->isDatabaseEngineAvailable($engine)
+                    ? 'You selected an engine with a missing PDO extension. Please select an available option.'
+                    : null
             ));
 
             if ($input->getOption('database') !== $defaultDatabase) {
@@ -484,18 +487,29 @@ class NewCommand extends Command
             'mariadb' => 'MariaDB',
             'pgsql' => 'PostgreSQL',
             'sqlsrv' => 'SQL Server',
-        ])->map(function ($label, $type) {
-            $result = match ($type) {
-                'mysql',
-                'mariadb' => extension_loaded('pdo_mysql'),
-                'pgsql' => extension_loaded('pdo_pgsql'),
-                'sqlite' => extension_loaded('pdo_sqlite'),
-                'sqlsrv' => extension_loaded('pdo_sqlsrv'),
-                default => false,
-            };
-
-            return $result ? $label : "$label (Missing PDO extension)";
+        ])->map(function ($label, $engine) {
+            return $this->isDatabaseEngineAvailable($engine)
+                ? $label
+                : "$label (Missing PDO extension)";
         })->all();
+    }
+
+    /**
+     * Determine if the given database engine is available.
+     *
+     * @param  string  $engine
+     * @return bool
+     */
+    public function isDatabaseEngineAvailable(string $engine): bool
+    {
+        return match ($engine) {
+            'mysql',
+            'mariadb' => extension_loaded('pdo_mysql'),
+            'pgsql' => extension_loaded('pdo_pgsql'),
+            'sqlite' => extension_loaded('pdo_sqlite'),
+            'sqlsrv' => extension_loaded('pdo_sqlsrv'),
+            default => false,
+        };
     }
 
     /**
