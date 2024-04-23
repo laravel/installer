@@ -448,13 +448,9 @@ class NewCommand extends Command
      */
     protected function promptForDatabaseOptions(string $directory, InputInterface $input)
     {
-        $databaseOptions = $this->databaseOptions();
-
-        if (empty($databaseOptions)) {
-            throw new RuntimeException('No database drivers are available. Please ensure the required PHP extensions are installed.');
-        }
-
-        $defaultDatabase = collect($databaseOptions)->keys()->first();
+        $defaultDatabase = collect(
+            $databaseOptions = $this->databaseOptions()
+        )->keys()->first();
 
         if (! $input->getOption('database') && $input->isInteractive()) {
             $input->setOption('database', select(
@@ -475,7 +471,7 @@ class NewCommand extends Command
     }
 
     /**
-     * Return the available database options.
+     * Return the database options.
      *
      * @return array
      */
@@ -488,8 +484,8 @@ class NewCommand extends Command
             'mariadb' => 'MariaDB',
             'pgsql' => 'PostgreSQL',
             'sqlsrv' => 'SQL Server',
-        ])->filter(function ($label, $type) {
-            return match ($type) {
+        ])->map(function ($label, $type) {
+            $result = match ($type) {
                 'mysql',
                 'mariadb' => extension_loaded('pdo_mysql'),
                 'pgsql' => extension_loaded('pdo_pgsql'),
@@ -497,6 +493,8 @@ class NewCommand extends Command
                 'sqlsrv' => extension_loaded('pdo_sqlsrv'),
                 default => false,
             };
+
+            return $result ? $label : "$label (Missing PDO extension)";
         })->all();
     }
 
