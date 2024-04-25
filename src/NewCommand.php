@@ -471,7 +471,7 @@ class NewCommand extends Command
     }
 
     /**
-     * Return the database options.
+     * Get the available database options.
      *
      * @return array
      */
