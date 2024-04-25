@@ -448,27 +448,45 @@ class NewCommand extends Command
      */
     protected function promptForDatabaseOptions(string $directory, InputInterface $input)
     {
-        $defaultDatabase = 'sqlite';
+        $defaultDatabase = collect(
+            $databaseOptions = $this->databaseOptions()
+        )->keys()->first();
 
         if (! $input->getOption('database') && $input->isInteractive()) {
             $input->setOption('database', select(
                 label: 'Which database will your application use?',
-                options: [
-                    'mysql' => 'MySQL',
-                    'mariadb' => 'MariaDB',
-                    'pgsql' => 'PostgreSQL',
-                    'sqlite' => 'SQLite',
-                    'sqlsrv' => 'SQL Server',
-                ],
-                default: $defaultDatabase
+                options: $databaseOptions,
+                default: $defaultDatabase,
             ));
 
-            if ($input->getOption('database') !== $defaultDatabase) {
-                $migrate = confirm(label: 'Default database updated. Would you like to run the default database migrations?', default: true);
+            if ($input->getOption('database') !== 'sqlite') {
+                $migrate = confirm(
+                    label: 'Default database updated. Would you like to run the default database migrations?',
+                    default: true
+                );
             }
         }
 
         return [$input->getOption('database') ?? $defaultDatabase, $migrate ?? false];
+    }
+
+    /**
+     * Get the available database options.
+     *
+     * @return array
+     */
+    protected function databaseOptions(): array
+    {
+        return collect([
+            'sqlite' => ['SQLite', extension_loaded('pdo_sqlite')],
+            'mysql' => ['MySQL', extension_loaded('pdo_mysql')],
+            'mariadb' => ['MariaDB', extension_loaded('pdo_mysql')],
+            'pgsql' => ['PostgreSQL', extension_loaded('pdo_pgsql')],
+            'sqlsrv' => ['SQL Server', extension_loaded('pdo_sqlsrv')],
+        ])
+            ->sortBy(fn ($database) => $database[1] ? 0 : 1)
+            ->map(fn ($database) => $database[0].($database[1] ? '' : ' (Missing PDO extension)'))
+            ->all();
     }
 
     /**
