@@ -459,7 +459,7 @@ class NewCommand extends Command
                 default: $defaultDatabase,
             ));
 
-            if ($input->getOption('database') !== $defaultDatabase) {
+            if ($input->getOption('database') !== 'sqlite') {
                 $migrate = confirm(
                     label: 'Default database updated. Would you like to run the default database migrations?',
                     default: true
