@@ -475,7 +475,7 @@ class NewCommand extends Command
      *
      * @return array
      */
-    public function databaseOptions(): array
+    protected function databaseOptions(): array
     {
         return collect([
             'sqlite' => ['SQLite', extension_loaded('pdo_sqlite')],
