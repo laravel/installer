@@ -457,9 +457,6 @@ class NewCommand extends Command
                 label: 'Which database will your application use?',
                 options: $databaseOptions,
                 default: $defaultDatabase,
-                validate: fn (string $engine) => ! $this->isDatabaseEngineAvailable($engine)
-                    ? 'You selected an engine with a missing PDO extension. Please select an available option.'
-                    : null
             ));
 
             if ($input->getOption('database') !== $defaultDatabase) {
