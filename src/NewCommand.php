@@ -473,40 +473,19 @@ class NewCommand extends Command
     /**
      * Return the database options.
      *
-     * @return array
+     * @return \Illuminate\Support\Collection
      */
-    public function databaseOptions(): array
+    public function databaseOptions(): Collection
     {
         return collect([
-            // Sequence is that of the default selected database option.
-            'sqlite' => 'SQLite',
-            'mysql' => 'MySQL',
-            'mariadb' => 'MariaDB',
-            'pgsql' => 'PostgreSQL',
-            'sqlsrv' => 'SQL Server',
-        ])->map(function ($label, $engine) {
-            return $this->isDatabaseEngineAvailable($engine)
-                ? $label
-                : "$label (Missing PDO extension)";
-        })->all();
-    }
-
-    /**
-     * Determine if the given database engine is available.
-     *
-     * @param  string  $engine
-     * @return bool
-     */
-    public function isDatabaseEngineAvailable(string $engine): bool
-    {
-        return match ($engine) {
-            'mysql',
-            'mariadb' => extension_loaded('pdo_mysql'),
-            'pgsql' => extension_loaded('pdo_pgsql'),
-            'sqlite' => extension_loaded('pdo_sqlite'),
-            'sqlsrv' => extension_loaded('pdo_sqlsrv'),
-            default => false,
-        };
+            'sqlite' => ['SQLite', extension_loaded('pdo_sqlite')],
+            'mysql' => ['MySQL', extension_loaded('pdo_mysql')],
+            'mariadb' => ['MariaDB', extension_loaded('pdo_mysql')],
+            'pgsql' => ['PostgreSQL', extension_loaded('pdo_pgsql')],
+            'sqlsrv' => ['SQL Server', extension_loaded('pdo_sqlsrv')],
+        ])
+            ->sortBy(fn ($database) => $database[1] ? 0 : 1)
+            ->map(fn ($database) => $database[0].($database[1] ? '' : ' (Missing PDO extension)'));
     }
 
     /**
