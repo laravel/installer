@@ -473,9 +473,9 @@ class NewCommand extends Command
     /**
      * Return the database options.
      *
-     * @return \Illuminate\Support\Collection
+     * @return array
      */
-    public function databaseOptions(): Collection
+    public function databaseOptions(): array
     {
         return collect([
             'sqlite' => ['SQLite', extension_loaded('pdo_sqlite')],
@@ -485,7 +485,8 @@ class NewCommand extends Command
             'sqlsrv' => ['SQL Server', extension_loaded('pdo_sqlsrv')],
         ])
             ->sortBy(fn ($database) => $database[1] ? 0 : 1)
-            ->map(fn ($database) => $database[0].($database[1] ? '' : ' (Missing PDO extension)'));
+            ->map(fn ($database) => $database[0].($database[1] ? '' : ' (Missing PDO extension)'))
+            ->all();
     }
 
     /**
