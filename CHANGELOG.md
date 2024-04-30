@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.7.2...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.7.3...master)
+
+## [v5.7.3](https://github.com/laravel/installer/compare/v5.7.2...v5.7.3) - 2024-04-30
+
+* Prevent using unavailable databases by [@driesvints](https://github.com/driesvints) in https://github.com/laravel/installer/pull/334
 
 ## [v5.7.2](https://github.com/laravel/installer/compare/v5.7.1...v5.7.2) - 2024-04-16
 
