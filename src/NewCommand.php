@@ -212,11 +212,16 @@ class NewCommand extends Command
             }
 
             $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:".PHP_EOL);
-
             $output->writeln('<fg=gray>➜</> <options=bold>cd '.$name.'</>');
-            $output->writeln('<fg=gray>➜</> <options=bold>php artisan serve</>');
-            $output->writeln('');
 
+            if ($this->isParked($directory)) {
+                $url = $this->generateAppUrl($name);
+                $output->writeln('<fg=gray>➜</> Open in the browser: <options=bold;href='.$url.'>'.$url.'</>');
+            } else {
+                $output->writeln('<fg=gray>➜</> <options=bold>php artisan serve</>');
+            }
+
+            $output->writeln('');
             $output->writeln('  New to Laravel? Check out our <href=https://bootcamp.laravel.com>bootcamp</> and <href=https://laravel.com/docs/installation#next-steps>documentation</>. <options=bold>Build something amazing!</>');
             $output->writeln('');
         }
@@ -754,6 +759,27 @@ class NewCommand extends Command
     protected function canResolveHostname($hostname)
     {
         return gethostbyname($hostname.'.') !== $hostname.'.';
+    }
+
+    /**
+     * Checks if the given directory is parked on Herd or Valet.
+     *
+     * @param  string  $directory
+     * @return bool
+     */
+    protected function isParked(string $directory)
+    {
+        foreach(['herd', 'valet'] as $tool) {
+            $process = new Process([$tool, 'paths']);
+            $process->run();
+
+            if ($process->isSuccessful()) {
+                $output = json_decode(trim($process->getOutput()));
+                return in_array(dirname($directory), $output);
+            }
+        }
+
+        return false;
     }
 
     /**
