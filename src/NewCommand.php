@@ -762,7 +762,7 @@ class NewCommand extends Command
     }
 
     /**
-     * Checks if the given directory is parked on Herd or Valet.
+     * Checks if the given directory is parked using Herd or Valet.
      *
      * @param  string  $directory
      * @return bool
