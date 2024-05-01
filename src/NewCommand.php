@@ -769,7 +769,7 @@ class NewCommand extends Command
      */
     protected function isParked(string $directory)
     {
-        foreach(['herd', 'valet'] as $tool) {
+        foreach (['herd', 'valet'] as $tool) {
             $process = new Process([$tool, 'paths']);
             $process->run();
 
