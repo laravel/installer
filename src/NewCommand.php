@@ -767,7 +767,7 @@ class NewCommand extends Command
      * @param  string  $directory
      * @return bool
      */
-protected function isParked(string $directory)
+    protected function isParked(string $directory)
     {
         foreach (['herd', 'valet'] as $tool) {
             $process = new Process([$tool, 'paths']);
