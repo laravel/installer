@@ -767,7 +767,7 @@ class NewCommand extends Command
      * @param  string  $directory
      * @return bool
      */
-    protected function isParked(string $directory)
+protected function isParked(string $directory)
     {
         foreach (['herd', 'valet'] as $tool) {
             $process = new Process([$tool, 'paths']);
@@ -775,6 +775,7 @@ class NewCommand extends Command
 
             if ($process->isSuccessful()) {
                 $output = json_decode(trim($process->getOutput()));
+
                 return in_array(dirname($directory), $output);
             }
         }
