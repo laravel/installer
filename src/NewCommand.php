@@ -762,7 +762,7 @@ class NewCommand extends Command
     }
 
     /**
-     * Checks if the given directory is parked using Herd or Valet.
+     * Determine if the given directory is parked using Herd or Valet.
      *
      * @param  string  $directory
      * @return bool
@@ -771,6 +771,7 @@ class NewCommand extends Command
     {
         foreach (['herd', 'valet'] as $tool) {
             $process = new Process([$tool, 'paths']);
+
             $process->run();
 
             if ($process->isSuccessful()) {
