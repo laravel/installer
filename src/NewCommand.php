@@ -216,7 +216,7 @@ class NewCommand extends Command
 
             if ($this->isParked($directory)) {
                 $url = $this->generateAppUrl($name);
-                $output->writeln('<fg=gray>➜</> Open in the browser: <options=bold;href='.$url.'>'.$url.'</>');
+                $output->writeln('<fg=gray>➜</> Go to: <options=bold;href='.$url.'>'.$url.'</>');
             } else {
                 $output->writeln('<fg=gray>➜</> <options=bold>php artisan serve</>');
             }
