@@ -695,6 +695,25 @@ class NewCommand extends Command
     }
 
     /**
+     * Gets the "tld" that should be used.
+     *
+     * @return string
+     */
+    protected function getTld()
+    {
+        foreach (['herd', 'valet'] as $tool) {
+            $process = new Process([$tool, 'tld']);
+            $process->run();
+
+            if ($process->isSuccessful()) {
+                return trim($process->getOutput());
+            }
+        }
+
+        return 'test';
+    }
+
+    /**
      * Create a GitHub repository and push the git log to it.
      *
      * @param  string  $name
@@ -745,7 +764,7 @@ class NewCommand extends Command
      */
     protected function generateAppUrl($name)
     {
-        $hostname = mb_strtolower($name).'.test';
+        $hostname = mb_strtolower($name).'.'.$this->getTld();
 
         return $this->canResolveHostname($hostname) ? 'http://'.$hostname : 'http://localhost';
     }
