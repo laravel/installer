@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.7.3...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.8.0...master)
+
+## [v5.8.0](https://github.com/laravel/installer/compare/v5.7.3...v5.8.0) - 2024-05-07
+
+* Improves output if Herd or Valet are installed. by [@xiCO2k](https://github.com/xiCO2k) in https://github.com/laravel/installer/pull/335
+* Gets the default "tld" on install. by [@xiCO2k](https://github.com/xiCO2k) in https://github.com/laravel/installer/pull/336
 
 ## [v5.7.3](https://github.com/laravel/installer/compare/v5.7.2...v5.7.3) - 2024-04-30
 
