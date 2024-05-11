@@ -47,6 +47,7 @@ class NewCommand extends Command
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
             ->addOption('database', null, InputOption::VALUE_REQUIRED, 'The database driver your application will use')
+            ->addOption('no-migrate', 'nm', InputOption::VALUE_NONE, 'Disable to run the migrate command')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Breeze / Jetstream stack that should be installed')
             ->addOption('breeze', null, InputOption::VALUE_NONE, 'Installs the Laravel Breeze scaffolding')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
@@ -187,7 +188,7 @@ class NewCommand extends Command
 
                 $this->configureDefaultDatabaseConnection($directory, $database, $name);
 
-                if ($migrate) {
+                if ($migrate && ! $input->getOption('no-migrate')) {
                     $this->runCommands([
                         $this->phpBinary().' artisan migrate',
                     ], $input, $output, workingPath: $directory);
