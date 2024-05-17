@@ -761,7 +761,7 @@ class NewCommand extends Command
     protected function getTld()
     {
         foreach (['herd', 'valet'] as $tool) {
-            $process = new Process([$tool, 'tld']);
+            $process = new Process([$tool, 'tld', '-v']);
 
             $process->run();
 
@@ -793,7 +793,7 @@ class NewCommand extends Command
     protected function isParked(string $directory)
     {
         foreach (['herd', 'valet'] as $tool) {
-            $process = new Process([$tool, 'paths']);
+            $process = new Process([$tool, 'paths', '-v']);
 
             $process->run();
 
