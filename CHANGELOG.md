@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.8.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.8.1...master)
+
+## [v5.8.1](https://github.com/laravel/installer/compare/v5.8.0...v5.8.1) - 2024-05-21
+
+* Only run migration after selecting the database by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/337
+* [1.x] Enforce output when running with `--quiet` by [@xiCO2k](https://github.com/xiCO2k) in https://github.com/laravel/installer/pull/339
 
 ## [v5.8.0](https://github.com/laravel/installer/compare/v5.7.3...v5.8.0) - 2024-05-07
 
