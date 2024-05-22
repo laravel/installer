@@ -18,6 +18,7 @@ use Symfony\Component\Process\Process;
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\select;
+use function Laravel\Prompts\spin;
 use function Laravel\Prompts\text;
 
 class NewCommand extends Command
@@ -877,7 +878,7 @@ class NewCommand extends Command
             }, $commands);
         }
 
-        if ($input->getOption('quiet')) {
+        if (! $output->isVerbose()) {
             $commands = array_map(function ($value) {
                 if (str_starts_with($value, 'chmod')) {
                     return $value;
@@ -891,7 +892,13 @@ class NewCommand extends Command
             }, $commands);
         }
 
-        $process = Process::fromShellCommandline(implode(' && ', $commands), $workingPath, $env, null, null);
+        $commands = implode(' && ', $commands);
+
+        if ($this->canUseSpinner($input, $output)) {
+            $commands .= ' > /dev/null 2>&1';
+        }
+
+        $process = Process::fromShellCommandline($commands, $workingPath, $env, null, null);
 
         if ('\\' !== DIRECTORY_SEPARATOR && file_exists('/dev/tty') && is_readable('/dev/tty')) {
             try {
@@ -901,11 +908,13 @@ class NewCommand extends Command
             }
         }
 
-        $process->run(function ($type, $line) use ($output) {
+        if ($this->canUseSpinner($input, $output)) {
+            return spin(fn () => tap($process)->run(), 'Installing...');
+        }
+
+        return tap($process)->run(function ($type, $line) use ($output) {
             $output->write('    '.$line);
         });
-
-        return $process;
     }
 
     /**
@@ -955,5 +964,17 @@ class NewCommand extends Command
             $file,
             preg_replace($pattern, $replace, file_get_contents($file))
         );
+    }
+
+    /**
+     * Checks if its possible to use the spinner.
+     *
+     * @return bool
+     */
+    protected function canUseSpinner(InputInterface $input, OutputInterface $output)
+    {
+        return function_exists('pcntl_fork') &&
+            ! $output->isVerbose() &&
+            ! $input->getOption('quiet');
     }
 }
