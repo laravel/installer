@@ -879,7 +879,7 @@ class NewCommand extends Command
             }, $commands);
         }
 
-        if (! $output->isVerbose()) {
+        if (! $output->isVerbose() && $this->canUseSpinner($input, $output)) {
             $commands = array_map(function ($value) {
                 if (str_starts_with($value, 'chmod')) {
                     return $value;
@@ -935,7 +935,11 @@ class NewCommand extends Command
             }
         }
 
-        return tap($process)->run();
+        $process->run(function ($type, $line) use ($output) {
+            $output->write('    '.$line);
+        });
+
+        return $process;
     }
 
     /**
