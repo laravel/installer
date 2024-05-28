@@ -12,9 +12,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Exception\ProcessStartFailedException;
+use Symfony\Component\Console\Terminal;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
-
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\select;
@@ -892,13 +892,39 @@ class NewCommand extends Command
             }, $commands);
         }
 
-        $commands = implode(' && ', $commands);
+        foreach ($commands as $command) {
+            $process = $this->runCommand($command, $input, $output, $workingPath, $env);
 
-        if ($this->canUseSpinner($input, $output)) {
-            $commands .= ' > /dev/null 2>&1';
+            if (! $process->isSuccessful()) {
+                $output->writeln('  <bg=red;fg=white> ERROR </> '.$process->getErrorOutput().PHP_EOL);
+
+                break;
+            }
         }
 
-        $process = Process::fromShellCommandline($commands, $workingPath, $env, null, null);
+        return $process;
+    }
+
+    /**
+     * Run the given command.
+     *
+     * @param  string  $command
+     * @param  InputInterface  $input
+     * @param  OutputInterface  $output
+     * @param  string|null  $workingPath
+     * @param  array  $env
+     * @return \Symfony\Component\Process\Process
+     */
+    protected function runCommand(string $command, InputInterface $input, OutputInterface $output, string $workingPath = null, array $env = [])
+    {
+        $process = Process::fromShellCommandline($command, $workingPath, $env, null, null);
+
+        if ($this->canUseSpinner($input, $output)) {
+            $terminalWidth = (new Terminal)->getWidth();
+            $description = mb_substr($command, 0, $terminalWidth - 6);
+
+            return spin(fn () => tap($process)->run(), "<fg=gray>{$description}...</>");
+        }
 
         if ('\\' !== DIRECTORY_SEPARATOR && file_exists('/dev/tty') && is_readable('/dev/tty')) {
             try {
@@ -908,13 +934,7 @@ class NewCommand extends Command
             }
         }
 
-        if ($this->canUseSpinner($input, $output)) {
-            return spin(fn () => tap($process)->run(), 'Installing...');
-        }
-
-        return tap($process)->run(function ($type, $line) use ($output) {
-            $output->write('    '.$line);
-        });
+        return tap($process)->run();
     }
 
     /**
