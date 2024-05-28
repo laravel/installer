@@ -47,6 +47,7 @@ class NewCommand extends Command
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
             ->addOption('database', null, InputOption::VALUE_REQUIRED, 'The database driver your application will use')
+            ->addOption('ignition', null, InputOption::VALUE_NONE, 'Installs Ignition for an improved error page')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Breeze / Jetstream stack that should be installed')
             ->addOption('breeze', null, InputOption::VALUE_NONE, 'Installs the Laravel Breeze scaffolding')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
@@ -92,6 +93,10 @@ class NewCommand extends Command
                     ? 'The name may only contain letters, numbers, dashes, underscores, and periods.'
                     : null,
             ));
+        }
+
+        if (! $input->getOption('ignition')) {
+            $input->setOption('ignition', confirm(label: 'Would you like to install Ignition?', default: false));
         }
 
         if (! $input->getOption('breeze') && ! $input->getOption('jet')) {
@@ -199,6 +204,10 @@ class NewCommand extends Command
 
             if ($input->getOption('git') || $input->getOption('github') !== false) {
                 $this->createRepository($directory, $input, $output);
+            }
+
+            if ($input->getOption('ignition')) {
+                $this->installIgnition($directory, $input, $output);
             }
 
             if ($input->getOption('breeze')) {
@@ -389,6 +398,25 @@ class NewCommand extends Command
             collect($defaults)->map(fn ($default) => substr($default, 2))->all(),
             $directory.'/.env.example'
         );
+    }
+
+    /**
+     * Install Laravel Ignition into the application.
+     *
+     * @param  string  $directory
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function installIgnition(string $directory, InputInterface $input, OutputInterface $output)
+    {
+        $commands = array_filter([
+            $this->findComposer().' require spatie/laravel-ignition --dev',
+        ]);
+
+        $this->runCommands($commands, $input, $output, workingPath: $directory);
+
+        $this->commitChanges('Install Ignition', $directory, $input, $output);
     }
 
     /**
