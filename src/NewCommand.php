@@ -11,6 +11,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Process\Exception\ProcessStartFailedException;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 
@@ -760,17 +761,7 @@ class NewCommand extends Command
      */
     protected function getTld()
     {
-        foreach (['herd', 'valet'] as $tool) {
-            $process = new Process([$tool, 'tld', '-v']);
-
-            $process->run();
-
-            if ($process->isSuccessful()) {
-                return trim($process->getOutput());
-            }
-        }
-
-        return 'test';
+        return $this->runOnValetOrHerd('tld') ?? 'test';
     }
 
     /**
@@ -792,19 +783,9 @@ class NewCommand extends Command
      */
     protected function isParked(string $directory)
     {
-        foreach (['herd', 'valet'] as $tool) {
-            $process = new Process([$tool, 'paths', '-v']);
+        $output = $this->runOnValetOrHerd('paths');
 
-            $process->run();
-
-            if ($process->isSuccessful()) {
-                $output = json_decode(trim($process->getOutput()));
-
-                return in_array(dirname($directory), $output);
-            }
-        }
-
-        return false;
+        return $output !== false ? in_array(dirname($directory), json_decode($output)) : false;
     }
 
     /**
@@ -844,6 +825,30 @@ class NewCommand extends Command
         return $phpBinary !== false
             ? ProcessUtils::escapeArgument($phpBinary)
             : 'php';
+    }
+
+    /**
+     * Runs the given command on the "herd" or "valet" CLI.
+     *
+     * @param  string  $command
+     * @return string|bool
+     */
+    protected function runOnValetOrHerd(string $command)
+    {
+        foreach (['herd', 'valet'] as $tool) {
+            $process = new Process([$tool, $command, '-v']);
+
+            try {
+                $process->run();
+
+                if ($process->isSuccessful()) {
+                    return trim($process->getOutput());
+                }
+            } catch (ProcessStartFailedException) {
+            }
+        }
+
+        return false;
     }
 
     /**
