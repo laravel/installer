@@ -14,6 +14,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Exception\ProcessStartFailedException;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
+
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\select;
@@ -787,7 +788,6 @@ class NewCommand extends Command
         return $output !== false ? in_array(dirname($directory), json_decode($output)) : false;
     }
 
-
     /**
      * Runs the given command on "herd" or "valet" cli.
      *
@@ -805,7 +805,8 @@ class NewCommand extends Command
                 if ($process->isSuccessful()) {
                     return trim($process->getOutput());
                 }
-            } catch (ProcessStartFailedException) {}
+            } catch (ProcessStartFailedException) {
+            }
         }
 
         return false;
