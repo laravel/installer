@@ -789,30 +789,6 @@ class NewCommand extends Command
     }
 
     /**
-     * Runs the given command on "herd" or "valet" cli.
-     *
-     * @param  string  $command
-     * @return string|bool
-     */
-    protected function runOnValetOrHerd(string $command)
-    {
-        foreach (['herd', 'valet'] as $tool) {
-            $process = new Process([$tool, $command, '-v']);
-
-            try {
-                $process->run();
-
-                if ($process->isSuccessful()) {
-                    return trim($process->getOutput());
-                }
-            } catch (ProcessStartFailedException) {
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * Get the version that should be downloaded.
      *
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
@@ -849,6 +825,30 @@ class NewCommand extends Command
         return $phpBinary !== false
             ? ProcessUtils::escapeArgument($phpBinary)
             : 'php';
+    }
+
+    /**
+     * Runs the given command on the "herd" or "valet" CLI.
+     *
+     * @param  string  $command
+     * @return string|bool
+     */
+    protected function runOnValetOrHerd(string $command)
+    {
+        foreach (['herd', 'valet'] as $tool) {
+            $process = new Process([$tool, $command, '-v']);
+
+            try {
+                $process->run();
+
+                if ($process->isSuccessful()) {
+                    return trim($process->getOutput());
+                }
+            } catch (ProcessStartFailedException) {
+            }
+        }
+
+        return false;
     }
 
     /**
