@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.8.1...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.8.2...master)
+
+## [v5.8.2](https://github.com/laravel/installer/compare/v5.8.1...v5.8.2) - 2024-06-02
+
+* [5.x] Fixes issue if there is no `herd` or `valet` installed by [@xiCO2k](https://github.com/xiCO2k) in https://github.com/laravel/installer/pull/343
 
 ## [v5.8.1](https://github.com/laravel/installer/compare/v5.8.0...v5.8.1) - 2024-05-21
 
