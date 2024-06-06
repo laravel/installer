@@ -96,7 +96,7 @@ class NewCommand extends Command
 
                     if ($input->getOption('force') !== true) {
                         try {
-                            $this->verifyApplicationDoesntExist($this->getWorkingDirectory($value));
+                            $this->verifyApplicationDoesntExist($this->getInstallationDirectory($value));
                         } catch (RuntimeException $e) {
                             return 'The directory already exists';
                         }
@@ -154,7 +154,7 @@ class NewCommand extends Command
 
         $name = $input->getArgument('name');
 
-        $directory = $this->getWorkingDirectory($name);
+        $directory = $this->getInstallationDirectory($name);
 
         $this->composer = new Composer(new Filesystem(), $directory);
 
@@ -799,6 +799,17 @@ class NewCommand extends Command
     }
 
     /**
+     * Get the installation directory.
+     *
+     * @param  string  $name
+     * @return string
+     */
+    protected function getInstallationDirectory(string $name)
+    {
+        return $name !== '.' ? getcwd().'/'.$name : '.';
+    }
+
+    /**
      * Get the version that should be downloaded.
      *
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
@@ -811,17 +822,6 @@ class NewCommand extends Command
         }
 
         return '';
-    }
-
-    /**
-     * Get the working installation directory.
-     *
-     * @param  string  $name
-     * @return string
-     */
-    protected function getWorkingDirectory(string $name)
-    {
-        return $name !== '.' ? getcwd().'/'.$name : '.';
     }
 
     /**
