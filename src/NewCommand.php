@@ -89,10 +89,26 @@ class NewCommand extends Command
                 label: 'What is the name of your project?',
                 placeholder: 'E.g. example-app',
                 required: 'The project name is required.',
-                validate: fn ($value) => preg_match('/[^\pL\pN\-_.]/', $value) !== 0
-                    ? 'The name may only contain letters, numbers, dashes, underscores, and periods.'
-                    : null,
+                validate: function ($value) use ($input) {
+                    if (preg_match('/[^\pL\pN\-_.]/', $value) !== 0) {
+                        return 'The name may only contain letters, numbers, dashes, underscores, and periods.';
+                    }
+
+                    if ($input->getOption('force') !== true) {
+                        try {
+                            $this->verifyApplicationDoesntExist($this->getInstallationDirectory($value));
+                        } catch (RuntimeException $e) {
+                            return 'Application already exists.';
+                        }
+                    }
+                },
             ));
+        }
+
+        if ($input->getOption('force') !== true) {
+            $this->verifyApplicationDoesntExist(
+                $this->getInstallationDirectory($input->getArgument('name'))
+            );
         }
 
         if (! $input->getOption('breeze') && ! $input->getOption('jet')) {
@@ -144,7 +160,7 @@ class NewCommand extends Command
 
         $name = $input->getArgument('name');
 
-        $directory = $name !== '.' ? getcwd().'/'.$name : '.';
+        $directory = $this->getInstallationDirectory($name);
 
         $this->composer = new Composer(new Filesystem(), $directory);
 
@@ -786,6 +802,17 @@ class NewCommand extends Command
         $output = $this->runOnValetOrHerd('paths');
 
         return $output !== false ? in_array(dirname($directory), json_decode($output)) : false;
+    }
+
+    /**
+     * Get the installation directory.
+     *
+     * @param  string  $name
+     * @return string
+     */
+    protected function getInstallationDirectory(string $name)
+    {
+        return $name !== '.' ? getcwd().'/'.$name : '.';
     }
 
     /**
