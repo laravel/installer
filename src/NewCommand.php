@@ -98,11 +98,17 @@ class NewCommand extends Command
                         try {
                             $this->verifyApplicationDoesntExist($this->getInstallationDirectory($value));
                         } catch (RuntimeException $e) {
-                            return 'The directory already exists';
+                            return 'Application already exists.';
                         }
                     }
                 },
             ));
+        }
+
+        if ($input->getOption('force') !== true) {
+            $this->verifyApplicationDoesntExist(
+                $this->getInstallationDirectory($input->getArgument('name'))
+            );
         }
 
         if (! $input->getOption('breeze') && ! $input->getOption('jet')) {
