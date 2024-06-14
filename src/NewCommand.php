@@ -492,7 +492,7 @@ class NewCommand extends Command
             );
         }
 
-        return [$input->getOption('database') ?? $defaultDatabase, $migrate ?? false];
+        return [$input->getOption('database') ?? $defaultDatabase, $migrate ?? $input->hasOption('database')];
     }
 
     /**
