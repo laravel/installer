@@ -177,11 +177,11 @@ class NewCommand extends Command
         $composer = $this->findComposer();
         $phpBinary = $this->phpBinary();
 
-        $commands = [
+        $commands = array_filter([
             $composer." create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist --no-scripts",
             $composer." run post-root-package-install -d \"$directory\"",
             $phpBinary." \"$directory/artisan\" key:generate --ansi",
-        ];
+        ]);
 
         if ($directory != '.' && $input->getOption('force')) {
             if (PHP_OS_FAMILY == 'Windows') {
@@ -492,7 +492,7 @@ class NewCommand extends Command
             );
         }
 
-        return [$input->getOption('database') ?? $defaultDatabase, $migrate ?? false];
+        return [$input->getOption('database') ?? $defaultDatabase, $migrate ?? $input->hasOption('database')];
     }
 
     /**
