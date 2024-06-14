@@ -177,11 +177,11 @@ class NewCommand extends Command
         $composer = $this->findComposer();
         $phpBinary = $this->phpBinary();
 
-        $commands = array_filter([
+        $commands = [
             $composer." create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist --no-scripts",
             $composer." run post-root-package-install -d \"$directory\"",
             $phpBinary." \"$directory/artisan\" key:generate --ansi",
-        ]);
+        ];
 
         if ($directory != '.' && $input->getOption('force')) {
             if (PHP_OS_FAMILY == 'Windows') {
