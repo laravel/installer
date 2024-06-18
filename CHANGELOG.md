@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.8.2...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.8.3...master)
+
+## [v5.8.3](https://github.com/laravel/installer/compare/v5.8.2...v5.8.3) - 2024-06-18
+
+* Validate Laravel can be installed on selected directory by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/344
+* Automatically run migration when `--database` is given. by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/346
 
 ## [v5.8.2](https://github.com/laravel/installer/compare/v5.8.1...v5.8.2) - 2024-06-02
 
