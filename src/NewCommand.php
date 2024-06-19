@@ -19,6 +19,7 @@ use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
+use function Laravel\Prompts\form;
 
 class NewCommand extends Command
 {
@@ -30,6 +31,11 @@ class NewCommand extends Command
      * @var \Illuminate\Support\Composer
      */
     protected $composer;
+
+    /**
+     * @var FormBuilder
+     */
+    protected $form;
 
     /**
      * Configure the command options.
@@ -77,42 +83,51 @@ class NewCommand extends Command
 
         $this->configurePrompts($input, $output);
 
-        $output->write(PHP_EOL.'  <fg=red> _                               _
+        $this->form = FormBuilder::make();
+
+        $this->form->add(
+            fn () => $output->write(PHP_EOL.'  <fg=red> _                               _
   | |                             | |
   | |     __ _ _ __ __ ___   _____| |
   | |    / _` | \'__/ _` \ \ / / _ \ |
   | |___| (_| | | | (_| |\ V /  __/ |
-  |______\__,_|_|  \__,_| \_/ \___|_|</>'.PHP_EOL.PHP_EOL);
-
-        if (! $input->getArgument('name')) {
-            $input->setArgument('name', text(
-                label: 'What is the name of your project?',
-                placeholder: 'E.g. example-app',
-                required: 'The project name is required.',
-                validate: function ($value) use ($input) {
-                    if (preg_match('/[^\pL\pN\-_.]/', $value) !== 0) {
-                        return 'The name may only contain letters, numbers, dashes, underscores, and periods.';
-                    }
-
-                    if ($input->getOption('force') !== true) {
-                        try {
-                            $this->verifyApplicationDoesntExist($this->getInstallationDirectory($value));
-                        } catch (RuntimeException $e) {
-                            return 'Application already exists.';
+  |______\__,_|_|  \__,_| \_/ \___|_|</>'.PHP_EOL.PHP_EOL),
+            ignoreWhenReverting: true
+            )->when(
+            !$input->getArgument('name'),
+            fn () => $this->form->add(
+                fn () => text(
+                    label: 'What is the name of your project?',
+                    placeholder: 'E.g. example-app',
+                    required: 'The project name is required.',
+                    validate: function ($value) use ($input) {
+                        if (preg_match('/[^\pL\pN\-_.]/', $value) !== 0) {
+                            return 'The name may only contain letters, numbers, dashes, underscores, and periods.';
                         }
-                    }
-                },
-            ));
-        }
 
-        if ($input->getOption('force') !== true) {
-            $this->verifyApplicationDoesntExist(
-                $this->getInstallationDirectory($input->getArgument('name'))
-            );
-        }
-
-        if (! $input->getOption('breeze') && ! $input->getOption('jet')) {
-            match (select(
+                        if ($input->getOption('force') !== true) {
+                            try {
+                                $this->verifyApplicationDoesntExist($this->getInstallationDirectory($value));
+                            } catch (RuntimeException $e) {
+                                return 'Application already exists.';
+                            }
+                        }
+                    },
+                ),
+                name: 'name',
+            )->add(fn ($responses) => $input->setArgument('name', $responses['name']), ignoreWhenReverting: true)
+        )->when(
+            $input->getOption('force') !== true,
+            fn () => $this->form->add(
+                fn () => $this->verifyApplicationDoesntExist(
+                    $this->getInstallationDirectory($input->getArgument('name'))
+                ),
+                ignoreWhenReverting: true
+            )
+        )->when(
+     !$input->getOption('breeze') && !$input->getOption('jet'),
+            fn () => $this->form->add(
+                fn () => select(
                 label: 'Would you like to install a starter kit?',
                 options: [
                     'none' => 'No starter kit',
@@ -120,30 +135,44 @@ class NewCommand extends Command
                     'jetstream' => 'Laravel Jetstream',
                 ],
                 default: 'none',
-            )) {
-                'breeze' => $input->setOption('breeze', true),
-                'jetstream' => $input->setOption('jet', true),
-                default => null,
-            };
-        }
-
-        if ($input->getOption('breeze')) {
-            $this->promptForBreezeOptions($input);
-        } elseif ($input->getOption('jet')) {
-            $this->promptForJetstreamOptions($input);
-        }
-
-        if (! $input->getOption('phpunit') && ! $input->getOption('pest')) {
-            $input->setOption('pest', select(
-                label: 'Which testing framework do you prefer?',
-                options: ['Pest', 'PHPUnit'],
-                default: 'Pest',
-            ) === 'Pest');
-        }
-
-        if (! $input->getOption('git') && $input->getOption('github') === false && Process::fromShellCommandline('git --version')->run() === 0) {
-            $input->setOption('git', confirm(label: 'Would you like to initialize a Git repository?', default: false));
-        }
+                ),
+                name: 'starterKit',
+            )->add(
+                fn ($responses) => match ($responses['starterKit']) {
+                    'breeze' => $input->setOption('breeze', true),
+                    'jetstream' => $input->setOption('jet', true),
+                    default => null,
+                },
+                ignoreWhenReverting: true
+            )
+        )->when(
+            $input->getOption('breeze'),
+            fn () => $this->promptForBreezeOptions($input)
+        )->when(
+            $input->getOption('jet'),
+            fn () => $this->promptForJetstreamOptions($input)
+        )->when(
+            ! $input->getOption('phpunit') && ! $input->getOption('pest'),
+            fn () => $this->form->add(
+                fn () => select(
+                        label: 'Which testing framework do you prefer?',
+                        options: ['Pest', 'PHPUnit'],
+                        default: 'Pest',
+                    ) === 'Pest',
+                name: 'pest',
+            )->add(
+                fn ($responses) => $input->setOption('pest', $responses['pest'])
+                )
+        )->when(
+            ! $input->getOption('git') && $input->getOption('github') === false && Process::fromShellCommandline('git --version')->run() === 0,
+            fn () => $this->form->add(
+                fn () => confirm(label: 'Would you like to initialize a Git repository?', default: false),
+                name: 'git',
+            )->add(
+                fn ($responses) => $input->setOption('git', $responses['git'])
+            )
+        )
+        ->submit();
     }
 
     /**
@@ -521,41 +550,57 @@ class NewCommand extends Command
      */
     protected function promptForBreezeOptions(InputInterface $input)
     {
-        if (! $input->getOption('stack')) {
-            $input->setOption('stack', select(
-                label: 'Which Breeze stack would you like to install?',
-                options: [
-                    'blade' => 'Blade with Alpine',
-                    'livewire' => 'Livewire (Volt Class API) with Alpine',
-                    'livewire-functional' => 'Livewire (Volt Functional API) with Alpine',
-                    'react' => 'React with Inertia',
-                    'vue' => 'Vue with Inertia',
-                    'api' => 'API only',
-                ],
-                default: 'blade',
-            ));
-        }
-
-        if (in_array($input->getOption('stack'), ['react', 'vue']) && (! $input->getOption('dark') || ! $input->getOption('ssr'))) {
-            collect(multiselect(
-                label: 'Would you like any optional features?',
-                options: [
-                    'dark' => 'Dark mode',
-                    'ssr' => 'Inertia SSR',
-                    'typescript' => 'TypeScript',
-                ],
-                default: array_filter([
-                    $input->getOption('dark') ? 'dark' : null,
-                    $input->getOption('ssr') ? 'ssr' : null,
-                    $input->getOption('typescript') ? 'typescript' : null,
-                ]),
-            ))->each(fn ($option) => $input->setOption($option, true));
-        } elseif (in_array($input->getOption('stack'), ['blade', 'livewire', 'livewire-functional']) && ! $input->getOption('dark')) {
-            $input->setOption('dark', confirm(
-                label: 'Would you like dark mode support?',
-                default: false,
-            ));
-        }
+        $this->form->when(
+            ! $input->getOption('stack'),
+            fn () => $this->form->add(
+                fn () => select(
+                    label: 'Which Breeze stack would you like to install?',
+                    options: [
+                        'blade' => 'Blade with Alpine',
+                        'livewire' => 'Livewire (Volt Class API) with Alpine',
+                        'livewire-functional' => 'Livewire (Volt Functional API) with Alpine',
+                        'react' => 'React with Inertia',
+                        'vue' => 'Vue with Inertia',
+                        'api' => 'API only',
+                    ],
+                    default: 'blade',
+                ),
+                name: 'stack',
+            )->add(
+                fn ($responses) => $input->setOption('stack', $responses['stack'])
+            )
+        )->add(function () use ($input) {
+            if (in_array($input->getOption('stack'), ['react', 'vue']) && (! $input->getOption('dark') || ! $input->getOption('ssr'))) {
+                $this->form->add(
+                    fn () => multiselect(
+                        label: 'Would you like any optional features?',
+                        options: [
+                            'dark' => 'Dark mode',
+                            'ssr' => 'Inertia SSR',
+                            'typescript' => 'TypeScript',
+                        ],
+                        default: array_filter([
+                            $input->getOption('dark') ? 'dark' : null,
+                            $input->getOption('ssr') ? 'ssr' : null,
+                            $input->getOption('typescript') ? 'typescript' : null,
+                        ]),
+                    ),
+                    name: 'features',
+                )->add (
+                    fn ($responses) => collect($responses['features'])->each(fn ($feature) => $input->setOption($feature, true))
+                );
+            } elseif (in_array($input->getOption('stack'), ['blade', 'livewire', 'livewire-functional']) && ! $input->getOption('dark')) {
+                $this->form->add(
+                    fn () => confirm(
+                        label: 'Would you like dark mode support?',
+                        default: false,
+                    ),
+                    name: 'supportDarkMode',
+                )->add(
+                    fn ($responses) => $input->setOption('dark', $responses['supportDarkMode'])
+                );
+            }
+        });
     }
 
     /**
@@ -566,36 +611,45 @@ class NewCommand extends Command
      */
     protected function promptForJetstreamOptions(InputInterface $input)
     {
-        if (! $input->getOption('stack')) {
-            $input->setOption('stack', select(
-                label: 'Which Jetstream stack would you like to install?',
-                options: [
-                    'livewire' => 'Livewire',
-                    'inertia' => 'Vue with Inertia',
-                ],
-                default: 'livewire',
-            ));
-        }
-
-        collect(multiselect(
-            label: 'Would you like any optional features?',
-            options: collect([
-                'api' => 'API support',
-                'dark' => 'Dark mode',
-                'verification' => 'Email verification',
-                'teams' => 'Team support',
-            ])->when(
-                $input->getOption('stack') === 'inertia',
-                fn ($options) => $options->put('ssr', 'Inertia SSR')
-            )->all(),
-            default: array_filter([
-                $input->getOption('api') ? 'api' : null,
-                $input->getOption('dark') ? 'dark' : null,
-                $input->getOption('teams') ? 'teams' : null,
-                $input->getOption('verification') ? 'verification' : null,
-                $input->getOption('stack') === 'inertia' && $input->getOption('ssr') ? 'ssr' : null,
-            ]),
-        ))->each(fn ($option) => $input->setOption($option, true));
+        $this->form->when(
+            ! $input->getOption('stack'),
+            fn () => $this->form->add(
+                fn () => select(
+                    label: 'Which Jetstream stack would you like to install?',
+                    options: [
+                        'livewire' => 'Livewire',
+                        'inertia' => 'Vue with Inertia',
+                    ],
+                    default: 'livewire',
+                ),
+                name: 'jetStreamStack',
+            )->add(
+                fn ($responses) => $input->setOption('stack', $responses['jetStreamStack'])
+            )
+        )->add(
+            fn () => $this->form->multiselect(
+                label: 'Would you like any optional features?',
+                options: collect([
+                    'api' => 'API support',
+                    'dark' => 'Dark mode',
+                    'verification' => 'Email verification',
+                    'teams' => 'Team support',
+                ])->when(
+                    $input->getOption('stack') === 'inertia',
+                    fn ($options) => $options->put('ssr', 'Inertia SSR')
+                )->all(),
+                default: array_filter([
+                    $input->getOption('api') ? 'api' : null,
+                    $input->getOption('dark') ? 'dark' : null,
+                    $input->getOption('teams') ? 'teams' : null,
+                    $input->getOption('verification') ? 'verification' : null,
+                    $input->getOption('stack') === 'inertia' && $input->getOption('ssr') ? 'ssr' : null,
+                ]),
+            ),
+            name: 'features',
+        )->add(
+            fn ($responses) => collect($responses['features'])->each(fn ($feature) => $input->setOption($feature, true))
+        );
     }
 
     /**
