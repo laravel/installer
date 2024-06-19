@@ -61,7 +61,8 @@ class NewCommand extends Command
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Installs the PHPUnit testing framework')
             ->addOption('prompt-breeze', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Breeze should be installed (Deprecated)')
             ->addOption('prompt-jetstream', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Jetstream should be installed (Deprecated)')
-            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
+            ->addOption('template', 't', InputOption::VALUE_OPTIONAL, 'The laravel template to use', 'laravel/laravel');
     }
 
     /**
@@ -160,6 +161,8 @@ class NewCommand extends Command
 
         $name = $input->getArgument('name');
 
+        $template = $input->getOption('template');
+
         $directory = $this->getInstallationDirectory($name);
 
         $this->composer = new Composer(new Filesystem(), $directory);
@@ -178,7 +181,7 @@ class NewCommand extends Command
         $phpBinary = $this->phpBinary();
 
         $commands = [
-            $composer." create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist --no-scripts",
+            $composer." create-project $template \"$directory\" $version --remove-vcs --prefer-dist --no-scripts",
             $composer." run post-root-package-install -d \"$directory\"",
             $phpBinary." \"$directory/artisan\" key:generate --ansi",
         ];
