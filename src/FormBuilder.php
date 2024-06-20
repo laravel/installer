@@ -2,15 +2,18 @@
 
 namespace Laravel\Installer\Console;
 
-use Illuminate\Support\Traits\Conditionable;
-use Laravel\Prompts\FormBuilder as BaseFormBuilder;
+use Closure;
 
-class FormBuilder extends BaseFormBuilder
+class FormBuilder extends \Laravel\Prompts\FormBuilder
 {
-    use Conditionable;
-
-    public static function make(): self
+    public function addWithCondition(Closure $step, ?string $name = null, bool $ignoreWhenReverting = false, bool|Closure $condition = true): self
     {
-        return new self();
+        $this->steps[] = new \Laravel\Prompts\FormStep($step, $condition, $name, $ignoreWhenReverting);
+        return $this;
+    }
+
+    public function getStepsCount()
+    {
+        return count($this->steps);
     }
 }
