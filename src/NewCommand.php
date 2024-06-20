@@ -101,7 +101,7 @@ class NewCommand extends Command
                     }
                 },
             )),
-            condition: !$input->getArgument('name')
+            condition: ! $input->getArgument('name')
         )->addWithCondition(
             fn () => $this->verifyApplicationDoesntExist(
                 $this->getInstallationDirectory($input->getArgument('name'))
@@ -133,26 +133,26 @@ class NewCommand extends Command
             },
             condition: !$input->getOption('breeze') && !$input->getOption('jet')
         )->addWithCondition(
-            function () use($input) {
+            function () use ($input) {
                 $this->promptForBreezeOptions($input);
             },
             condition: fn () => $input->getOption('breeze')
         )->addWithCondition(
-            function () use($input) {
+            function () use ($input) {
                 $this->promptForJetstreamOptions($input);
             },
             condition: fn () => $input->getOption('jet')
         )->addWithCondition(
             function () use($input) {
                 $input->setOption('pest', select(
-                        label: 'Which testing framework do you prefer?',
-                        options: ['Pest', 'PHPUnit'],
-                        default: 'Pest',
-                    ) === 'Pest');
+                    label: 'Which testing framework do you prefer?',
+                    options: ['Pest', 'PHPUnit'],
+                    default: 'Pest',
+                ) === 'Pest');
             },
             condition: ! $input->getOption('phpunit') && ! $input->getOption('pest')
         )->addWithCondition(
-            function () use($input) {
+            function () use ($input) {
                 $input->setOption('git', confirm(label: 'Would you like to initialize a Git repository?', default: false));
             },
             condition: ! $input->getOption('git')
