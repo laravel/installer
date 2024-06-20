@@ -131,7 +131,7 @@ class NewCommand extends Command
 
                 return true;
             },
-            condition: !$input->getOption('breeze') && !$input->getOption('jet')
+            condition: ! $input->getOption('breeze') && ! $input->getOption('jet')
         )->addWithCondition(
             function () use ($input) {
                 $this->promptForBreezeOptions($input);
@@ -143,7 +143,7 @@ class NewCommand extends Command
             },
             condition: fn () => $input->getOption('jet')
         )->addWithCondition(
-            function () use($input) {
+            function () use ($input) {
                 $input->setOption('pest', select(
                     label: 'Which testing framework do you prefer?',
                     options: ['Pest', 'PHPUnit'],
