@@ -513,7 +513,7 @@ class NewCommand extends Command
             $databaseOptions = $this->databaseOptions()
         )->keys()->first();
 
-        $dbname = $dbusername = $dbpassword = '';
+        $dbname = $dbuser = $dbpass = '';
 
         if (! $input->getOption('database') && $input->isInteractive()) {
             $input->setOption('database', select(
@@ -543,8 +543,8 @@ class NewCommand extends Command
             ));
         }
 
-        if (! $input->getOption('dbusername') && $input->isInteractive()) {
-            $dbusername = $input->setOption('dbusername', text(
+        if (! $input->getOption('dbuser') && $input->isInteractive()) {
+            $dbuser = $input->setOption('dbuser', text(
                 label: "What should the database username be? Leave blank to use 'root' (default).",
                 // placeholder: 'E.g. ',
                 required: false,
@@ -556,8 +556,8 @@ class NewCommand extends Command
             ));
         }
 
-        if (! $input->getOption('dbpassword') && $input->isInteractive()) {
-            $dbpassword = $input->setOption('dbpassword', text(
+        if (! $input->getOption('dbpass') && $input->isInteractive()) {
+            $dbpass = $input->setOption('dbpass', text(
                 label: 'What is the password for the database user? Leave blank for no password (default).',
                 // placeholder: 'E.g. supersecretp455w0rd',
                 required: false,
@@ -567,8 +567,8 @@ class NewCommand extends Command
         return [
             $input->getOption('database') ?? $defaultDatabase,
             $input->getOption('dbname') ?? $dbname,
-            $input->getOption('dbusername') ?? $dbusername,
-            $input->getOption('dbpassword') ?? $dbpassword,
+            $input->getOption('dbuser') ?? $dbuser,
+            $input->getOption('dbpass') ?? $dbpass,
             $migrate ?? $input->hasOption('database'),
         ];
     }
