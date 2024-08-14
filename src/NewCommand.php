@@ -48,6 +48,9 @@ class NewCommand extends Command
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
             ->addOption('database', null, InputOption::VALUE_REQUIRED, 'The database driver your application will use')
+            ->addOption('dbname', null, InputOption::VALUE_OPTIONAL, 'Change the name of the database')
+            ->addOption('dbusername', null, InputOption::VALUE_OPTIONAL, 'Change the database user')
+            ->addOption('dbpassword', null, InputOption::VALUE_OPTIONAL, "Define a password for the database user")
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Breeze / Jetstream stack that should be installed')
             ->addOption('breeze', null, InputOption::VALUE_NONE, 'Installs the Laravel Breeze scaffolding')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
@@ -203,9 +206,9 @@ class NewCommand extends Command
                     $directory.'/.env'
                 );
 
-                [$database, $migrate] = $this->promptForDatabaseOptions($directory, $input);
+                [$database, $dbname, $dbuser, $dbpass, $migrate] = $this->promptForDatabaseOptions($directory, $input);
 
-                $this->configureDefaultDatabaseConnection($directory, $database, $name);
+                $this->configureDefaultDatabaseConnection($directory, $database, $name, $dbname, $dbuser, $dbpass);
 
                 if ($migrate) {
                     $this->runCommands([
@@ -271,9 +274,12 @@ class NewCommand extends Command
      * @param  string  $directory
      * @param  string  $database
      * @param  string  $name
+     * @param  string  $dbname
+     * @param  string  $dbuser
+     * @param  string  $dbpass
      * @return void
      */
-    protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name)
+    protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name, string $dbname, string $dbuser, string $dbpass)
     {
         $this->pregReplaceInFile(
             '/DB_CONNECTION=.*/',
@@ -322,15 +328,45 @@ class NewCommand extends Command
             );
         }
 
+        $databaseName = $dbname ?? str_replace('-', '_', strtolower($name));
+
         $this->replaceInFile(
             'DB_DATABASE=laravel',
-            'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
+            'DB_DATABASE='.$databaseName,
             $directory.'/.env'
         );
 
         $this->replaceInFile(
             'DB_DATABASE=laravel',
-            'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
+            'DB_DATABASE='.$databaseName,
+            $directory.'/.env.example'
+        );
+
+        $databaseUsername = $dbuser ?? 'root';
+
+        $this->replaceInFile(
+            'DB_USERNAME=root',
+            'DB_USERNAME='.$databaseUsername,
+            $directory.'/.env'
+        );
+
+        $this->replaceInFile(
+            'DB_USERNAME=root',
+            'DB_USERNAME='.$databaseUsername,
+            $directory.'/.env.example'
+        );
+
+        $databasePassword = $dbpass ?? '';
+
+        $this->replaceInFile(
+            'DB_PASSWORD=',
+            'DB_PASSWORD='.$databasePassword,
+            $directory.'/.env'
+        );
+
+        $this->replaceInFile(
+            'DB_PASSWORD=',
+            'DB_PASSWORD='.$databasePassword,
             $directory.'/.env.example'
         );
     }
@@ -492,7 +528,47 @@ class NewCommand extends Command
             );
         }
 
-        return [$input->getOption('database') ?? $defaultDatabase, $migrate ?? $input->hasOption('database')];
+        if (! $input->getOption('dbname') && $input->isInteractive()) {
+            $dbname = $input->setOption('dbname', text(
+                label: 'What should the name of the database be? Leave blank to use the name of the application (default).',
+                placeholder: 'E.g. laravel_database',
+                required: false,
+                validate: function ($value) use ($input) {
+                    if (preg_match('/[^\pL\pN\_]/', $value) !== 0) {
+                        return 'The name may only contain letters, numbers, and underscores.';
+                    }
+                },
+            ));
+        }
+
+        if (! $input->getOption('dbusername') && $input->isInteractive()) {
+            $dbusername = $input->setOption('dbusername', text(
+                label: "What should the database username be? Leave blank to use 'root' (default).",
+                // placeholder: 'E.g. ',
+                required: false,
+                validate: function ($value) use ($input) {
+                    if (preg_match('/[^\pL\pN\_]/', $value) !== 0) {
+                        return 'The name may only contain letters, numbers, and underscores.';
+                    }
+                },
+            ));
+        }
+
+        if (! $input->getOption('dbpassword') && $input->isInteractive()) {
+            $dbpassword = $input->setOption('dbpassword', text(
+                label: 'What is the password for the database user? Leave blank for no password (default).',
+                // placeholder: 'E.g. supersecretp455w0rd',
+                required: false,
+            ));
+        }
+
+        return [
+            $input->getOption('database') ?? $defaultDatabase,
+            $input->getOption('dbname') ?? $dbname,
+            $input->getOption('dbusername') ?? $dbusername,
+            $input->getOption('dbpassword') ?? $dbpassword,
+            $migrate ?? $input->hasOption('database')
+        ];
     }
 
     /**
