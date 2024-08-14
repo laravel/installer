@@ -279,7 +279,7 @@ class NewCommand extends Command
      * @param  string  $dbpass
      * @return void
      */
-    protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name, string $dbname, string $dbuser, string $dbpass)
+    protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name, $dbname = '', $dbuser = '', $dbpass = '')
     {
         $this->pregReplaceInFile(
             '/DB_CONNECTION=.*/',
@@ -512,6 +512,8 @@ class NewCommand extends Command
         $defaultDatabase = collect(
             $databaseOptions = $this->databaseOptions()
         )->keys()->first();
+
+        $dbname = $dbusername = $dbpassword = '';
 
         if (! $input->getOption('database') && $input->isInteractive()) {
             $input->setOption('database', select(
