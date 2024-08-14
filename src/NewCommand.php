@@ -50,7 +50,7 @@ class NewCommand extends Command
             ->addOption('database', null, InputOption::VALUE_REQUIRED, 'The database driver your application will use')
             ->addOption('dbname', null, InputOption::VALUE_OPTIONAL, 'Change the name of the database')
             ->addOption('dbusername', null, InputOption::VALUE_OPTIONAL, 'Change the database user')
-            ->addOption('dbpassword', null, InputOption::VALUE_OPTIONAL, "Define a password for the database user")
+            ->addOption('dbpassword', null, InputOption::VALUE_OPTIONAL, 'Define a password for the database user')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Breeze / Jetstream stack that should be installed')
             ->addOption('breeze', null, InputOption::VALUE_NONE, 'Installs the Laravel Breeze scaffolding')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
@@ -535,7 +535,7 @@ class NewCommand extends Command
                 label: 'What should the name of the database be? Leave blank to use the name of the application (default).',
                 placeholder: 'E.g. laravel_database',
                 required: false,
-                validate: function ($value) use ($input) {
+                validate: function ($value) {
                     if (preg_match('/[^\pL\pN\_]/', $value) !== 0) {
                         return 'The name may only contain letters, numbers, and underscores.';
                     }
@@ -548,7 +548,7 @@ class NewCommand extends Command
                 label: "What should the database username be? Leave blank to use 'root' (default).",
                 // placeholder: 'E.g. ',
                 required: false,
-                validate: function ($value) use ($input) {
+                validate: function ($value) {
                     if (preg_match('/[^\pL\pN\_]/', $value) !== 0) {
                         return 'The name may only contain letters, numbers, and underscores.';
                     }
@@ -569,7 +569,7 @@ class NewCommand extends Command
             $input->getOption('dbname') ?? $dbname,
             $input->getOption('dbusername') ?? $dbusername,
             $input->getOption('dbpassword') ?? $dbpassword,
-            $migrate ?? $input->hasOption('database')
+            $migrate ?? $input->hasOption('database'),
         ];
     }
 
