@@ -214,7 +214,7 @@ class NewCommand extends Command
                     $commands = [
                         trim(sprintf(
                             $this->phpBinary().' artisan migrate %s',
-                            ! $input->isInteractive() ? '--force' : '',
+                            ! $input->isInteractive() ? '--no-interaction' : '',
                         )),
                     ];
                     $this->runCommands($commands, $input, $output, workingPath: $directory);
