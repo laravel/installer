@@ -208,10 +208,13 @@ class NewCommand extends Command
                 $this->configureDefaultDatabaseConnection($directory, $database, $name);
 
                 if ($migrate) {
+                    if ($database === 'sqlite') {
+                        touch($directory.'/database/database.sqlite');
+                    }
                     $commands = [
                         trim(sprintf(
                             $this->phpBinary().' artisan migrate %s',
-                            $database === 'sqlite' && ! $input->isInteractive() ? '--force' : '',
+                            ! $input->isInteractive() ? '--force' : '',
                         )),
                     ];
                     $this->runCommands($commands, $input, $output, workingPath: $directory);
