@@ -211,7 +211,7 @@ class NewCommand extends Command
                     $commands = [
                         trim(sprintf(
                             $this->phpBinary().' artisan migrate %s',
-                            $input->getOption('no-interaction') ? '--force' : '',
+                            $database === 'sqlite' && ! $input->isInteractive() ? '--force' : '',
                         )),
                     ];
                     $this->runCommands($commands, $input, $output, workingPath: $directory);
