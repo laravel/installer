@@ -208,9 +208,13 @@ class NewCommand extends Command
                 $this->configureDefaultDatabaseConnection($directory, $database, $name);
 
                 if ($migrate) {
-                    $this->runCommands([
-                        $this->phpBinary().' artisan migrate',
-                    ], $input, $output, workingPath: $directory);
+                    $commands = [
+                        trim(sprintf(
+                            $this->phpBinary().' artisan migrate %s',
+                            $input->getOption('no-interaction') ? '--force' : '',
+                        )),
+                    ];
+                    $this->runCommands($commands, $input, $output, workingPath: $directory);
                 }
             }
 
