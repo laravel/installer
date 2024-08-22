@@ -211,12 +211,14 @@ class NewCommand extends Command
                     if ($database === 'sqlite') {
                         touch($directory.'/database/database.sqlite');
                     }
+
                     $commands = [
                         trim(sprintf(
                             $this->phpBinary().' artisan migrate %s',
                             ! $input->isInteractive() ? '--no-interaction' : '',
                         )),
                     ];
+
                     $this->runCommands($commands, $input, $output, workingPath: $directory);
                 }
             }
