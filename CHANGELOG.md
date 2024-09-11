@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.8.3...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.8.5...master)
+
+## [v5.8.5](https://github.com/laravel/installer/compare/v5.8.3...v5.8.5) - 2024-09-11
+
+* Replace dead link in Security Policy by [@Jubeki](https://github.com/Jubeki) in https://github.com/laravel/installer/pull/351
+* Fix `--no-interaction` SQLite file prompt by [@jacksleight](https://github.com/jacksleight) in https://github.com/laravel/installer/pull/354
 
 ## [v5.8.3](https://github.com/laravel/installer/compare/v5.8.2...v5.8.3) - 2024-06-18
 
