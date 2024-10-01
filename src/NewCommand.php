@@ -856,7 +856,9 @@ class NewCommand extends Command
      */
     protected function phpBinary()
     {
-        $phpBinary = (new PhpExecutableFinder)->find(false);
+        $phpBinary = function_exists('Illuminate\Support\php_binary')
+            ? \Illuminate\Support\php_binary()
+            : (new PhpExecutableFinder)->find(false);
 
         return $phpBinary !== false
             ? ProcessUtils::escapeArgument($phpBinary)
