@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.8.5...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.9.0...master)
+
+## [v5.9.0](https://github.com/laravel/installer/compare/v5.8.5...v5.9.0) - 2024-10-01
+
+* [5.x] Utilise `Illuminate\Support\php_binary()` by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/360
+* [5.x] Support Laravel Prompts 0.2+ and 0.3+ by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/359
 
 ## [v5.8.5](https://github.com/laravel/installer/compare/v5.8.3...v5.8.5) - 2024-09-11
 
