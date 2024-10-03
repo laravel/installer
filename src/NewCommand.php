@@ -53,6 +53,7 @@ class NewCommand extends Command
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('dark', null, InputOption::VALUE_NONE, 'Indicate whether Breeze or Jetstream should be scaffolded with dark mode support')
             ->addOption('typescript', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with TypeScript support')
+            ->addOption('eslint', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with ESLint and Prettier support')
             ->addOption('ssr', null, InputOption::VALUE_NONE, 'Indicate whether Breeze or Jetstream should be scaffolded with Inertia SSR support')
             ->addOption('api', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with API support')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
@@ -430,12 +431,13 @@ class NewCommand extends Command
         $commands = array_filter([
             $this->findComposer().' require laravel/breeze --dev',
             trim(sprintf(
-                $this->phpBinary().' artisan breeze:install %s %s %s %s %s',
+                $this->phpBinary().' artisan breeze:install %s %s %s %s %s %s',
                 $input->getOption('stack'),
                 $input->getOption('typescript') ? '--typescript' : '',
                 $input->getOption('pest') ? '--pest' : '',
                 $input->getOption('dark') ? '--dark' : '',
                 $input->getOption('ssr') ? '--ssr' : '',
+                $input->getOption('eslint') ? '--eslint' : '',
             )),
         ]);
 
@@ -552,11 +554,13 @@ class NewCommand extends Command
                     'dark' => 'Dark mode',
                     'ssr' => 'Inertia SSR',
                     'typescript' => 'TypeScript',
+                    'eslint' => 'ESLint with Prettier',
                 ],
                 default: array_filter([
                     $input->getOption('dark') ? 'dark' : null,
                     $input->getOption('ssr') ? 'ssr' : null,
                     $input->getOption('typescript') ? 'typescript' : null,
+                    $input->getOption('eslint') ? 'eslint' : null,
                 ]),
             ))->each(fn ($option) => $input->setOption($option, true));
         } elseif (in_array($input->getOption('stack'), ['blade', 'livewire', 'livewire-functional']) && ! $input->getOption('dark')) {
