@@ -142,9 +142,9 @@ class NewCommand extends Command
             ) === 'Pest');
         }
 
-        if (! $input->getOption('git') && $input->getOption('github') === false && Process::fromShellCommandline('git --version')->run() === 0) {
-            $input->setOption('git', confirm(label: 'Would you like to initialize a Git repository?', default: false));
-        }
+        // if (! $input->getOption('git') && $input->getOption('github') === false && Process::fromShellCommandline('git --version')->run() === 0) {
+        //     $input->setOption('git', confirm(label: 'Would you like to initialize a Git repository?', default: false));
+        // }
     }
 
     /**
@@ -243,6 +243,7 @@ class NewCommand extends Command
 
             $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:".PHP_EOL);
             $output->writeln('<fg=gray>➜</> <options=bold>cd '.$name.'</>');
+            $output->writeln('<fg=gray>➜</> <options=bold>npm install && npm run build</>');
 
             if ($this->isParked($directory)) {
                 $url = $this->generateAppUrl($name);
