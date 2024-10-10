@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.9.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.9.1...master)
+
+## [v5.9.1](https://github.com/laravel/installer/compare/v5.9.0...v5.9.1) - 2024-10-10
+
+* [5.x] Add `eslint` option for breeze inertia stack by [@avosalmon](https://github.com/avosalmon) in https://github.com/laravel/installer/pull/361
 
 ## [v5.9.0](https://github.com/laravel/installer/compare/v5.8.5...v5.9.0) - 2024-10-01
 
