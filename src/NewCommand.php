@@ -249,7 +249,7 @@ class NewCommand extends Command
                 $url = $this->generateAppUrl($name);
                 $output->writeln('<fg=gray>➜</> Open: <options=bold;href='.$url.'>'.$url.'</>');
             } else {
-                $output->writeln('<fg=gray>➜</> <options=bold>php artisan serve</>');
+                $output->writeln('<fg=gray>➜</> <options=bold>composer run dev</>');
             }
 
             $output->writeln('');
