@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.9.1...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.9.2...master)
+
+## [v5.9.2](https://github.com/laravel/installer/compare/v5.9.1...v5.9.2) - 2024-10-22
+
+* Replace `php artisan serve` with `composer run dev` by [@1weiho](https://github.com/1weiho) in https://github.com/laravel/installer/pull/362
 
 ## [v5.9.1](https://github.com/laravel/installer/compare/v5.9.0...v5.9.1) - 2024-10-10
 
