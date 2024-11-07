@@ -46,7 +46,7 @@ class FromCommand extends Command
   |______\__,_|_|  \__,_| \_/ \___|_|</>'.PHP_EOL.PHP_EOL);
     }
 
-     /**
+    /**
      * Execute the command.
      *
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
@@ -55,7 +55,6 @@ class FromCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-
         return self::SUCCESS;
     }
 }
