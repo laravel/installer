@@ -41,7 +41,7 @@ jobs:
           composer update --prefer-dist --no-interaction --no-progress --with="illuminate/support=^${{ matrix.laravel }}"
 
       - name: Execute tests
-        run: vendor/bin/phpunit --display-deprecations --fail-on-deprecations
+        run: vendor/bin/phpunit --display-deprecations --fail-on-deprecation
 
   windows_tests:
     runs-on: windows-latest
@@ -77,4 +77,4 @@ jobs:
           composer update --prefer-dist --no-interaction --no-progress --with="illuminate/support=~${{ matrix.laravel }}"
 
       - name: Execute tests
-        run: vendor/bin/phpunit --display-deprecations --fail-on-deprecations
+        run: vendor/bin/phpunit --display-deprecations --fail-on-deprecation
