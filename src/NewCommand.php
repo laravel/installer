@@ -776,7 +776,7 @@ class NewCommand extends Command
             return $content;
         });
     }
-    
+
     /**
      * Verify that the application does not already exist.
      *
