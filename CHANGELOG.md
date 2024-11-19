@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.9.2...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.10.0...master)
+
+## [v5.10.0](https://github.com/laravel/installer/compare/v5.9.2...v5.10.0) - 2024-11-19
+
+* [5.x] Supports PHP 8.4 by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/364
+* [5.x] Remove `php artisan pail` from `composer run dev` on Windows  by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/366
 
 ## [v5.9.2](https://github.com/laravel/installer/compare/v5.9.1...v5.9.2) - 2024-10-22
 
