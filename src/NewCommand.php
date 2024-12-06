@@ -159,7 +159,7 @@ class NewCommand extends Command
         $this->validateDatabaseOption($input);
         $this->validateStackOption($input);
 
-        $name = $input->getArgument('name');
+        $name = mb_rtrim($input->getArgument('name'), '/\\');
 
         $directory = $this->getInstallationDirectory($name);
 
@@ -810,7 +810,7 @@ class NewCommand extends Command
      */
     protected function getTld()
     {
-        return $this->runOnValetOrHerd('tld') ?? 'test';
+        return $this->runOnValetOrHerd('tld') ?: 'test';
     }
 
     /**
