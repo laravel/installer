@@ -810,7 +810,7 @@ class NewCommand extends Command
      */
     protected function getTld()
     {
-        return $this->runOnValetOrHerd('tld') ?? 'test';
+        return $this->runOnValetOrHerd('tld') ?: 'test';
     }
 
     /**
