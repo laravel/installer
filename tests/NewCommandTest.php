@@ -34,6 +34,32 @@ class NewCommandTest extends TestCase
         $this->assertFileExists($scaffoldDirectory.'/.env');
     }
 
+    public function test_it_can_chops_trailing_slash_from_name()
+    {
+        $scaffoldDirectoryName = 'tests-output/trailing/';
+        $scaffoldDirectory = __DIR__.'/../'.$scaffoldDirectoryName;
+
+        if (file_exists($scaffoldDirectory)) {
+            if (PHP_OS_FAMILY == 'Windows') {
+                exec("rd /s /q \"$scaffoldDirectory\"");
+            } else {
+                exec("rm -rf \"$scaffoldDirectory\"");
+            }
+        }
+
+        $app = new Application('Laravel Installer');
+        $app->add(new NewCommand);
+
+        $tester = new CommandTester($app->find('new'));
+
+        $statusCode = $tester->execute(['name' => $scaffoldDirectoryName], ['interactive' => false]);
+
+        $this->assertSame(0, $statusCode);
+        $this->assertDirectoryExists($scaffoldDirectory.'/vendor');
+        $this->assertFileExists($scaffoldDirectory.'/.env');
+        $this->assertStringContainsStringIgnoringLineEndings('APP_URL=http://tests-output/trailing.test', file_get_contents($scaffoldDirectory.'/.env'));
+    }
+
     public function test_on_at_least_laravel_11()
     {
         $command = new NewCommand;

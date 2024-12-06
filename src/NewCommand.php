@@ -159,7 +159,7 @@ class NewCommand extends Command
         $this->validateDatabaseOption($input);
         $this->validateStackOption($input);
 
-        $name = $input->getArgument('name');
+        $name = $this->trimTrailingSlash($input->getArgument('name'));
 
         $directory = $this->getInstallationDirectory($name);
 
@@ -1017,5 +1017,16 @@ class NewCommand extends Command
             $file,
             preg_replace($pattern, $replace, file_get_contents($file))
         );
+    }
+
+    /**
+     * Remove any trailing slashes from the application name.
+     *
+     * @param  string  $name
+     * @return string
+     */
+    protected function trimTrailingSlash(string $name)
+    {
+        return mb_rtrim($name, '/\\');
     }
 }
