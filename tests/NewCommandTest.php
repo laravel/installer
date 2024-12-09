@@ -69,7 +69,7 @@ class NewCommandTest extends TestCase
 
         if ($this->isParkedOnHerdOrValet($scaffoldDirectory)) {
             $this->assertStringContainsStringIgnoringLineEndings(
-                'APP_URL=http://tests-output/trailing.test', 
+                'APP_URL=http://tests-output/trailing.test',
                 file_get_contents(join_paths($scaffoldDirectory, '.env'))
             );
         }
