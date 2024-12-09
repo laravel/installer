@@ -37,7 +37,7 @@ class NewCommandTest extends TestCase
     public function test_it_can_chops_trailing_slash_from_name()
     {
         $scaffoldDirectoryName = 'tests-output/trailing/';
-        $scaffoldDirectory = __DIR__.'/../'.$scaffoldDirectoryName;
+        $scaffoldDirectory = realpath(__DIR__.'/../'.$scaffoldDirectoryName);
 
         if (file_exists($scaffoldDirectory)) {
             if (PHP_OS_FAMILY == 'Windows') {
