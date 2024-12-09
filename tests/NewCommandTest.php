@@ -7,6 +7,8 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 
+use function Illuminate\Filesystem\join_paths;
+
 class NewCommandTest extends TestCase
 {
     public function test_it_can_scaffold_a_new_laravel_app()
@@ -37,7 +39,7 @@ class NewCommandTest extends TestCase
     public function test_it_can_chops_trailing_slash_from_name()
     {
         $scaffoldDirectoryName = 'tests-output/trailing/';
-        $scaffoldDirectory = realpath(__DIR__.'/../'.$scaffoldDirectoryName);
+        $scaffoldDirectory = join_paths(__DIR__, '..', $scaffoldDirectoryName);
 
         if (file_exists($scaffoldDirectory)) {
             if (PHP_OS_FAMILY == 'Windows') {
@@ -55,9 +57,9 @@ class NewCommandTest extends TestCase
         $statusCode = $tester->execute(['name' => $scaffoldDirectoryName], ['interactive' => false]);
 
         $this->assertSame(0, $statusCode);
-        $this->assertDirectoryExists($scaffoldDirectory.'/vendor');
-        $this->assertFileExists($scaffoldDirectory.'/.env');
-        $this->assertStringContainsStringIgnoringLineEndings('APP_URL=http://tests-output/trailing.test', file_get_contents($scaffoldDirectory.'/.env'));
+        $this->assertDirectoryExists(join_paths($scaffoldDirectory, 'vendor'));
+        $this->assertFileExists(join_paths($scaffoldDirectory, '.env'));
+        $this->assertStringContainsStringIgnoringLineEndings('APP_URL=http://tests-output/trailing.test', file_get_contents(join_paths($scaffoldDirectory, '.env')));
     }
 
     public function test_on_at_least_laravel_11()
