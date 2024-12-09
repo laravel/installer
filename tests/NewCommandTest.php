@@ -8,8 +8,6 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 
-use function Illuminate\Filesystem\join_paths;
-
 class NewCommandTest extends TestCase
 {
     use InteractsWithHerdOrValet;
@@ -46,7 +44,7 @@ class NewCommandTest extends TestCase
         }
 
         $scaffoldDirectoryName = 'tests-output/trailing/';
-        $scaffoldDirectory = join_paths(__DIR__, '..', $scaffoldDirectoryName);
+        $scaffoldDirectory = __DIR__.'/../'.$scaffoldDirectoryName;
 
         if (file_exists($scaffoldDirectory)) {
             if (PHP_OS_FAMILY == 'Windows') {
@@ -64,13 +62,13 @@ class NewCommandTest extends TestCase
         $statusCode = $tester->execute(['name' => $scaffoldDirectoryName], ['interactive' => false]);
 
         $this->assertSame(0, $statusCode);
-        $this->assertDirectoryExists(join_paths($scaffoldDirectory, 'vendor'));
-        $this->assertFileExists(join_paths($scaffoldDirectory, '.env'));
+        $this->assertDirectoryExists($scaffoldDirectory.'/vendor');
+        $this->assertFileExists($scaffoldDirectory.'/.env');
 
         if ($this->isParkedOnHerdOrValet($scaffoldDirectory)) {
             $this->assertStringContainsStringIgnoringLineEndings(
                 'APP_URL=http://tests-output/trailing.test', 
-                file_get_contents(join_paths($scaffoldDirectory, '.env'))
+                file_get_contents($scaffoldDirectory.'/.env')
             );
         }
     }
