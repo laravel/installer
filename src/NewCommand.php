@@ -11,7 +11,6 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Process\Exception\ProcessStartFailedException;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 
@@ -23,6 +22,7 @@ use function Laravel\Prompts\text;
 class NewCommand extends Command
 {
     use Concerns\ConfiguresPrompts;
+    use Concerns\InteractsWithHerdOrValet;
 
     /**
      * The Composer instance.
@@ -247,7 +247,7 @@ class NewCommand extends Command
             $output->writeln('<fg=gray>➜</> <options=bold>cd '.$name.'</>');
             $output->writeln('<fg=gray>➜</> <options=bold>npm install && npm run build</>');
 
-            if ($this->isParked($directory)) {
+            if ($this->isParkedOnHerdOrValet($directory)) {
                 $url = $this->generateAppUrl($name);
                 $output->writeln('<fg=gray>➜</> Open: <options=bold;href='.$url.'>'.$url.'</>');
             } else {
@@ -828,19 +828,6 @@ class NewCommand extends Command
     }
 
     /**
-     * Determine if the given directory is parked using Herd or Valet.
-     *
-     * @param  string  $directory
-     * @return bool
-     */
-    protected function isParked(string $directory)
-    {
-        $output = $this->runOnValetOrHerd('paths');
-
-        return $output !== false ? in_array(dirname($directory), json_decode($output)) : false;
-    }
-
-    /**
      * Get the installation directory.
      *
      * @param  string  $name
@@ -890,30 +877,6 @@ class NewCommand extends Command
         return $phpBinary !== false
             ? ProcessUtils::escapeArgument($phpBinary)
             : 'php';
-    }
-
-    /**
-     * Runs the given command on the "herd" or "valet" CLI.
-     *
-     * @param  string  $command
-     * @return string|bool
-     */
-    protected function runOnValetOrHerd(string $command)
-    {
-        foreach (['herd', 'valet'] as $tool) {
-            $process = new Process([$tool, $command, '-v']);
-
-            try {
-                $process->run();
-
-                if ($process->isSuccessful()) {
-                    return trim($process->getOutput());
-                }
-            } catch (ProcessStartFailedException) {
-            }
-        }
-
-        return false;
     }
 
     /**
