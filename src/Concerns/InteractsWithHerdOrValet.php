@@ -2,10 +2,10 @@
 
 namespace Laravel\Installer\Console\Concerns;
 
-use Symfony\Component\Process\Process;
 use Symfony\Component\Process\Exception\ProcessStartFailedException;
+use Symfony\Component\Process\Process;
 
-trait InteractsWithHerdOrValet 
+trait InteractsWithHerdOrValet
 {
     /**
      * Determine if the given directory is parked using Herd or Valet.
