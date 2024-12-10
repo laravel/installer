@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.10.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.11.0...master)
+
+## [v5.11.0](https://github.com/laravel/installer/compare/v5.10.0...v5.11.0) - 2024-12-10
+
+* Remove any trailing slash from application name by [@jasonmccreary](https://github.com/jasonmccreary) in https://github.com/laravel/installer/pull/368
+* Add disableProcessTimeout to composer run dev by [@ryan08100715](https://github.com/ryan08100715) in https://github.com/laravel/installer/pull/370
+* Test Improvements by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/371
 
 ## [v5.10.0](https://github.com/laravel/installer/compare/v5.9.2...v5.10.0) - 2024-11-19
 
