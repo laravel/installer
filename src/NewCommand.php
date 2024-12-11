@@ -163,7 +163,6 @@ class NewCommand extends Command
         $availableExtensions = get_loaded_extensions();
 
         $missingExtensions = collect([
-            'wew',
             'ctype',
             'filter',
             'hash',
