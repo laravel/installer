@@ -998,7 +998,7 @@ class NewCommand extends Command
     {
         $availableExtensions = get_loaded_extensions();
 
-        $missingExtensions = collect(['ctype', 'swoole', 'filter', 'hash', 'mbstring', 'openssl', 'session', 'tokenizer'])
+        $missingExtensions = collect(['ctype', 'filter', 'hash', 'mbstring', 'openssl', 'session', 'tokenizer'])
             ->reject(fn ($extension) => in_array($extension, $availableExtensions));
 
         if ($missingExtensions->isEmpty()) {
