@@ -1006,7 +1006,7 @@ class NewCommand extends Command
         }
 
         throw new \RuntimeException(
-            sprintf("Missing [%s] extensions required by Laravel Framework", $missingExtensions->join(', ', ' & '))
+            sprintf('Missing [%s] extensions required by Laravel Framework', $missingExtensions->join(', ', ' & '))
         );
     }
 }
