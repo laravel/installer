@@ -169,7 +169,7 @@ class NewCommand extends Command
             'mbstring',
             'openssl',
             'session',
-            'tokenizer'
+            'tokenizer',
         ])->reject(fn ($extension) => in_array($extension, $availableExtensions));
 
         if ($missingExtensions->isEmpty()) {
