@@ -85,6 +85,8 @@ class NewCommand extends Command
   | |___| (_| | | | (_| |\ V /  __/ |
   |______\__,_|_|  \__,_| \_/ \___|_|</>'.PHP_EOL.PHP_EOL);
 
+        $this->checkLaravelRequirements($input, $output);
+
         if (! $input->getArgument('name')) {
             $input->setArgument('name', text(
                 label: 'What is the name of your project?',
@@ -982,6 +984,29 @@ class NewCommand extends Command
         file_put_contents(
             $file,
             preg_replace($pattern, $replace, file_get_contents($file))
+        );
+    }
+
+    /**
+     * Check for Laravel Requirements before attempting to install Laravel Framework.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function checkLaravelRequirements(InputInterface $input, OutputInterface $output): void
+    {
+        $availableExtensions = get_loaded_extensions();
+
+        $missingExtensions = collect(['ctype', 'swoole', 'filter', 'hash', 'mbstring', 'openssl', 'session', 'tokenizer'])
+            ->reject(fn ($extension) => in_array($extension, $availableExtensions));
+
+        if ($missingExtensions->isEmpty()) {
+            return;
+        }
+
+        throw new \RuntimeException(
+            sprintf("Missing [%s] extensions required by Laravel Framework", $missingExtensions->join(', ', ' & '))
         );
     }
 }
