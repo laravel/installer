@@ -85,6 +85,8 @@ class NewCommand extends Command
   | |___| (_| | | | (_| |\ V /  __/ |
   |______\__,_|_|  \__,_| \_/ \___|_|</>'.PHP_EOL.PHP_EOL);
 
+        $this->ensureExtensionsAreAvailable($input, $output);
+
         if (! $input->getArgument('name')) {
             $input->setArgument('name', text(
                 label: 'What is the name of your project?',
@@ -145,6 +147,38 @@ class NewCommand extends Command
         // if (! $input->getOption('git') && $input->getOption('github') === false && Process::fromShellCommandline('git --version')->run() === 0) {
         //     $input->setOption('git', confirm(label: 'Would you like to initialize a Git repository?', default: false));
         // }
+    }
+
+    /**
+     * Ensure that the required PHP extensions are installed.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     *
+     * @throws \RuntimeException
+     */
+    protected function ensureExtensionsAreAvailable(InputInterface $input, OutputInterface $output): void
+    {
+        $availableExtensions = get_loaded_extensions();
+
+        $missingExtensions = collect([
+            'ctype',
+            'filter',
+            'hash',
+            'mbstring',
+            'openssl',
+            'session',
+            'tokenizer',
+        ])->reject(fn ($extension) => in_array($extension, $availableExtensions));
+
+        if ($missingExtensions->isEmpty()) {
+            return;
+        }
+
+        throw new \RuntimeException(
+            sprintf('The following PHP extensions are required but are not installed: %s', $missingExtensions->join(', ', ', and '))
+        );
     }
 
     /**
