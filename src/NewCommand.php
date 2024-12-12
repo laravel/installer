@@ -822,7 +822,7 @@ class NewCommand extends Command
      */
     protected function verifyApplicationDoesntExist($directory)
     {
-        if ((is_dir($directory) || is_file($directory)) && $directory != getcwd()) {
+        if ((is_dir($directory) || is_file($directory)) && $directory != getcwd() && $directory != '.') {
             throw new RuntimeException('Application already exists!');
         }
     }
