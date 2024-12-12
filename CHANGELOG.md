@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.11.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.11.1...master)
+
+## [v5.11.1](https://github.com/laravel/installer/compare/v5.11.0...v5.11.1) - 2024-12-11
+
+* [5.x] Throw exceptions when trying to use Installer on PHP environment without required extensions by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/373
+* Ensure Symfony/mbstring-polyfill version 1.31 or higher by [@ellnix](https://github.com/ellnix) in https://github.com/laravel/installer/pull/376
 
 ## [v5.11.0](https://github.com/laravel/installer/compare/v5.10.0...v5.11.0) - 2024-12-10
 
