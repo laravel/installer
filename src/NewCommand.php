@@ -2,9 +2,12 @@
 
 namespace Laravel\Installer\Console;
 
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Composer;
 use Illuminate\Support\ProcessUtils;
+use Illuminate\Support\Str;
+use Laravel\Installer\Console\Kickstart\Kickstart;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -13,6 +16,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
+use Throwable;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
@@ -30,6 +34,11 @@ class NewCommand extends Command
      * @var \Illuminate\Support\Composer
      */
     protected $composer;
+
+    /**
+     * @var Kickstart
+     */
+    protected $kickstart;
 
     /**
      * Configure the command options.
@@ -62,7 +71,8 @@ class NewCommand extends Command
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Installs the PHPUnit testing framework')
             ->addOption('prompt-breeze', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Breeze should be installed (Deprecated)')
             ->addOption('prompt-jetstream', null, InputOption::VALUE_NONE, 'Issues a prompt to determine if Jetstream should be installed (Deprecated)')
-            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
+            ->addOption('kickstart', 'k', InputOption::VALUE_OPTIONAL, 'Generates scaffolding after the project is created for immediate prototyping and Eloquent interactions');
     }
 
     /**
@@ -144,6 +154,65 @@ class NewCommand extends Command
             ) === 'Pest');
         }
 
+        if (! version_compare(PHP_VERSION, '7.4.0', '>=')) {
+            $output->writeln('  <bg=yellow;fg=black> WARN </> Kickstart options bypassed. PHP >= 7.4 is required'.PHP_EOL);
+            return;
+        }
+
+        $kickstartTemplate = transform($input->getOption('kickstart'), Str::kebab(...));
+
+        if (! in_array($kickstartTemplate, ['none', 'blog', 'podcast', 'phone-book'])) {
+            $input->setOption('kickstart', select(
+                label: 'Would you like to kickstart this project with a pre-defined template?',
+                options: [
+                    'none' => 'None',
+                    'blog' => 'Blog',
+                    'podcast' => 'Podcast',
+                    'phone-book' => 'Phone Book',
+                ],
+                default: 'none',
+                hint: implode(PHP_EOL.'  ', [
+                    'Eloquent Relationships Included:',
+                    'Blog: BelongsTo, HasMany',
+                    'Podcast: BelongsTo, HasMany, BelongsToMany',
+                    'Phone Book: BelongsTo, 1-to-M Polymorphic, M-to-M Polymorphic',
+                ])
+            ));
+        }
+
+        if ($input->getOption('kickstart') !== 'none') {
+            $stack = $input->getOption('stack');
+
+            if ($input->getOption('jet') || (
+                $input->getOption('breeze') && ! in_array($stack, ['api', 'blade'])
+            )) {
+                $defaultControllerType = 'none';
+            } elseif ($stack === 'blade') {
+                $defaultControllerType = 'web';
+            } else {
+                $defaultControllerType = 'api';
+            }
+
+            $controllerType = select(
+                label: 'Which types of controllers would you like to kickstart with?',
+                options: [
+                    'api' => 'API Resource Controllers',
+                    'web' => 'Resource Controllers',
+                    'none' => 'No Controllers',
+                    'empty' => 'Empty Controllers',
+                ],
+                default: $defaultControllerType,
+                hint: "The default is chosen based the project you're building"
+            );
+
+            $this->kickstart = new Kickstart(
+                $this->getInstallationDirectory($input->getArgument('name')),
+                $controllerType,
+                $input->getOption('kickstart'),
+                $input->getOption('teams')
+            );
+        }
+
         // if (! $input->getOption('git') && $input->getOption('github') === false && Process::fromShellCommandline('git --version')->run() === 0) {
         //     $input->setOption('git', confirm(label: 'Would you like to initialize a Git repository?', default: false));
         // }
@@ -156,7 +225,7 @@ class NewCommand extends Command
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     protected function ensureExtensionsAreAvailable(InputInterface $input, OutputInterface $output): void
     {
@@ -176,7 +245,7 @@ class NewCommand extends Command
             return;
         }
 
-        throw new \RuntimeException(
+        throw new RuntimeException(
             sprintf('The following PHP extensions are required but are not installed: %s', $missingExtensions->join(', ', ', and '))
         );
     }
@@ -230,6 +299,7 @@ class NewCommand extends Command
             $commands[] = "chmod 755 \"$directory/artisan\"";
         }
 
+        $migrate = false;
         if (($process = $this->runCommands($commands, $input, $output))->isSuccessful()) {
             if ($name !== '.') {
                 $this->replaceInFile(
@@ -268,6 +338,10 @@ class NewCommand extends Command
                 $this->installJetstream($directory, $input, $output);
             } elseif ($input->getOption('pest')) {
                 $this->installPest($directory, $input, $output);
+            }
+
+            if ($input->getOption('kickstart') !== 'none') {
+                $this->runKickstart($migrate, $input, $output);
             }
 
             if ($input->getOption('github') !== false) {
@@ -1017,5 +1091,81 @@ class NewCommand extends Command
             $file,
             preg_replace($pattern, $replace, file_get_contents($file))
         );
+    }
+
+    /**
+     * @param  bool  $ranDefaultMigrations
+     * @param  InputInterface  $input
+     * @param  OutputInterface  $output
+     * @return void
+     *
+     * @throws FileNotFoundException
+     * @throws Throwable
+     */
+    private function runKickstart(bool $ranDefaultMigrations, InputInterface $input, OutputInterface $output)
+    {
+        $output->writeln('');
+        $seed = ! $input->isInteractive() || ($ranDefaultMigrations && confirm(
+            label: 'Run the kickstart seeder for the '.$this->kickstart->stub()->displayName().' template?',
+            hint: 'Or, run manually: `php artisan db:seed --class=KickstartSeeder`'
+        ));
+
+        if (! $this->kickstart->copyDraftToProject()) {
+            $output->writeln('  <bg=yellow;fg=black> WARN </> Failed to copy draft.yaml to project. Kickstart disabled...'.PHP_EOL);
+
+            return;
+        }
+
+        $projectPath = $this->kickstart->project()->basePath();
+
+        $commands = array_filter([
+            $this->installApiCommand($seed),
+            $this->findComposer().' require laravel-shift/blueprint jasonmccreary/laravel-test-assertions --dev',
+            "echo '{$projectPath}/draft.yaml' >> .gitignore",
+            "echo '{$projectPath}/.blueprint' >> .gitignore",
+            $this->phpBinary().' artisan vendor:publish --tag=blueprint-config',
+            $this->phpBinary()." artisan blueprint:build {$this->kickstart->project()->draftPath()}",
+        ]);
+
+        $this->runCommands($commands, $input, $output, workingPath: $projectPath);
+
+        $this->kickstart->deleteGenericSeeders();
+
+        $this->kickstart->copySeederToProject();
+
+        if ($seed) {
+            $this->runCommands([$this->phpBinary().' artisan migrate'], $input, $output, workingPath: $projectPath);
+
+            if ($msg = $this->kickstart->missingRequiredMigrationsMessage()) {
+                $output->writeln('  <bg=yellow;fg=black> WARN </> '.$msg.PHP_EOL);
+            } else {
+                $this->runCommands([$this->phpBinary().' artisan db:seed --class=KickstartSeeder'], $input, $output, workingPath: $projectPath);
+            }
+        }
+
+        $this->commitChanges('Kickstart Complete', $projectPath, $input, $output);
+
+        $output->writeln('  <bg=blue;fg=white> INFO </> Kickstart files created 🚀.'.PHP_EOL);
+    }
+
+    /**
+     * @param  bool  $seed
+     * @return string|null
+     */
+    private function installApiCommand(bool $seed)
+    {
+        if (! $this->usingLaravelVersionOrNewer(11, $this->kickstart->project()->basePath())) {
+            return null;
+        }
+
+        if ($this->kickstart->stub()->controllerType() !== 'api') {
+            return null;
+        }
+
+        if (! $seed) {
+            return $this->phpBinary().' artisan install:api --without-migration-prompt';
+        }
+
+        return $this->phpBinary().' artisan install:api --no-interaction';
     }
 }

@@ -1,0 +1,167 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Database\Seeders;
+
+use App\Models\Address;
+use App\Models\Business;
+use App\Models\Person;
+use App\Models\Phone;
+use App\Models\Team;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+
+class KickstartSeeder extends Seeder
+{
+    public const INDUSTRIES = [
+        'technology',
+        'healthcare',
+        'finance',
+        'retail',
+        'manufacturing',
+        'education',
+        'hospitality',
+        'construction',
+        'transportation',
+    ];
+
+    public static int $userCount = 10;
+    public static int $phoneCount = 2;
+    public static int $peopleCount = 10;
+    public static int $businessCount = 10;
+
+    private EloquentCollection $phoneables;
+    private EloquentCollection $addressables;
+
+    public function run(): void
+    {
+        $this->phoneables = EloquentCollection::make();
+        $this->addressables = EloquentCollection::make();
+
+        DB::getSchemaBuilder()->withoutForeignKeyConstraints(function () {
+            $this->seedPeople();
+            $this->seedBusinesses();
+            $this->seedAddresses();
+            $this->seedPhones();
+        });
+    }
+
+    private function seedPeople(): void
+    {
+        foreach ($this->users() as $user) {
+            $this->seedPerson($user);
+        }
+
+        Collection::times(static::$peopleCount, fn () => $this->seedPerson());
+    }
+
+    private function seedBusinesses(): void
+    {
+        $businesses = EloquentCollection::wrap(
+            Business::factory(static::$businessCount)
+                ->sequence(function () {
+                    return array_filter([
+                        'name' => fake()->unique()->company(),
+                        'industry' => Arr::random(self::INDUSTRIES),
+                        'team_id' => rescue(fn () => Team::inRandomOrder()->first()->getKey(), report: false),
+                    ]);
+                })
+                ->create()
+        );
+
+        if (method_exists($businesses->first(), 'team')) {
+            $businesses->count() && $businesses->loadMissing('team');
+        }
+
+        $this->phoneables = $this->phoneables->merge($businesses);
+        $this->addressables = $this->addressables->merge($businesses);
+    }
+
+    private function seedPerson(?User $user = null): void
+    {
+        $people = EloquentCollection::wrap(Person::factory()
+            ->when($user, function ($factory, $user) {
+                $team = rescue(fn () => $user->teams->random(), report: false);
+
+                return $factory
+                    ->for($user)
+                    ->when($team, fn ($f) => $f->for($team->getKey()));
+            })
+            ->create()
+        );
+
+        if (method_exists($people->first(), 'team')) {
+            $people->count() && $people->loadMissing('team');
+        }
+
+        $this->phoneables = $this->phoneables->merge($people);
+        $this->addressables = $this->addressables->merge($people);
+    }
+
+    private function seedPhones(): void
+    {
+        foreach ($this->phoneables as $phoneable) {
+            $phones = Phone::factory()
+                ->count(static::$phoneCount)
+                ->sequence(function () {
+                    return Arr::random([
+                        ['number' => fake()->e164PhoneNumber(), 'type' => 'mobile'],
+                        ['number' => fake()->e164PhoneNumber(), 'type' => 'home'],
+                        ['number' => fake()->e164PhoneNumber(), 'type' => 'work'],
+                        ['number' => fake()->e164PhoneNumber(), 'type' => 'fax'],
+                        ['number' => fake()->e164PhoneNumber(), 'type' => 'business'],
+                    ]);
+                })
+                ->create();
+
+            $phoneable->phones()->sync($phones);
+        }
+    }
+
+    private function seedAddresses(): void
+    {
+        foreach ($this->addressables as $addressable) {
+            $addressable->address()->save(
+                Address::factory()->make(array_filter([
+                    'city' => fake()->city(),
+                    'street' => fake()->streetName(),
+                    'state' => Arr::random(['NV', 'CA', 'OR', 'TX', 'UT']),
+                    'zip' => Str::limit(fake()->postcode(), 5, ''),
+                ]))
+            );
+        }
+    }
+
+    private function users(): EloquentCollection
+    {
+        $users = User::query()
+            ->take(static::$userCount)
+            ->get();
+
+        if ($users->isNotEmpty()) {
+            return $users;
+        }
+
+        $userTeamQualifies = fn () => class_exists(Team::class)
+            && method_exists(User::class, 'teams')
+            && rescue(fn () => Arr::has(Team::factory()->raw(), ['name', 'user_id', 'personal_team']), report: false);
+
+        return EloquentCollection::wrap(
+            User::factory(static::$userCount)
+                ->when($userTeamQualifies, function ($factory) {
+                    return $factory->has(Team::factory()->state(fn (array $attributes, User $user) => [
+                        'name' => $user->name ? "{$user->name}'s Team" : 'Personal Team',
+                        'user_id' => $user->getKey(),
+                        'personal_team' => true,
+                    ]));
+                })
+                ->create()
+        );
+    }
+}

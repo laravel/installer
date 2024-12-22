@@ -1,0 +1,40 @@
+# Intermediate difficulty
+# Blueprint documentation: https://blueprint.laravelshift.com
+kickstart-template: podcast
+
+models:
+  Podcast:
+    title: string index
+    description: text
+    timestamps: true
+    relationships:
+      hasMany: Episode
+      belongsToMany: Genre:&GenrePodcast
+
+  Episode:
+    title: string index
+    description: text
+    podcast_id: unsignedBigInteger foreign:podcasts
+    timestamps: true
+    relationships:
+      belongsTo: Podcast
+
+  Genre:
+    name: string index
+    timestamps: true
+    relationships:
+      belongsToMany: Podcast:&GenrePodcast
+
+  GenrePodcast:
+    meta:
+      pivot: true
+      table: genre_podcast
+    genre_id: id
+    podcast_id: id
+    timestamps: false
+    indexes:
+      - unique: genre_id, podcast_id
+
+{{ controllers }}
+
+seeders: Podcast, Episode, Genre

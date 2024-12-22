@@ -1,0 +1,73 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Database\Seeders;
+
+use App\Models\Comment;
+use App\Models\Post;
+use App\Models\Team;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Lottery;
+
+class KickstartSeeder extends Seeder
+{
+    public static int $userCount = 10;
+    public static int $postCount = 20;
+    public static int $commentCount = 5;
+
+    public function run(): void
+    {
+        DB::getSchemaBuilder()->withoutForeignKeyConstraints($this->seedPosts(...));
+    }
+
+    private function seedPosts(): void
+    {
+        foreach ($this->users() as $user) {
+            Post::factory(static::$postCount)
+                ->for($user)
+                ->has(Comment::factory(static::$commentCount))
+                ->sequence(function () {
+                    return Lottery::odds(1/3)
+                        ->winner(fn () => ['published_at' => now()])
+                        ->loser(fn () => ['published_at' => null])
+                        ->choose();
+                })
+                ->sequence(array_filter([
+                    'team_id' => rescue(fn () => $user->teams->random()->getKey(), report: false),
+                ]))
+                ->create();
+        }
+    }
+
+    private function users(): EloquentCollection
+    {
+        $users = User::query()
+            ->take(static::$userCount)
+            ->get();
+
+        if ($users->isNotEmpty()) {
+            return $users;
+        }
+
+        $userTeamQualifies = fn () => class_exists(Team::class)
+            && method_exists(User::class, 'teams')
+            && rescue(fn () => Arr::has(Team::factory()->raw(), ['name', 'user_id', 'personal_team']), report: false);
+
+        return EloquentCollection::wrap(
+            User::factory(static::$userCount)
+                ->when($userTeamQualifies, function ($factory) {
+                    return $factory->has(Team::factory()->state(fn (array $attributes, User $user) => [
+                        'name' => $user->name ? "{$user->name}'s Team" : 'Personal Team',
+                        'user_id' => $user->getKey(),
+                        'personal_team' => true,
+                    ]));
+                })
+                ->create()
+        );
+    }
+}

@@ -1,0 +1,26 @@
+# Beginner difficulty
+# Blueprint documentation: https://blueprint.laravelshift.com
+kickstart-template: blog
+
+models:
+  Post:
+    title: string index
+    content: text
+    published_at: timestamp nullable
+    user_id: unsignedBigInteger nullable foreign:users
+    team_id: unsignedBigInteger nullable foreign:teams
+    timestamps: true
+    relationships:
+      belongsTo: User, Team
+      hasMany: Comment
+
+  Comment:
+    body: text
+    timestamps: true
+    post_id: unsignedBigInteger foreign:posts
+    relationships:
+      belongsTo: Post
+
+{{ controllers }}
+
+seeders: Post, Comment

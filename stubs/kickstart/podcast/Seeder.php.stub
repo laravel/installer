@@ -1,0 +1,140 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Database\Seeders;
+
+use App\Models\Episode;
+use App\Models\Genre;
+use App\Models\Podcast;
+use App\Models\Team;
+use App\Models\User;
+use App\Models\GenrePodcast;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
+
+class KickstartSeeder extends Seeder
+{
+    public const GENRES_AVAILABLE = [
+        'technology',
+        'business',
+        'health',
+        'science',
+        'sports',
+        'comedy',
+        'education',
+        'arts',
+        'news',
+        'politics',
+        'history',
+        'music',
+        'tv',
+        'film',
+        'books',
+        'technology',
+        'food',
+        'games',
+        'hobbies',
+        'design',
+    ];
+
+    public static int $userCount = 10;
+    public static int $genreCount = 20;
+    public static int $episodeCount = 5;
+    public static int $podcastCount = 10;
+    public static int $podcastGenreCount = 3;
+
+    private EloquentCollection $genres;
+    private EloquentCollection $podcasts;
+
+    public function run(): void
+    {
+        $this->genres = EloquentCollection::make();
+        $this->podcasts = EloquentCollection::make();
+
+        DB::getSchemaBuilder()->withoutForeignKeyConstraints(function () {
+            $this->seedPodcasts();
+            $this->seedGenres();
+            $this->seedPodcastToGenres();
+        });
+    }
+
+    private function seedPodcasts(): void
+    {
+        foreach ($this->users() as $user) {
+            $this->podcasts = $this->podcasts->concat(
+                EloquentCollection::wrap(
+                    Podcast::factory(static::$podcastCount)
+                        ->has(Episode::factory(static::$episodeCount))
+                        ->create(array_filter([
+                            'team_id' => rescue(fn () => $user->teams->random()->getKey(), report: false),
+                        ]))
+                )
+            );
+        }
+    }
+
+    private function seedGenres(): void
+    {
+        $genresAvailable = self::GENRES_AVAILABLE;
+
+        $this->genres = Genre::factory(self::$genreCount)
+            ->sequence(function () use (&$genresAvailable) {
+                return ['name' => array_shift($genresAvailable)];
+            })
+            ->create();
+    }
+
+    private function seedPodcastToGenres(): void
+    {
+        $this
+            ->podcasts
+            ->flatMap(function (Podcast $podcast) {
+                return $this
+                    ->genres
+                    ->shuffle()
+                    ->take(static::$podcastGenreCount)
+                    ->map(function (Genre $genre) use ($podcast) {
+                        return (object) ['genre_id' => $genre->getKey(), 'podcast_id' => $podcast->getKey()];
+                    })
+                    ->all();
+            })
+            ->chunk(500)
+            ->each(function ($chunk) {
+                $chunk
+                    ->map(fn($p) => (array)$p)
+                    ->whenNotEmpty(function ($chunk) {
+                        GenrePodcast::insert($chunk->toArray());
+                    });
+            });
+    }
+
+    private function users(): EloquentCollection
+    {
+        $users = User::query()
+            ->take(static::$userCount)
+            ->get();
+
+        if ($users->isNotEmpty()) {
+            return $users;
+        }
+
+        $userTeamQualifies = fn () => class_exists(Team::class)
+            && method_exists(User::class, 'teams')
+            && rescue(fn () => Arr::has(Team::factory()->raw(), ['name', 'user_id', 'personal_team']), report: false);
+
+        return EloquentCollection::wrap(
+            User::factory(static::$userCount)
+                ->when($userTeamQualifies, function ($factory) {
+                    return $factory->has(Team::factory()->state(fn (array $attributes, User $user) => array_filter([
+                        'name' => $user->name ? "{$user->name}'s Team" : 'Personal Team',
+                        'user_id' => $user->getKey(),
+                        'personal_team' => true,
+                    ])));
+                })
+                ->create()
+        );
+    }
+}

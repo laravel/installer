@@ -1,0 +1,46 @@
+# Advanced difficulty
+# Blueprint documentation: https://blueprint.laravelshift.com
+kickstart-template: phone-book
+
+models:
+  Person:
+    name: string
+    email: string index
+    user_id: unsignedBigInteger nullable foreign:users
+    timestamps: true
+    relationships:
+      belongsTo: User
+      morphOne: Address
+      morphToMany: Phone
+
+  Business:
+    name: string index
+    industry: string
+    timestamps: true
+    relationships:
+      morphOne: Address
+      morphToMany: Phone
+
+  Phone:
+    number: string
+    type: string
+    timestamps: true
+    indexes:
+      - unique: number, type
+    relationships:
+      morphedByMany: Person, Business
+
+  Address:
+    street: string index
+    city: string
+    state: string
+    zip: string index
+    timestamps: true
+    indexes:
+      - unique: addressable_id, addressable_type
+    relationships:
+      morphTo: addressable
+
+{{ controllers }}
+
+seeders: Person, Business, Phone, Address
