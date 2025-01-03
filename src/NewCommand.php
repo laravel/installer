@@ -385,21 +385,6 @@ class NewCommand extends Command
     }
 
     /**
-     * Determine if the application is using Laravel 11 or newer.
-     *
-     * @param  string  $directory
-     * @return bool
-     */
-    public function usingLaravelVersionOrNewer(int $usingVersion, string $directory): bool
-    {
-        $version = json_decode(file_get_contents($directory.'/composer.json'), true)['require']['laravel/framework'];
-        $version = str_replace('^', '', $version);
-        $version = explode('.', $version)[0];
-
-        return $version >= $usingVersion;
-    }
-
-    /**
      * Comment the irrelevant database configuration entries for SQLite applications.
      *
      * @param  string  $directory
