@@ -42,7 +42,8 @@ class NewCommand extends Command
             ->setName('new')
             ->setDescription('Create a new Laravel application')
             ->addArgument('name', InputArgument::REQUIRED)
-            ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
+            ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release. Cannot be used with --target')
+            ->addOption('target', null, InputOption::VALUE_OPTIONAL, 'Installs the specified version of Laravel. Cannot be used with --dev')
             ->addOption('git', null, InputOption::VALUE_NONE, 'Initialize a Git repository')
             ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'The branch that should be created for a new repository', $this->defaultBranch())
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
@@ -86,6 +87,7 @@ class NewCommand extends Command
   |______\__,_|_|  \__,_| \_/ \___|_|</>'.PHP_EOL.PHP_EOL);
 
         $this->ensureExtensionsAreAvailable($input, $output);
+        $this->validateDevAndTargetOptions($input);
 
         if (! $input->getArgument('name')) {
             $input->setArgument('name', text(
@@ -190,6 +192,7 @@ class NewCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $this->validateDevAndTargetOptions($input);
         $this->validateDatabaseOption($input);
         $this->validateStackOption($input);
 
@@ -380,21 +383,6 @@ class NewCommand extends Command
             'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
             $directory.'/.env.example'
         );
-    }
-
-    /**
-     * Determine if the application is using Laravel 11 or newer.
-     *
-     * @param  string  $directory
-     * @return bool
-     */
-    public function usingLaravelVersionOrNewer(int $usingVersion, string $directory): bool
-    {
-        $version = json_decode(file_get_contents($directory.'/composer.json'), true)['require']['laravel/framework'];
-        $version = str_replace('^', '', $version);
-        $version = explode('.', $version)[0];
-
-        return $version >= $usingVersion;
     }
 
     /**
@@ -649,6 +637,21 @@ class NewCommand extends Command
     }
 
     /**
+     * Validate the usage of --dev and --target options.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @return void
+     *
+     * @throws \InvalidArgumentException
+     */
+    protected function validateDevAndTargetOptions(InputInterface $input)
+    {
+        if ($input->getOption('dev') && $input->getOption('target')) {
+            throw new \InvalidArgumentException('The --dev and --target options cannot be used together. Please specify only one.');
+        }
+    }
+
+    /**
      * Validate the database driver input.
      *
      * @param  \Symfony\Components\Console\Input\InputInterface
@@ -882,6 +885,10 @@ class NewCommand extends Command
     {
         if ($input->getOption('dev')) {
             return 'dev-master';
+        }
+
+        if ($input->getOption('target')) {
+            return $input->getOption('target');
         }
 
         return '';
