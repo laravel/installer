@@ -16,8 +16,11 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.2, 8.3]
+        php: [8.2, 8.3, 8.4]
         laravel: [10, 11]
+        exclude:
+          - php: 8.4
+            laravel: 10
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
 
@@ -35,11 +38,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          composer require "laravel/framework=^${{ matrix.laravel }}" --no-update
-          composer update --prefer-dist --no-interaction --no-progress
+          composer update --prefer-dist --no-interaction --no-progress --with="illuminate/support=^${{ matrix.laravel }}"
 
       - name: Execute tests
-        run: vendor/bin/phpunit
+        run: vendor/bin/phpunit --display-deprecations --fail-on-deprecation
 
   windows_tests:
     runs-on: windows-latest
@@ -47,8 +49,11 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.2, 8.3]
+        php: [8.2, 8.3, 8.4]
         laravel: [10, 11]
+        exclude:
+          - php: 8.4
+            laravel: 10
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Windows
 
@@ -72,8 +77,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          composer require "laravel/framework=~${{ matrix.laravel }}" --no-update
-          composer update --prefer-dist --no-interaction --no-progress
+          composer update --prefer-dist --no-interaction --no-progress --with="illuminate/support=~${{ matrix.laravel }}"
 
       - name: Execute tests
-        run: vendor/bin/phpunit
+        run: vendor/bin/phpunit --display-deprecations --fail-on-deprecation

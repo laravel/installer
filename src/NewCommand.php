@@ -25,6 +25,7 @@ use function Laravel\Prompts\text;
 class NewCommand extends Command
 {
     use Concerns\ConfiguresPrompts;
+    use Concerns\InteractsWithHerdOrValet;
 
     /**
      * The Composer instance.
@@ -55,6 +56,7 @@ class NewCommand extends Command
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
             ->addOption('dark', null, InputOption::VALUE_NONE, 'Indicate whether Breeze or Jetstream should be scaffolded with dark mode support')
             ->addOption('typescript', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with TypeScript support')
+            ->addOption('eslint', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with ESLint and Prettier support')
             ->addOption('ssr', null, InputOption::VALUE_NONE, 'Indicate whether Breeze or Jetstream should be scaffolded with Inertia SSR support')
             ->addOption('api', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with API support')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Indicates whether Jetstream should be scaffolded with team support')
@@ -86,15 +88,33 @@ class NewCommand extends Command
   | |___| (_| | | | (_| |\ V /  __/ |
   |______\__,_|_|  \__,_| \_/ \___|_|</>'.PHP_EOL.PHP_EOL);
 
+        $this->ensureExtensionsAreAvailable($input, $output);
+
         if (! $input->getArgument('name')) {
             $input->setArgument('name', text(
                 label: 'What is the name of your project?',
                 placeholder: 'E.g. example-app',
                 required: 'The project name is required.',
-                validate: fn ($value) => preg_match('/[^\pL\pN\-_.]/', $value) !== 0
-                    ? 'The name may only contain letters, numbers, dashes, underscores, and periods.'
-                    : null,
+                validate: function ($value) use ($input) {
+                    if (preg_match('/[^\pL\pN\-_.]/', $value) !== 0) {
+                        return 'The name may only contain letters, numbers, dashes, underscores, and periods.';
+                    }
+
+                    if ($input->getOption('force') !== true) {
+                        try {
+                            $this->verifyApplicationDoesntExist($this->getInstallationDirectory($value));
+                        } catch (RuntimeException $e) {
+                            return 'Application already exists.';
+                        }
+                    }
+                },
             ));
+        }
+
+        if ($input->getOption('force') !== true) {
+            $this->verifyApplicationDoesntExist(
+                $this->getInstallationDirectory($input->getArgument('name'))
+            );
         }
 
         if (! $input->getOption('breeze') && ! $input->getOption('jet')) {
@@ -127,9 +147,41 @@ class NewCommand extends Command
             ) === 'Pest');
         }
 
-        if (! $input->getOption('git') && $input->getOption('github') === false && Process::fromShellCommandline('git --version')->run() === 0) {
-            $input->setOption('git', confirm(label: 'Would you like to initialize a Git repository?', default: false));
+        // if (! $input->getOption('git') && $input->getOption('github') === false && Process::fromShellCommandline('git --version')->run() === 0) {
+        //     $input->setOption('git', confirm(label: 'Would you like to initialize a Git repository?', default: false));
+        // }
+    }
+
+    /**
+     * Ensure that the required PHP extensions are installed.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     *
+     * @throws \RuntimeException
+     */
+    protected function ensureExtensionsAreAvailable(InputInterface $input, OutputInterface $output): void
+    {
+        $availableExtensions = get_loaded_extensions();
+
+        $missingExtensions = collect([
+            'ctype',
+            'filter',
+            'hash',
+            'mbstring',
+            'openssl',
+            'session',
+            'tokenizer',
+        ])->reject(fn ($extension) => in_array($extension, $availableExtensions));
+
+        if ($missingExtensions->isEmpty()) {
+            return;
         }
+
+        throw new \RuntimeException(
+            sprintf('The following PHP extensions are required but are not installed: %s', $missingExtensions->join(', ', ', and '))
+        );
     }
 
     /**
@@ -144,9 +196,9 @@ class NewCommand extends Command
         $this->validateDatabaseOption($input);
         $this->validateStackOption($input);
 
-        $name = $input->getArgument('name');
+        $name = mb_rtrim($input->getArgument('name'), '/\\');
 
-        $directory = $name !== '.' ? getcwd().'/'.$name : '.';
+        $directory = $this->getInstallationDirectory($name);
 
         $this->composer = new Composer(new Filesystem(), $directory);
 
@@ -194,9 +246,18 @@ class NewCommand extends Command
                 $this->configureDefaultDatabaseConnection($directory, $database, $name);
 
                 if ($migrate) {
-                    $this->runCommands([
-                        $this->phpBinary().' artisan migrate',
-                    ], $input, $output, workingPath: $directory);
+                    if ($database === 'sqlite') {
+                        touch($directory.'/database/database.sqlite');
+                    }
+
+                    $commands = [
+                        trim(sprintf(
+                            $this->phpBinary().' artisan migrate %s',
+                            ! $input->isInteractive() ? '--no-interaction' : '',
+                        )),
+                    ];
+
+                    $this->runCommands($commands, $input, $output, workingPath: $directory);
                 }
             }
 
@@ -217,14 +278,17 @@ class NewCommand extends Command
                 $output->writeln('');
             }
 
+            $this->configureComposerDevScript($directory);
+
             $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:".PHP_EOL);
             $output->writeln('<fg=gray>➜</> <options=bold>cd '.$name.'</>');
+            $output->writeln('<fg=gray>➜</> <options=bold>npm install && npm run build</>');
 
-            if ($this->isParked($directory)) {
+            if ($this->isParkedOnHerdOrValet($directory)) {
                 $url = $this->generateAppUrl($name);
                 $output->writeln('<fg=gray>➜</> Open: <options=bold;href='.$url.'>'.$url.'</>');
             } else {
-                $output->writeln('<fg=gray>➜</> <options=bold>php artisan serve</>');
+                $output->writeln('<fg=gray>➜</> <options=bold>composer run dev</>');
             }
 
             $output->writeln('');
@@ -407,12 +471,13 @@ class NewCommand extends Command
         $commands = array_filter([
             $this->findComposer().' require laravel/breeze --dev',
             trim(sprintf(
-                $this->phpBinary().' artisan breeze:install %s %s %s %s %s',
+                $this->phpBinary().' artisan breeze:install %s %s %s %s %s %s',
                 $input->getOption('stack'),
                 $input->getOption('typescript') ? '--typescript' : '',
                 $input->getOption('pest') ? '--pest' : '',
                 $input->getOption('dark') ? '--dark' : '',
                 $input->getOption('ssr') ? '--ssr' : '',
+                $input->getOption('eslint') ? '--eslint' : '',
             )),
         ]);
 
@@ -478,7 +543,7 @@ class NewCommand extends Command
             );
         }
 
-        return [$input->getOption('database') ?? $defaultDatabase, $migrate ?? false];
+        return [$input->getOption('database') ?? $defaultDatabase, $migrate ?? $input->hasOption('database')];
     }
 
     /**
@@ -529,11 +594,13 @@ class NewCommand extends Command
                     'dark' => 'Dark mode',
                     'ssr' => 'Inertia SSR',
                     'typescript' => 'TypeScript',
+                    'eslint' => 'ESLint with Prettier',
                 ],
                 default: array_filter([
                     $input->getOption('dark') ? 'dark' : null,
                     $input->getOption('ssr') ? 'ssr' : null,
                     $input->getOption('typescript') ? 'typescript' : null,
+                    $input->getOption('eslint') ? 'eslint' : null,
                 ]),
             ))->each(fn ($option) => $input->setOption($option, true));
         } elseif (in_array($input->getOption('stack'), ['blade', 'livewire', 'livewire-functional']) && ! $input->getOption('dark')) {
@@ -731,6 +798,26 @@ class NewCommand extends Command
     }
 
     /**
+     * Configure the Composer "dev" script.
+     *
+     * @param  string  $directory
+     * @return void
+     */
+    protected function configureComposerDevScript(string $directory): void
+    {
+        $this->composer->modify(function (array $content) {
+            if (windows_os()) {
+                $content['scripts']['dev'] = [
+                    'Composer\\Config::disableProcessTimeout',
+                    "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"npm run dev\" --names='server,queue,vite'",
+                ];
+            }
+
+            return $content;
+        });
+    }
+
+    /**
      * Verify that the application does not already exist.
      *
      * @param  string  $directory
@@ -763,7 +850,7 @@ class NewCommand extends Command
      */
     protected function getTld()
     {
-        return $this->runOnValetOrHerd('tld') ?? 'test';
+        return $this->runOnValetOrHerd('tld') ?: 'test';
     }
 
     /**
@@ -778,16 +865,14 @@ class NewCommand extends Command
     }
 
     /**
-     * Determine if the given directory is parked using Herd or Valet.
+     * Get the installation directory.
      *
-     * @param  string  $directory
-     * @return bool
+     * @param  string  $name
+     * @return string
      */
-    protected function isParked(string $directory)
+    protected function getInstallationDirectory(string $name)
     {
-        $output = $this->runOnValetOrHerd('paths');
-
-        return $output !== false ? in_array(dirname($directory), json_decode($output)) : false;
+        return $name !== '.' ? getcwd().'/'.$name : '.';
     }
 
     /**
@@ -822,35 +907,13 @@ class NewCommand extends Command
      */
     protected function phpBinary()
     {
-        $phpBinary = (new PhpExecutableFinder)->find(false);
+        $phpBinary = function_exists('Illuminate\Support\php_binary')
+            ? \Illuminate\Support\php_binary()
+            : (new PhpExecutableFinder)->find(false);
 
         return $phpBinary !== false
             ? ProcessUtils::escapeArgument($phpBinary)
             : 'php';
-    }
-
-    /**
-     * Runs the given command on the "herd" or "valet" CLI.
-     *
-     * @param  string  $command
-     * @return string|bool
-     */
-    protected function runOnValetOrHerd(string $command)
-    {
-        foreach (['herd', 'valet'] as $tool) {
-            $process = new Process([$tool, $command, '-v']);
-
-            try {
-                $process->run();
-
-                if ($process->isSuccessful()) {
-                    return trim($process->getOutput());
-                }
-            } catch (ProcessStartFailedException) {
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -863,7 +926,7 @@ class NewCommand extends Command
      * @param  array  $env
      * @return \Symfony\Component\Process\Process
      */
-    protected function runCommands($commands, InputInterface $input, OutputInterface $output, string $workingPath = null, array $env = [])
+    protected function runCommands($commands, InputInterface $input, OutputInterface $output, ?string $workingPath = null, array $env = [])
     {
         if (! $output->isDecorated()) {
             $commands = array_map(function ($value) {

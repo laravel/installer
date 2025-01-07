@@ -1,6 +1,45 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.8.2...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.11.1...master)
+
+## [v5.11.1](https://github.com/laravel/installer/compare/v5.11.0...v5.11.1) - 2024-12-11
+
+* [5.x] Throw exceptions when trying to use Installer on PHP environment without required extensions by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/373
+* Ensure Symfony/mbstring-polyfill version 1.31 or higher by [@ellnix](https://github.com/ellnix) in https://github.com/laravel/installer/pull/376
+
+## [v5.11.0](https://github.com/laravel/installer/compare/v5.10.0...v5.11.0) - 2024-12-10
+
+* Remove any trailing slash from application name by [@jasonmccreary](https://github.com/jasonmccreary) in https://github.com/laravel/installer/pull/368
+* Add disableProcessTimeout to composer run dev by [@ryan08100715](https://github.com/ryan08100715) in https://github.com/laravel/installer/pull/370
+* Test Improvements by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/371
+
+## [v5.10.0](https://github.com/laravel/installer/compare/v5.9.2...v5.10.0) - 2024-11-19
+
+* [5.x] Supports PHP 8.4 by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/364
+* [5.x] Remove `php artisan pail` from `composer run dev` on Windows  by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/366
+
+## [v5.9.2](https://github.com/laravel/installer/compare/v5.9.1...v5.9.2) - 2024-10-22
+
+* Replace `php artisan serve` with `composer run dev` by [@1weiho](https://github.com/1weiho) in https://github.com/laravel/installer/pull/362
+
+## [v5.9.1](https://github.com/laravel/installer/compare/v5.9.0...v5.9.1) - 2024-10-10
+
+* [5.x] Add `eslint` option for breeze inertia stack by [@avosalmon](https://github.com/avosalmon) in https://github.com/laravel/installer/pull/361
+
+## [v5.9.0](https://github.com/laravel/installer/compare/v5.8.5...v5.9.0) - 2024-10-01
+
+* [5.x] Utilise `Illuminate\Support\php_binary()` by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/360
+* [5.x] Support Laravel Prompts 0.2+ and 0.3+ by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/359
+
+## [v5.8.5](https://github.com/laravel/installer/compare/v5.8.3...v5.8.5) - 2024-09-11
+
+* Replace dead link in Security Policy by [@Jubeki](https://github.com/Jubeki) in https://github.com/laravel/installer/pull/351
+* Fix `--no-interaction` SQLite file prompt by [@jacksleight](https://github.com/jacksleight) in https://github.com/laravel/installer/pull/354
+
+## [v5.8.3](https://github.com/laravel/installer/compare/v5.8.2...v5.8.3) - 2024-06-18
+
+* Validate Laravel can be installed on selected directory by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/344
+* Automatically run migration when `--database` is given. by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/346
 
 ## [v5.8.2](https://github.com/laravel/installer/compare/v5.8.1...v5.8.2) - 2024-06-02
 
