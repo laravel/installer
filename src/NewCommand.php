@@ -11,12 +11,14 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Terminal;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\select;
+use function Laravel\Prompts\spin;
 use function Laravel\Prompts\text;
 
 class NewCommand extends Command
@@ -939,7 +941,7 @@ class NewCommand extends Command
             }, $commands);
         }
 
-        if ($input->getOption('quiet')) {
+        if (! $output->isVerbose() && $this->canUseSpinner($input, $output)) {
             $commands = array_map(function ($value) {
                 if (str_starts_with($value, 'chmod')) {
                     return $value;
@@ -953,7 +955,39 @@ class NewCommand extends Command
             }, $commands);
         }
 
-        $process = Process::fromShellCommandline(implode(' && ', $commands), $workingPath, $env, null, null);
+        foreach ($commands as $command) {
+            $process = $this->runCommand($command, $input, $output, $workingPath, $env);
+
+            if (! $process->isSuccessful()) {
+                $output->writeln('  <bg=red;fg=white> ERROR </> '.$process->getErrorOutput().PHP_EOL);
+
+                break;
+            }
+        }
+
+        return $process;
+    }
+
+    /**
+     * Run the given command.
+     *
+     * @param  string  $command
+     * @param  InputInterface  $input
+     * @param  OutputInterface  $output
+     * @param  string|null  $workingPath
+     * @param  array  $env
+     * @return \Symfony\Component\Process\Process
+     */
+    protected function runCommand(string $command, InputInterface $input, OutputInterface $output, ?string $workingPath = null, array $env = [])
+    {
+        $process = Process::fromShellCommandline($command, $workingPath, $env, null, null);
+
+        if ($this->canUseSpinner($input, $output)) {
+            $terminalWidth = (new Terminal)->getWidth();
+            $description = mb_substr($command, 0, $terminalWidth - 6);
+
+            return spin(fn () => tap($process)->run(), "<fg=gray>{$description}...</>");
+        }
 
         if ('\\' !== DIRECTORY_SEPARATOR && file_exists('/dev/tty') && is_readable('/dev/tty')) {
             try {
@@ -1017,5 +1051,17 @@ class NewCommand extends Command
             $file,
             preg_replace($pattern, $replace, file_get_contents($file))
         );
+    }
+
+    /**
+     * Checks if its possible to use the spinner.
+     *
+     * @return bool
+     */
+    protected function canUseSpinner(InputInterface $input, OutputInterface $output)
+    {
+        return function_exists('pcntl_fork') &&
+            ! $output->isVerbose() &&
+            ! $input->getOption('quiet');
     }
 }
