@@ -979,7 +979,7 @@ class NewCommand extends Command
      * @param  array  $env
      * @return \Symfony\Component\Process\Process
      */
-    protected function runCommand(string $command, InputInterface $input, OutputInterface $output, string $workingPath = null, array $env = [])
+    protected function runCommand(string $command, InputInterface $input, OutputInterface $output, ?string $workingPath = null, array $env = [])
     {
         $process = Process::fromShellCommandline($command, $workingPath, $env, null, null);
 
