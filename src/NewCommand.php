@@ -193,7 +193,7 @@ class NewCommand extends Command
         $this->validateDatabaseOption($input);
         $this->validateStackOption($input);
 
-        $name = mb_rtrim($input->getArgument('name'), '/\\');
+        $name = rtrim($input->getArgument('name'), '/\\');
 
         $directory = $this->getInstallationDirectory($name);
 
