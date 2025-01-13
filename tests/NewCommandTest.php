@@ -37,7 +37,7 @@ class NewCommandTest extends TestCase
         $this->assertFileExists($scaffoldDirectory.'/.env');
     }
 
-    public function test_it_can_chops_trailing_slash_from_name()
+    public function test_it_can_chop_trailing_slash_from_name()
     {
         if ($this->runOnValetOrHerd('paths') === false) {
             $this->markTestSkipped('Require `herd` or `valet` to resolve `APP_URL` using hostname instead of "localhost".');
