@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.11.1...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.11.2...master)
+
+## [v5.11.2](https://github.com/laravel/installer/compare/v5.11.1...v5.11.2) - 2025-01-14
+
+* Update version to 5.11.1 by [@miclaus](https://github.com/miclaus) in https://github.com/laravel/installer/pull/381
+* Fix Laravel installer on Windows WSL by [@JasonTame](https://github.com/JasonTame) in https://github.com/laravel/installer/pull/385
 
 ## [v5.11.1](https://github.com/laravel/installer/compare/v5.11.0...v5.11.1) - 2024-12-11
 
