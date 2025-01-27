@@ -49,8 +49,13 @@ class NewCommand extends Command
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
             ->addOption('database', null, InputOption::VALUE_REQUIRED, 'The database driver your application will use')
             ->addOption('stack', null, InputOption::VALUE_OPTIONAL, 'The Breeze / Jetstream stack that should be installed')
+            ->addOption('react', null, InputOption::VALUE_NONE, 'Installs the React Starter Kit')
+            ->addOption('vue', null, InputOption::VALUE_NONE, 'Installs the Vue Starter Kit')
+            ->addOption('livewire', null, InputOption::VALUE_NONE, 'Installs the Livewire Starter Kit')
+
             ->addOption('breeze', null, InputOption::VALUE_NONE, 'Installs the Laravel Breeze scaffolding')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
+            
             ->addOption('dark', null, InputOption::VALUE_NONE, 'Indicate whether Breeze or Jetstream should be scaffolded with dark mode support')
             ->addOption('typescript', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with TypeScript support')
             ->addOption('eslint', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with ESLint and Prettier support')
@@ -114,7 +119,7 @@ class NewCommand extends Command
             );
         }
 
-        if (! $input->getOption('breeze') && ! $input->getOption('jet')) {
+        if (! $input->getOption('react') && ! $input->getOption('vue') && ! $input->getOption('livewire')) {
             match (select(
                 label: 'Would you like to install a starter kit?',
                 options: [
@@ -214,8 +219,21 @@ class NewCommand extends Command
         $composer = $this->findComposer();
         $phpBinary = $this->phpBinary();
 
+        $createProjectCommand = $composer." create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist --no-scripts";
+        
+        $stackSlug = match(true) {
+            $input->getOption('react') => 'react',
+            $input->getOption('vue') => 'vue',
+            $input->getOption('livewire') => 'livewire',
+            default => null
+        };
+
+        if($stackSlug) {
+            $createProjectCommand = $composer." create-project --repository='{\"type\":\"vcs\", \"url\":\"https://github.com/laravel/$stackSlug-starter-kit\"}' laravel/$stackSlug-starter-kit \"$directory\" --stability=dev";
+        }
+
         $commands = [
-            $composer." create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist --no-scripts",
+            $createProjectCommand,
             $composer." run post-root-package-install -d \"$directory\"",
             $phpBinary." \"$directory/artisan\" key:generate --ansi",
         ];
