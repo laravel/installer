@@ -52,10 +52,8 @@ class NewCommand extends Command
             ->addOption('react', null, InputOption::VALUE_NONE, 'Installs the React Starter Kit')
             ->addOption('vue', null, InputOption::VALUE_NONE, 'Installs the Vue Starter Kit')
             ->addOption('livewire', null, InputOption::VALUE_NONE, 'Installs the Livewire Starter Kit')
-
             ->addOption('breeze', null, InputOption::VALUE_NONE, 'Installs the Laravel Breeze scaffolding')
             ->addOption('jet', null, InputOption::VALUE_NONE, 'Installs the Laravel Jetstream scaffolding')
-            
             ->addOption('dark', null, InputOption::VALUE_NONE, 'Indicate whether Breeze or Jetstream should be scaffolded with dark mode support')
             ->addOption('typescript', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with TypeScript support')
             ->addOption('eslint', null, InputOption::VALUE_NONE, 'Indicate whether Breeze should be scaffolded with ESLint and Prettier support')
@@ -220,15 +218,15 @@ class NewCommand extends Command
         $phpBinary = $this->phpBinary();
 
         $createProjectCommand = $composer." create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist --no-scripts";
-        
-        $stackSlug = match(true) {
+
+        $stackSlug = match (true) {
             $input->getOption('react') => 'react',
             $input->getOption('vue') => 'vue',
             $input->getOption('livewire') => 'livewire',
             default => null
         };
 
-        if($stackSlug) {
+        if ($stackSlug) {
             $createProjectCommand = $composer." create-project --repository='{\"type\":\"vcs\", \"url\":\"https://github.com/laravel/$stackSlug-starter-kit\"}' laravel/$stackSlug-starter-kit \"$directory\" --stability=dev";
         }
 
