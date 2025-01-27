@@ -119,13 +119,15 @@ class NewCommand extends Command
                 label: 'Would you like to install a starter kit?',
                 options: [
                     'none' => 'No starter kit',
-                    'breeze' => 'Laravel Breeze',
-                    'jetstream' => 'Laravel Jetstream',
+                    'react' => 'React starter kit',
+                    'vue' => 'Vue starter kit',
+                    'livewire' => 'Livewire starter kit',
                 ],
                 default: 'none',
             )) {
-                'breeze' => $input->setOption('breeze', true),
-                'jetstream' => $input->setOption('jet', true),
+                'react' => $input->setOption('react', true),
+                'vue' => $input->setOption('vue', true),
+                'livewire' => $input->setOption('livewire', true),
                 default => null,
             };
         }
