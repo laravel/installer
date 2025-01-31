@@ -122,7 +122,14 @@ class NewCommand extends Command
             };
         }
 
-        if (! $input->getOption('phpunit') && ! $input->getOption('pest')) {
+        if ($input->getOption('react') ||
+            $input->getOption('vue') ||
+            $input->getOption('livewire')) {
+            $input->setOption('pest', true);
+        }
+
+        if (! $input->getOption('phpunit') &&
+            ! $input->getOption('pest')) {
             $input->setOption('pest', select(
                 label: 'Which testing framework do you prefer?',
                 options: ['Pest', 'PHPUnit'],
@@ -469,12 +476,13 @@ class NewCommand extends Command
                 default: $defaultDatabase,
             ));
 
-            $migrate = confirm(
-                label: $input->getOption('database') !== 'sqlite'
-                    ? 'Default database updated. Would you like to run the default database migrations?'
-                    : 'Would you like to run the default database migrations?',
-                default: true
-            );
+            if ($input->getOption('database') !== 'sqlite') {
+                $migrate = confirm(
+                    label: 'Default database updated. Would you like to run the default database migrations?'
+                );
+            } else {
+                $migrate = false;
+            }
         }
 
         return [$input->getOption('database') ?? $defaultDatabase, $migrate ?? $input->hasOption('database')];
