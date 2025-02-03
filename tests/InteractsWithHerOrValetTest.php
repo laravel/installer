@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 class InteractsWithHerOrValetTest extends TestCase
 {
     use InteractsWithHerdOrValet;
+
     public function test_isParkedOnHerdOrValet_returns_false_when_output_is_not_json()
     {
         $mockProcess = $this->getMockBuilder(\Symfony\Component\Process\Process::class)
