@@ -13,7 +13,7 @@ trait InteractsWithHerdOrValet
      * @param  string  $directory
      * @return bool
      */
-    public function isParkedOnHerdOrValet(string $directory): bool
+    public function isParkedOnHerdOrValet(string $directory)
     {
         $output = $this->runOnValetOrHerd('paths');
 
@@ -28,7 +28,7 @@ trait InteractsWithHerdOrValet
      * @param  string  $command
      * @return string|false
      */
-    protected function runOnValetOrHerd(string $command): false|string
+    protected function runOnValetOrHerd(string $command)
     {
         foreach (['herd', 'valet'] as $tool) {
             $process = new Process([$tool, $command, '-v']);
