@@ -3,7 +3,7 @@
 use Laravel\Installer\Console\Concerns\InteractsWithHerdOrValet;
 use PHPUnit\Framework\TestCase;
 
-class InteractsWithHerOrValetTest extends TestCase
+class InteractsWithHerdOrValetTest extends TestCase
 {
     use InteractsWithHerdOrValet;
 
