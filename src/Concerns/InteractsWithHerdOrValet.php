@@ -17,7 +17,9 @@ trait InteractsWithHerdOrValet
     {
         $output = $this->runOnValetOrHerd('paths');
 
-        return $output !== false ? in_array(dirname($directory), json_decode($output)) : false;
+        $decodedOutput = json_decode($output);
+
+        return is_array($decodedOutput) && in_array(dirname($directory), $decodedOutput);
     }
 
     /**
