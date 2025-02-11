@@ -278,6 +278,8 @@ class NewCommand extends Command
 
             $this->configureComposerDevScript($directory);
 
+            // $this->runCommands(['npm install', 'npm run build'], $input, $output, workingPath: $directory);
+
             $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:".PHP_EOL);
             $output->writeln('<fg=gray>➜</> <options=bold>cd '.$name.'</>');
             $output->writeln('<fg=gray>➜</> <options=bold>npm install && npm run build</>');
@@ -468,6 +470,8 @@ class NewCommand extends Command
         $defaultDatabase = collect(
             $databaseOptions = $this->databaseOptions()
         )->keys()->first();
+
+        $input->setOption('database', 'sqlite');
 
         if (! $input->getOption('database') && $input->isInteractive()) {
             $input->setOption('database', select(
