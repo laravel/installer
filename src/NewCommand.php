@@ -50,6 +50,7 @@ class NewCommand extends Command
             ->addOption('react', null, InputOption::VALUE_NONE, 'Install the React Starter Kit')
             ->addOption('vue', null, InputOption::VALUE_NONE, 'Install the Vue Starter Kit')
             ->addOption('livewire', null, InputOption::VALUE_NONE, 'Install the Livewire Starter Kit')
+            ->addOption('workos', null, InputOption::VALUE_NONE, 'Use WorkOS for authentication')
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Install the Pest testing framework')
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Install the PHPUnit testing framework')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
@@ -118,6 +119,19 @@ class NewCommand extends Command
                 'react' => $input->setOption('react', true),
                 'vue' => $input->setOption('vue', true),
                 'livewire' => $input->setOption('livewire', true),
+                default => null,
+            };
+
+            match (select(
+                label: 'Which authentication provider do you prefer?',
+                options: [
+                    'laravel' => "Laravel's built-in authentication",
+                    'workos' => "WorkOS (Requires WorkOS account)",
+                ],
+                default: 'laravel',
+            )) {
+                'laravel' => $input->setOption('workos', false),
+                'workos' => $input->setOption('workos', true),
                 default => null,
             };
         }
@@ -205,6 +219,10 @@ class NewCommand extends Command
 
         if ($stackSlug) {
             $createProjectCommand = $composer." create-project --repository='{\"type\":\"vcs\", \"url\":\"https://github.com/laravel/$stackSlug-starter-kit\"}' laravel/$stackSlug-starter-kit \"$directory\" --stability=dev";
+
+            if ($input->getOption('workos')) {
+                $createProjectCommand = str_replace(" laravel/{$stackSlug}-starter-kit ", " laravel/{$stackSlug}-starter-kit:dev-workos ", $createProjectCommand);
+            }
         }
 
         $commands = [
