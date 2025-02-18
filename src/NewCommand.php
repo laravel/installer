@@ -107,12 +107,12 @@ class NewCommand extends Command
 
         if (! $input->getOption('react') && ! $input->getOption('vue') && ! $input->getOption('livewire')) {
             match (select(
-                label: 'Would you like to install a starter kit?',
+                label: 'Which starter kit would you like to install?',
                 options: [
-                    'none' => 'No starter kit',
-                    'react' => 'React starter kit',
-                    'vue' => 'Vue starter kit',
-                    'livewire' => 'Livewire starter kit',
+                    'none' => 'None',
+                    'react' => 'React',
+                    'vue' => 'Vue',
+                    'livewire' => 'Livewire',
                 ],
                 default: 'none',
             )) {
