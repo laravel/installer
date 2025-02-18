@@ -126,7 +126,7 @@ class NewCommand extends Command
                 label: 'Which authentication provider do you prefer?',
                 options: [
                     'laravel' => "Laravel's built-in authentication",
-                    'workos' => "WorkOS (Requires WorkOS account)",
+                    'workos' => 'WorkOS (Requires WorkOS account)',
                 ],
                 default: 'laravel',
             )) {
