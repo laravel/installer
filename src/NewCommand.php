@@ -41,17 +41,17 @@ class NewCommand extends Command
             ->setName('new')
             ->setDescription('Create a new Laravel application')
             ->addArgument('name', InputArgument::REQUIRED)
-            ->addOption('dev', null, InputOption::VALUE_NONE, 'Installs the latest "development" release')
+            ->addOption('dev', null, InputOption::VALUE_NONE, 'Install the latest "development" release')
             ->addOption('git', null, InputOption::VALUE_NONE, 'Initialize a Git repository')
             ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'The branch that should be created for a new repository', $this->defaultBranch())
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
             ->addOption('database', null, InputOption::VALUE_REQUIRED, 'The database driver your application will use')
-            ->addOption('react', null, InputOption::VALUE_NONE, 'Installs the React Starter Kit')
-            ->addOption('vue', null, InputOption::VALUE_NONE, 'Installs the Vue Starter Kit')
-            ->addOption('livewire', null, InputOption::VALUE_NONE, 'Installs the Livewire Starter Kit')
-            ->addOption('pest', null, InputOption::VALUE_NONE, 'Installs the Pest testing framework')
-            ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Installs the PHPUnit testing framework')
+            ->addOption('react', null, InputOption::VALUE_NONE, 'Install the React Starter Kit')
+            ->addOption('vue', null, InputOption::VALUE_NONE, 'Install the Vue Starter Kit')
+            ->addOption('livewire', null, InputOption::VALUE_NONE, 'Install the Livewire Starter Kit')
+            ->addOption('pest', null, InputOption::VALUE_NONE, 'Install the Pest testing framework')
+            ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Install the PHPUnit testing framework')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
@@ -122,12 +122,6 @@ class NewCommand extends Command
             };
         }
 
-        if ($input->getOption('react') ||
-            $input->getOption('vue') ||
-            $input->getOption('livewire')) {
-            $input->setOption('pest', true);
-        }
-
         if (! $input->getOption('phpunit') &&
             ! $input->getOption('pest')) {
             $input->setOption('pest', select(
@@ -136,10 +130,6 @@ class NewCommand extends Command
                 default: 'Pest',
             ) === 'Pest');
         }
-
-        // if (! $input->getOption('git') && $input->getOption('github') === false && Process::fromShellCommandline('git --version')->run() === 0) {
-        //     $input->setOption('git', confirm(label: 'Would you like to initialize a Git repository?', default: false));
-        // }
     }
 
     /**
@@ -292,7 +282,7 @@ class NewCommand extends Command
             }
 
             $output->writeln('');
-            $output->writeln('  New to Laravel? Check out our <href=https://bootcamp.laravel.com>bootcamp</> and <href=https://laravel.com/docs/installation#next-steps>documentation</>. <options=bold>Build something amazing!</>');
+            $output->writeln('  New to Laravel? Check out our <href=https://laravel.com/docs/installation#next-steps>documentation</>. <options=bold>Build something amazing!</>');
             $output->writeln('');
         }
 
@@ -471,7 +461,9 @@ class NewCommand extends Command
             $databaseOptions = $this->databaseOptions()
         )->keys()->first();
 
-        $input->setOption('database', 'sqlite');
+        if ($this->usingStarterKit($input)) {
+            $input->setOption('database', 'sqlite');
+        }
 
         if (! $input->getOption('database') && $input->isInteractive()) {
             $input->setOption('database', select(
@@ -686,6 +678,17 @@ class NewCommand extends Command
         $hostname = mb_strtolower($name).'.'.$this->getTld();
 
         return $this->canResolveHostname($hostname) ? 'http://'.$hostname : 'http://localhost';
+    }
+
+    /**
+     * Determine if a starter kit is being used.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface
+     * @return bool
+     */
+    protected function usingStarterKit(InputInterface $input)
+    {
+        return $input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire');
     }
 
     /**
