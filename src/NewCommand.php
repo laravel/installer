@@ -541,6 +541,11 @@ class NewCommand extends Command
             $this->phpBinary().' ./vendor/bin/pest --init',
         ];
 
+        if ($input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire')) {
+            $commands[] = $composerBinary.' require pestphp/pest-plugin-drift --dev';
+            $commands[] = $this->phpBinary().' ./vendor/bin/pest --drift';
+        }
+
         $this->runCommands($commands, $input, $output, workingPath: $directory, env: [
             'PEST_NO_SUPPORT' => 'true',
         ]);
@@ -554,6 +559,10 @@ class NewCommand extends Command
             'pest/Unit.php',
             $directory.'/tests/Unit/ExampleTest.php',
         );
+
+        if (($input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire')) && $input->getOption('phpunit')) {
+            $this->deleteFile($directory.'/tests/Pest.php');
+        }
 
         $this->commitChanges('Install Pest', $directory, $input, $output);
     }
@@ -856,5 +865,16 @@ class NewCommand extends Command
             $file,
             preg_replace($pattern, $replace, file_get_contents($file))
         );
+    }
+
+    /**
+     * Delete the given file.
+     *
+     * @param  string  $file
+     * @return void
+     */
+    protected function deleteFile(string $file)
+    {
+        unlink($file);
     }
 }
