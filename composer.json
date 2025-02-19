@@ -1,7 +1,9 @@
 {
     "name": "laravel/installer",
     "description": "Laravel application installer.",
-    "keywords": ["laravel"],
+    "keywords": [
+        "laravel"
+    ],
     "license": "MIT",
     "authors": [
         {
@@ -11,15 +13,15 @@
     ],
     "require": {
         "php": "^8.2",
-        "illuminate/filesystem": "^10.20|^11.0",
-        "illuminate/support": "^10.20|^11.0",
+        "illuminate/filesystem": "^10.20|^11.0|^12.0",
+        "illuminate/support": "^10.20|^11.0|^12.0",
         "laravel/prompts": "^0.1.18|^0.2.0|^0.3.0",
         "symfony/console": "^6.2|^7.0",
         "symfony/process": "^6.2|^7.0",
         "symfony/polyfill-mbstring": "^1.31"
     },
     "require-dev": {
-        "phpstan/phpstan": "^1.10",
+        "phpstan/phpstan": "^1.10|^2.1",
         "phpunit/phpunit": "^10.4"
     },
     "bin": [
