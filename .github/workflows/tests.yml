@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-      - '*.x'
+      - *.x
   pull_request:
   schedule:
     - cron: '0 0 * * *'
@@ -13,20 +13,24 @@ jobs:
   linux_tests:
     runs-on: ubuntu-22.04
 
+
     strategy:
       fail-fast: true
       matrix:
         php: [8.2, 8.3, 8.4]
-        laravel: [10, 11]
+        laravel: [10, 11, '12']
         exclude:
           - php: 8.4
             laravel: 10
 
+
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
+
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -36,9 +40,11 @@ jobs:
           tools: composer:v2
           coverage: none
 
+
       - name: Install dependencies
         run: |
           composer update --prefer-dist --no-interaction --no-progress --with="illuminate/support=^${{ matrix.laravel }}"
+
 
       - name: Execute tests
         run: vendor/bin/phpunit --display-deprecations --fail-on-deprecation
@@ -46,16 +52,19 @@ jobs:
   windows_tests:
     runs-on: windows-latest
 
+
     strategy:
       fail-fast: true
       matrix:
         php: [8.2, 8.3, 8.4]
-        laravel: [10, 11]
+        laravel: [10, 11, '12']
         exclude:
           - php: 8.4
             laravel: 10
 
+
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - Windows
+
 
     steps:
       - name: Set git to use LF
@@ -63,8 +72,10 @@ jobs:
           git config --global core.autocrlf false
           git config --global core.eol lf
 
+
       - name: Checkout code
         uses: actions/checkout@v4
+
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -75,9 +86,11 @@ jobs:
           tools: composer:v2
           coverage: none
 
+
       - name: Install dependencies
         run: |
           composer update --prefer-dist --no-interaction --no-progress --with="illuminate/support=~${{ matrix.laravel }}"
+
 
       - name: Execute tests
         run: vendor/bin/phpunit --display-deprecations --fail-on-deprecation
