@@ -286,11 +286,20 @@ class NewCommand extends Command
 
             $this->configureComposerDevScript($directory);
 
-            // $this->runCommands(['npm install', 'npm run build'], $input, $output, workingPath: $directory);
+            $runNpm = confirm(
+                label: 'Would you like to run <options=bold>npm install</> and <options=bold>npm run build</>?'
+            );
+
+            if ($runNpm) {
+                $this->runCommands(['npm install', 'npm run build'], $input, $output, workingPath: $directory);
+            }
 
             $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:".PHP_EOL);
             $output->writeln('<fg=gray>➜</> <options=bold>cd '.$name.'</>');
-            $output->writeln('<fg=gray>➜</> <options=bold>npm install && npm run build</>');
+
+            if (! $runNpm) {
+                $output->writeln('<fg=gray>➜</> <options=bold>npm install && npm run build</>');
+            }
 
             if ($this->isParkedOnHerdOrValet($directory)) {
                 $url = $this->generateAppUrl($name);
@@ -480,6 +489,9 @@ class NewCommand extends Command
         )->keys()->first();
 
         if ($this->usingStarterKit($input)) {
+            // Starter kits will already be migrated in post composer create-project command...
+            $migrate = false;
+
             $input->setOption('database', 'sqlite');
         }
 
