@@ -513,7 +513,7 @@ class NewCommand extends Command
                     label: 'Default database updated. Would you like to run the default database migrations?'
                 );
             } else {
-                $migrate = false;
+                $migrate = true;
             }
         }
 
