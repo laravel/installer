@@ -1,6 +1,8 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.12.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.12.1...master)
+
+## [v5.12.1](https://github.com/laravel/installer/compare/v5.12.0...v5.12.1) - 2025-02-24
 
 ## [v5.12.0](https://github.com/laravel/installer/compare/v5.11.2...v5.12.0) - 2025-02-24
 
