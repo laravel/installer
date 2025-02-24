@@ -224,7 +224,7 @@ class NewCommand extends Command
         };
 
         if ($stackSlug) {
-            $createProjectCommand = $composer." create-project --repository='{\"type\":\"vcs\", \"url\":\"https://github.com/laravel/$stackSlug-starter-kit\"}' laravel/$stackSlug-starter-kit \"$directory\" --stability=dev";
+            $createProjectCommand = $composer." create-project laravel/$stackSlug-starter-kit \"$directory\" --stability=dev";
 
             if ($input->getOption('workos')) {
                 $createProjectCommand = str_replace(" laravel/{$stackSlug}-starter-kit ", " laravel/{$stackSlug}-starter-kit:dev-workos ", $createProjectCommand);
