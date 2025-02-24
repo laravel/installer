@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.11.2...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.12.0...master)
+
+## [v5.12.0](https://github.com/laravel/installer/compare/v5.11.2...v5.12.0) - 2025-02-24
+
+* Laravel 12.x Compatibility by [@laravel-shift](https://github.com/laravel-shift) in https://github.com/laravel/installer/pull/389
+* Laravel 12 + New Starter Kits by [@taylorotwell](https://github.com/taylorotwell) in https://github.com/laravel/installer/pull/390
 
 ## [v5.11.2](https://github.com/laravel/installer/compare/v5.11.1...v5.11.2) - 2025-01-14
 
