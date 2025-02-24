@@ -572,6 +572,7 @@ class NewCommand extends Command
         if ($input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire')) {
             $commands[] = $composerBinary.' require pestphp/pest-plugin-drift --dev';
             $commands[] = $this->phpBinary().' ./vendor/bin/pest --drift';
+            $commands[] = $composerBinary.' remove pestphp/pest-plugin-drift --dev';
         }
 
         $this->runCommands($commands, $input, $output, workingPath: $directory, env: [
