@@ -122,18 +122,20 @@ class NewCommand extends Command
                 default => null,
             };
 
-            match (select(
-                label: 'Which authentication provider do you prefer?',
-                options: [
-                    'laravel' => "Laravel's built-in authentication",
-                    'workos' => 'WorkOS (Requires WorkOS account)',
-                ],
-                default: 'laravel',
-            )) {
-                'laravel' => $input->setOption('workos', false),
-                'workos' => $input->setOption('workos', true),
-                default => null,
-            };
+            if ($this->usingStarterKit($input)) {
+                match (select(
+                    label: 'Which authentication provider do you prefer?',
+                    options: [
+                        'laravel' => "Laravel's built-in authentication",
+                        'workos' => 'WorkOS (Requires WorkOS account)',
+                    ],
+                    default: 'laravel',
+                )) {
+                    'laravel' => $input->setOption('workos', false),
+                    'workos' => $input->setOption('workos', true),
+                    default => null,
+                };
+            }
         }
 
         if (! $input->getOption('phpunit') &&
