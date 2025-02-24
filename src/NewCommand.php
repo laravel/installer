@@ -138,13 +138,17 @@ class NewCommand extends Command
             }
         }
 
-        if (! $input->getOption('phpunit') &&
-            ! $input->getOption('pest')) {
-            $input->setOption('pest', select(
-                label: 'Which testing framework do you prefer?',
-                options: ['Pest', 'PHPUnit'],
-                default: 'Pest',
-            ) === 'Pest');
+        if ($this->usingStarterKit($input)) {
+            if (! $input->getOption('phpunit') &&
+                ! $input->getOption('pest')) {
+                $input->setOption('pest', select(
+                    label: 'Which testing framework do you prefer?',
+                    options: ['Pest', 'PHPUnit'],
+                    default: 'Pest',
+                ) === 'Pest');
+            }
+        } else {
+            $input->setOption('phpunit', true);
         }
     }
 
