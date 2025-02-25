@@ -293,6 +293,10 @@ class NewCommand extends Command
 
             $this->configureComposerDevScript($directory);
 
+            if ($input->getOption('pest')) {
+                $output->writeln('');
+            }
+
             $runNpm = confirm(
                 label: 'Would you like to run <options=bold>npm install</> and <options=bold>npm run build</>?'
             );
