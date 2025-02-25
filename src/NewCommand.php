@@ -48,6 +48,7 @@ class NewCommand extends Command
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
             ->addOption('database', null, InputOption::VALUE_REQUIRED, 'The database driver your application will use')
+            ->addOption('npm', null, InputOption::VALUE_NONE, 'Install the NPM dependencies')
             ->addOption('react', null, InputOption::VALUE_NONE, 'Install the React Starter Kit')
             ->addOption('vue', null, InputOption::VALUE_NONE, 'Install the Vue Starter Kit')
             ->addOption('livewire', null, InputOption::VALUE_NONE, 'Install the Livewire Starter Kit')
@@ -297,9 +298,13 @@ class NewCommand extends Command
                 $output->writeln('');
             }
 
-            $runNpm = confirm(
-                label: 'Would you like to run <options=bold>npm install</> and <options=bold>npm run build</>?'
-            );
+            $runNpm = $input->getOption('npm');
+            
+            if (! $input->getOption('npm') && $input->isInteractive()) {
+                $runNpm = confirm(
+                    label: 'Would you like to run <options=bold>npm install</> and <options=bold>npm run build</>?'
+                );
+            }
 
             if ($runNpm) {
                 $this->runCommands(['npm install', 'npm run build'], $input, $output, workingPath: $directory);
