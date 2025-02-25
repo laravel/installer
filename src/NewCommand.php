@@ -107,7 +107,7 @@ class NewCommand extends Command
         }
 
         if ($input->getOption('custom-starter')) {
-            $output->writeln('<fg=blue>INFO</> Your custom starter must be a Composer package of type "project", stored in a public repository (e.g., GitHub, GitLab), and published on Packagist or a private Composer repository.');
+            $output->writeln('<fg=blue>INFO</> Your custom starter must be a Composer package of type "project", stored in a public repository (e.g., GitHub, GitLab), and published on Packagist.');
             $input->setOption('custom_package', $input->getOption('custom-starter'));
         } elseif (! $input->getOption('react') && ! $input->getOption('vue') && ! $input->getOption('livewire')) {
             match (select(
@@ -129,7 +129,7 @@ class NewCommand extends Command
             };
 
             if ($input->getOption('custom_package')) {
-                $output->writeln('<fg=blue>INFO</> Your custom starter must be a Composer package of type "project", stored in a public repository (e.g., GitHub, GitLab), and published on Packagist or a private Composer repository. take this as a reference/example : https://github.com/laravel/react-starter-kit');
+                $output->writeln('<fg=blue>INFO</> Your custom starter must be a Composer package of type "project", stored in a public repository (e.g., GitHub, GitLab), and published on Packagist. take this as a reference/example : https://github.com/laravel/react-starter-kit');
 
                 $input->setOption('custom_package', text(
                     label: 'Enter the Composer package name (e.g., vendor/package):',
@@ -252,8 +252,6 @@ class NewCommand extends Command
                 }
             }
         }
-
-
 
         $commands = [
             $createProjectCommand,
