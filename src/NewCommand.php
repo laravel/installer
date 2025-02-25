@@ -594,7 +594,7 @@ class NewCommand extends Command
             $this->replaceInFile(
                 './vendor/bin/phpunit',
                 './vendor/bin/pest',
-                directory.'/.github/workflows/tests.yml',
+                $directory.'/.github/workflows/tests.yml',
             );
         }
 
