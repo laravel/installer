@@ -50,6 +50,7 @@ class NewCommand extends Command
             ->addOption('react', null, InputOption::VALUE_NONE, 'Install the React Starter Kit')
             ->addOption('vue', null, InputOption::VALUE_NONE, 'Install the Vue Starter Kit')
             ->addOption('livewire', null, InputOption::VALUE_NONE, 'Install the Livewire Starter Kit')
+            ->addOption('custom-starter', null, InputOption::VALUE_REQUIRED, 'Custom Starter (Provide your own starter-kit')
             ->addOption('workos', null, InputOption::VALUE_NONE, 'Use WorkOS for authentication')
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Install the Pest testing framework')
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Install the PHPUnit testing framework')
@@ -105,7 +106,10 @@ class NewCommand extends Command
             );
         }
 
-        if (! $input->getOption('react') && ! $input->getOption('vue') && ! $input->getOption('livewire')) {
+        if ($input->getOption('custom-starter')) {
+            $output->writeln('<fg=blue>INFO</> Your custom starter must be a Composer package of type "project", stored in a public repository (e.g., GitHub, GitLab), and published on Packagist or a private Composer repository.');
+            $input->setOption('custom_package', $input->getOption('custom-starter'));
+        } elseif (! $input->getOption('react') && ! $input->getOption('vue') && ! $input->getOption('livewire')) {
             match (select(
                 label: 'Which starter kit would you like to install?',
                 options: [
@@ -113,14 +117,27 @@ class NewCommand extends Command
                     'react' => 'React',
                     'vue' => 'Vue',
                     'livewire' => 'Livewire',
+                    'custom' => 'Custom Starter (Provide your own repository)',
                 ],
                 default: 'none',
             )) {
                 'react' => $input->setOption('react', true),
                 'vue' => $input->setOption('vue', true),
                 'livewire' => $input->setOption('livewire', true),
+                'custom' => $input->setOption('custom_package', true),
                 default => null,
             };
+
+            if ($input->getOption('custom_package')) {
+                $output->writeln('<fg=blue>INFO</> Your custom starter must be a Composer package of type "project", stored in a public repository (e.g., GitHub, GitLab), and published on Packagist or a private Composer repository. take this as a reference/example : https://github.com/laravel/react-starter-kit');
+
+                $input->setOption('custom_package', text(
+                    label: 'Enter the Composer package name (e.g., vendor/package):',
+                    placeholder: 'vendor/package',
+                    required: 'A Composer package name is required.',
+                    validate: fn ($value) => preg_match('/^[a-z0-9-]+\/[a-z0-9-]+$/', $value) ? null : 'Invalid package format. Use vendor/package.',
+                ));
+            }
 
             if ($this->usingStarterKit($input)) {
                 match (select(
@@ -216,20 +233,27 @@ class NewCommand extends Command
 
         $createProjectCommand = $composer." create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist --no-scripts";
 
-        $stackSlug = match (true) {
-            $input->getOption('react') => 'react',
-            $input->getOption('vue') => 'vue',
-            $input->getOption('livewire') => 'livewire',
-            default => null
-        };
+        if ($input->getOption('custom_package')) {
+            $package = $input->getOption('custom_package');
+            $createProjectCommand = $composer." create-project $package \"$directory\" --stability=dev";
+        } else {
+            $stackSlug = match (true) {
+                $input->getOption('react') => 'react',
+                $input->getOption('vue') => 'vue',
+                $input->getOption('livewire') => 'livewire',
+                default => null
+            };
 
-        if ($stackSlug) {
-            $createProjectCommand = $composer." create-project laravel/$stackSlug-starter-kit \"$directory\" --stability=dev";
+            if ($stackSlug) {
+                $createProjectCommand = $composer." create-project laravel/$stackSlug-starter-kit \"$directory\" --stability=dev";
 
-            if ($input->getOption('workos')) {
-                $createProjectCommand = str_replace(" laravel/{$stackSlug}-starter-kit ", " laravel/{$stackSlug}-starter-kit:dev-workos ", $createProjectCommand);
+                if ($input->getOption('workos')) {
+                    $createProjectCommand = str_replace(" laravel/{$stackSlug}-starter-kit ", " laravel/{$stackSlug}-starter-kit:dev-workos ", $createProjectCommand);
+                }
             }
         }
+
+
 
         $commands = [
             $createProjectCommand,
@@ -725,7 +749,7 @@ class NewCommand extends Command
      */
     protected function usingStarterKit(InputInterface $input)
     {
-        return $input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire');
+        return $input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire') || $input->getOption('custom_package');
     }
 
     /**
