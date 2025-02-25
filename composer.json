@@ -21,7 +21,7 @@
         "symfony/polyfill-mbstring": "^1.31"
     },
     "require-dev": {
-        "phpstan/phpstan": "^1.10|^2.1",
+        "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^10.4"
     },
     "bin": [
