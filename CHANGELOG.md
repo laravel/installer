@@ -1,6 +1,13 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.12.1...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.12.2...master)
+
+## [v5.12.2](https://github.com/laravel/installer/compare/v5.12.1...v5.12.2) - 2025-02-25
+
+* Remove drift plugin after running drift command by [@laserhybiz](https://github.com/laserhybiz) in https://github.com/laravel/installer/pull/393
+* Fix Pest installation by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/397
+* Use PHPStan 2 by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/396
+* Use pest command in github workflow when using pest by [@laserhybiz](https://github.com/laserhybiz) in https://github.com/laravel/installer/pull/401
 
 ## [v5.12.1](https://github.com/laravel/installer/compare/v5.12.0...v5.12.1) - 2025-02-24
 
