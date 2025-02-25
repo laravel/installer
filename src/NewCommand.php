@@ -590,6 +590,14 @@ class NewCommand extends Command
             $directory.'/tests/Unit/ExampleTest.php',
         );
 
+        if ($input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire')) {
+            $this->replaceInFile(
+                './vendor/bin/phpunit',
+                './vendor/bin/pest',
+                directory.'/.github/workflows/tests.yml',
+            );
+        }
+
         if (($input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire')) && $input->getOption('phpunit')) {
             $this->deleteFile($directory.'/tests/Pest.php');
         }
