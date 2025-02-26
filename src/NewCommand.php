@@ -299,7 +299,7 @@ class NewCommand extends Command
             }
 
             $runNpm = $input->getOption('npm');
-            
+
             if (! $input->getOption('npm') && $input->isInteractive()) {
                 $runNpm = confirm(
                     label: 'Would you like to run <options=bold>npm install</> and <options=bold>npm run build</>?'
