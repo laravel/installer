@@ -54,6 +54,7 @@ class NewCommand extends Command
             ->addOption('workos', null, InputOption::VALUE_NONE, 'Use WorkOS for authentication')
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Install the Pest testing framework')
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Install the PHPUnit testing framework')
+            ->addOption('npm', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
@@ -297,9 +298,13 @@ class NewCommand extends Command
                 $output->writeln('');
             }
 
-            $runNpm = confirm(
-                label: 'Would you like to run <options=bold>npm install</> and <options=bold>npm run build</>?'
-            );
+            $runNpm = $input->getOption('npm');
+            
+            if (! $input->getOption('npm') && $input->isInteractive()) {
+                $runNpm = confirm(
+                    label: 'Would you like to run <options=bold>npm install</> and <options=bold>npm run build</>?'
+                );
+            }
 
             if ($runNpm) {
                 $this->runCommands(['npm install', 'npm run build'], $input, $output, workingPath: $directory);
