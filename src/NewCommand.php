@@ -48,13 +48,13 @@ class NewCommand extends Command
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
             ->addOption('database', null, InputOption::VALUE_REQUIRED, 'The database driver your application will use')
-            ->addOption('npm', null, InputOption::VALUE_NONE, 'Install the NPM dependencies')
             ->addOption('react', null, InputOption::VALUE_NONE, 'Install the React Starter Kit')
             ->addOption('vue', null, InputOption::VALUE_NONE, 'Install the Vue Starter Kit')
             ->addOption('livewire', null, InputOption::VALUE_NONE, 'Install the Livewire Starter Kit')
             ->addOption('workos', null, InputOption::VALUE_NONE, 'Use WorkOS for authentication')
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Install the Pest testing framework')
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Install the PHPUnit testing framework')
+            ->addOption('npm', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
