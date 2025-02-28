@@ -385,10 +385,10 @@ class NewCommand extends Command
 
         $this->composer->modify(function (array $content) {
             $content['scripts']['post-create-project-cmd'] = [
-                "@php artisan key:generate --ansi",
-                "@php artisan migrate --ansi"
+                '@php artisan key:generate --ansi',
+                '@php artisan migrate --ansi'
             ];
-    
+
             return $content;
         });
 
