@@ -507,8 +507,6 @@ class NewCommand extends Command
         if ($this->usingStarterKit($input)) {
             // Starter kits will already be migrated in post composer create-project command...
             $migrate = false;
-
-            $input->setOption('database', 'sqlite');
         }
 
         if (! $input->getOption('database') && $input->isInteractive()) {
