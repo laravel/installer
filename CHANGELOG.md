@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.12.2...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.13.0...master)
+
+## [v5.13.0](https://github.com/laravel/installer/compare/v5.12.2...v5.13.0) - 2025-02-28
+
+* Add support for non-Volt Livewire starter kit
+* Add npm option to fix no-interaction installs by [@mpociot](https://github.com/mpociot) in https://github.com/laravel/installer/pull/402
 
 ## [v5.12.2](https://github.com/laravel/installer/compare/v5.12.1...v5.12.2) - 2025-02-25
 
