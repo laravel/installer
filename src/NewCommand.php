@@ -383,6 +383,15 @@ class NewCommand extends Command
             return;
         }
 
+        $this->composer->modify(function (array $content) {
+            $content['scripts']['post-create-project-cmd'] = [
+                "@php artisan key:generate --ansi",
+                "@php artisan migrate --ansi"
+            ];
+    
+            return $content;
+        });
+
         // Any commented database configuration options should be uncommented when not on SQLite...
         $this->uncommentDatabaseConfiguration($directory);
 
