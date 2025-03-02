@@ -56,6 +56,7 @@ class NewCommand extends Command
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Install the Pest testing framework')
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Install the PHPUnit testing framework')
             ->addOption('npm', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies')
+            ->addOption('starter-kit', InputOption::VALUE_NONE, 'Install a custom Starter Kit')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
@@ -226,22 +227,22 @@ class NewCommand extends Command
 
         $createProjectCommand = $composer." create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist --no-scripts";
 
-        $stackSlug = match (true) {
-            $input->getOption('react') => 'react',
-            $input->getOption('vue') => 'vue',
-            $input->getOption('livewire') => 'livewire',
-            default => null
+        $starterKit = match (true) {
+            $input->getOption('react') => 'laravel/react-starter-kit',
+            $input->getOption('vue') => 'laravel/vue-starter-kit',
+            $input->getOption('livewire') => 'laravel/livewire-starter-kit',
+            default => $input->getOption('starter-kit'),
         };
 
-        if ($stackSlug) {
-            $createProjectCommand = $composer." create-project laravel/$stackSlug-starter-kit \"$directory\" --stability=dev";
+        if ($starterKit) {
+            $createProjectCommand = $composer." create-project $starterKit \"$directory\" --stability=dev";
 
-            if ($input->getOption('livewire-class-components')) {
-                $createProjectCommand = str_replace(" laravel/{$stackSlug}-starter-kit ", " laravel/{$stackSlug}-starter-kit:dev-components ", $createProjectCommand);
+            if (str_starts_with($starterKit, 'laravel/') && $input->getOption('livewire-class-components')) {
+                $createProjectCommand = str_replace(" {$starterKit} ", " {$starterKit}:dev-components ", $createProjectCommand);
             }
 
-            if ($input->getOption('workos')) {
-                $createProjectCommand = str_replace(" laravel/{$stackSlug}-starter-kit ", " laravel/{$stackSlug}-starter-kit:dev-workos ", $createProjectCommand);
+            if (str_starts_with($starterKit, 'laravel/') && $input->getOption('workos')) {
+                $createProjectCommand = str_replace(" {$starterKit} ", " {$starterKit}:dev-workos ", $createProjectCommand);
             }
         }
 
