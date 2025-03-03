@@ -109,7 +109,7 @@ class NewCommand extends Command
             );
         }
 
-        if (! $input->getOption('react') && ! $input->getOption('vue') && ! $input->getOption('livewire')) {
+        if (! $this->usingStarterKit($input)) {
             match (select(
                 label: 'Which starter kit would you like to install?',
                 options: [
@@ -126,7 +126,7 @@ class NewCommand extends Command
                 default => null,
             };
 
-            if ($this->usingStarterKit($input)) {
+            if ($this->usingLaravelStarterKit($input)) {
                 match (select(
                     label: 'Which authentication provider do you prefer?',
                     options: [
@@ -149,7 +149,7 @@ class NewCommand extends Command
             }
         }
 
-        if ($this->usingStarterKit($input)) {
+        if ($this->usingLaravelStarterKit($input)) {
             if (! $input->getOption('phpunit') &&
                 ! $input->getOption('pest')) {
                 $input->setOption('pest', select(
@@ -227,21 +227,16 @@ class NewCommand extends Command
 
         $createProjectCommand = $composer." create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist --no-scripts";
 
-        $starterKit = match (true) {
-            $input->getOption('react') => 'laravel/react-starter-kit',
-            $input->getOption('vue') => 'laravel/vue-starter-kit',
-            $input->getOption('livewire') => 'laravel/livewire-starter-kit',
-            default => $input->getOption('starter-kit'),
-        };
+        $starterKit = $this->getStarterKit($input);
 
         if ($starterKit) {
-            $createProjectCommand = $composer." create-project $starterKit \"$directory\" --stability=dev";
+            $createProjectCommand = $composer." create-project {$starterKit} \"{$directory}\" --stability=dev";
 
-            if (str_starts_with($starterKit, 'laravel/') && $input->getOption('livewire-class-components')) {
+            if ($this->usingLaravelStarterKit($input) && $input->getOption('livewire-class-components')) {
                 $createProjectCommand = str_replace(" {$starterKit} ", " {$starterKit}:dev-components ", $createProjectCommand);
             }
 
-            if (str_starts_with($starterKit, 'laravel/') && $input->getOption('workos')) {
+            if ($this->usingLaravelStarterKit($input) && $input->getOption('workos')) {
                 $createProjectCommand = str_replace(" {$starterKit} ", " {$starterKit}:dev-workos ", $createProjectCommand);
             }
         }
@@ -592,7 +587,7 @@ class NewCommand extends Command
             $this->phpBinary().' ./vendor/bin/pest --init',
         ];
 
-        if ($input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire')) {
+        if ($this->usingStarterKit($input)) {
             $commands[] = $composerBinary.' require pestphp/pest-plugin-drift --dev';
             $commands[] = $this->phpBinary().' ./vendor/bin/pest --drift';
             $commands[] = $composerBinary.' remove pestphp/pest-plugin-drift --dev';
@@ -612,7 +607,7 @@ class NewCommand extends Command
             $directory.'/tests/Unit/ExampleTest.php',
         );
 
-        if ($input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire')) {
+        if ($this->usingStarterKit($input)) {
             $this->replaceInFile(
                 './vendor/bin/phpunit',
                 './vendor/bin/pest',
@@ -620,7 +615,7 @@ class NewCommand extends Command
             );
         }
 
-        if (($input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire')) && $input->getOption('phpunit')) {
+        if ($this->usingStarterKit($input) && $input->getOption('phpunit')) {
             $this->deleteFile($directory.'/tests/Pest.php');
         }
 
@@ -756,7 +751,7 @@ class NewCommand extends Command
      */
     protected function usingStarterKit(InputInterface $input)
     {
-        return $input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire');
+        return $input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire') || $input->getOption('starter-kit');
     }
 
     /**
@@ -939,5 +934,26 @@ class NewCommand extends Command
     protected function deleteFile(string $file)
     {
         unlink($file);
+    }
+
+    /**
+     * Returns the starter kit, if any.
+     */
+    protected function getStarterKit(InputInterface $input): ?string
+    {
+        return match (true) {
+            $input->getOption('react') => 'laravel/react-starter-kit',
+            $input->getOption('vue') => 'laravel/vue-starter-kit',
+            $input->getOption('livewire') => 'laravel/livewire-starter-kit',
+            default => $input->getOption('starter-kit'),
+        };
+    }
+
+    /**
+     * Returns true if the user is using a Starter Kit from Laravel.
+     */
+    protected function usingLaravelStarterKit(InputInterface $input): bool
+    {
+        return $this->usingStarterKit($input) && str_starts_with($this->getStarterKit($input), 'laravel/');
     }
 }
