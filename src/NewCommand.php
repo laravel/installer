@@ -56,7 +56,7 @@ class NewCommand extends Command
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Install the Pest testing framework')
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Install the PHPUnit testing framework')
             ->addOption('npm', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies')
-            ->addOption('starter-kit', null, InputOption::VALUE_OPTIONAL, 'Install a custom Starter Kit')
+            ->addOption('using', null, InputOption::VALUE_OPTIONAL, 'Install a custom starter kit from a community maintained package')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
@@ -744,6 +744,28 @@ class NewCommand extends Command
     }
 
     /**
+     * Get the starter kit repository, if any.
+     */
+    protected function getStarterKit(InputInterface $input): ?string
+    {
+        return match (true) {
+            $input->getOption('react') => 'laravel/react-starter-kit',
+            $input->getOption('vue') => 'laravel/vue-starter-kit',
+            $input->getOption('livewire') => 'laravel/livewire-starter-kit',
+            default => $input->getOption('using'),
+        };
+    }
+
+    /**
+     * Determine if a Laravel first-party starter kit has been chosen.
+     */
+    protected function usingLaravelStarterKit(InputInterface $input): bool
+    {
+        return $this->usingStarterKit($input) &&
+               str_starts_with($this->getStarterKit($input), 'laravel/');
+    }
+
+    /**
      * Determine if a starter kit is being used.
      *
      * @param  \Symfony\Component\Console\Input\InputInterface
@@ -751,7 +773,7 @@ class NewCommand extends Command
      */
     protected function usingStarterKit(InputInterface $input)
     {
-        return $input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire') || $input->getOption('starter-kit');
+        return $input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire') || $input->getOption('using');
     }
 
     /**
@@ -934,26 +956,5 @@ class NewCommand extends Command
     protected function deleteFile(string $file)
     {
         unlink($file);
-    }
-
-    /**
-     * Returns the starter kit, if any.
-     */
-    protected function getStarterKit(InputInterface $input): ?string
-    {
-        return match (true) {
-            $input->getOption('react') => 'laravel/react-starter-kit',
-            $input->getOption('vue') => 'laravel/vue-starter-kit',
-            $input->getOption('livewire') => 'laravel/livewire-starter-kit',
-            default => $input->getOption('starter-kit'),
-        };
-    }
-
-    /**
-     * Returns true if the user is using a Starter Kit from Laravel.
-     */
-    protected function usingLaravelStarterKit(InputInterface $input): bool
-    {
-        return $this->usingStarterKit($input) && str_starts_with($this->getStarterKit($input), 'laravel/');
     }
 }
