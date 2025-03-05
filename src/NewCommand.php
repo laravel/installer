@@ -56,7 +56,7 @@ class NewCommand extends Command
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Install the Pest testing framework')
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Install the PHPUnit testing framework')
             ->addOption('npm', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies')
-            ->addOption('starter-kit', null, InputOption::VALUE_NONE, 'Install a custom Starter Kit')
+            ->addOption('starter-kit', null, InputOption::VALUE_OPTIONAL, 'Install a custom Starter Kit')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
