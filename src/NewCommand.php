@@ -56,6 +56,7 @@ class NewCommand extends Command
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Install the Pest testing framework')
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Install the PHPUnit testing framework')
             ->addOption('npm', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies')
+            ->addOption('using', null, InputOption::VALUE_OPTIONAL, 'Install a custom starter kit from a community maintained package')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
 
@@ -108,7 +109,7 @@ class NewCommand extends Command
             );
         }
 
-        if (! $input->getOption('react') && ! $input->getOption('vue') && ! $input->getOption('livewire')) {
+        if (! $this->usingStarterKit($input)) {
             match (select(
                 label: 'Which starter kit would you like to install?',
                 options: [
@@ -125,7 +126,7 @@ class NewCommand extends Command
                 default => null,
             };
 
-            if ($this->usingStarterKit($input)) {
+            if ($this->usingLaravelStarterKit($input)) {
                 match (select(
                     label: 'Which authentication provider do you prefer?',
                     options: [
@@ -148,7 +149,7 @@ class NewCommand extends Command
             }
         }
 
-        if ($this->usingStarterKit($input)) {
+        if ($this->usingLaravelStarterKit($input)) {
             if (! $input->getOption('phpunit') &&
                 ! $input->getOption('pest')) {
                 $input->setOption('pest', select(
@@ -226,22 +227,17 @@ class NewCommand extends Command
 
         $createProjectCommand = $composer." create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist --no-scripts";
 
-        $stackSlug = match (true) {
-            $input->getOption('react') => 'react',
-            $input->getOption('vue') => 'vue',
-            $input->getOption('livewire') => 'livewire',
-            default => null
-        };
+        $starterKit = $this->getStarterKit($input);
 
-        if ($stackSlug) {
-            $createProjectCommand = $composer." create-project laravel/$stackSlug-starter-kit \"$directory\" --stability=dev";
+        if ($starterKit) {
+            $createProjectCommand = $composer." create-project {$starterKit} \"{$directory}\" --stability=dev";
 
-            if ($input->getOption('livewire-class-components')) {
-                $createProjectCommand = str_replace(" laravel/{$stackSlug}-starter-kit ", " laravel/{$stackSlug}-starter-kit:dev-components ", $createProjectCommand);
+            if ($this->usingLaravelStarterKit($input) && $input->getOption('livewire-class-components')) {
+                $createProjectCommand = str_replace(" {$starterKit} ", " {$starterKit}:dev-components ", $createProjectCommand);
             }
 
-            if ($input->getOption('workos')) {
-                $createProjectCommand = str_replace(" laravel/{$stackSlug}-starter-kit ", " laravel/{$stackSlug}-starter-kit:dev-workos ", $createProjectCommand);
+            if ($this->usingLaravelStarterKit($input) && $input->getOption('workos')) {
+                $createProjectCommand = str_replace(" {$starterKit} ", " {$starterKit}:dev-workos ", $createProjectCommand);
             }
         }
 
@@ -591,7 +587,7 @@ class NewCommand extends Command
             $this->phpBinary().' ./vendor/bin/pest --init',
         ];
 
-        if ($input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire')) {
+        if ($this->usingStarterKit($input)) {
             $commands[] = $composerBinary.' require pestphp/pest-plugin-drift --dev';
             $commands[] = $this->phpBinary().' ./vendor/bin/pest --drift';
             $commands[] = $composerBinary.' remove pestphp/pest-plugin-drift --dev';
@@ -611,7 +607,7 @@ class NewCommand extends Command
             $directory.'/tests/Unit/ExampleTest.php',
         );
 
-        if ($input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire')) {
+        if ($this->usingStarterKit($input)) {
             $this->replaceInFile(
                 './vendor/bin/phpunit',
                 './vendor/bin/pest',
@@ -619,7 +615,7 @@ class NewCommand extends Command
             );
         }
 
-        if (($input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire')) && $input->getOption('phpunit')) {
+        if ($this->usingStarterKit($input) && $input->getOption('phpunit')) {
             $this->deleteFile($directory.'/tests/Pest.php');
         }
 
@@ -748,6 +744,28 @@ class NewCommand extends Command
     }
 
     /**
+     * Get the starter kit repository, if any.
+     */
+    protected function getStarterKit(InputInterface $input): ?string
+    {
+        return match (true) {
+            $input->getOption('react') => 'laravel/react-starter-kit',
+            $input->getOption('vue') => 'laravel/vue-starter-kit',
+            $input->getOption('livewire') => 'laravel/livewire-starter-kit',
+            default => $input->getOption('using'),
+        };
+    }
+
+    /**
+     * Determine if a Laravel first-party starter kit has been chosen.
+     */
+    protected function usingLaravelStarterKit(InputInterface $input): bool
+    {
+        return $this->usingStarterKit($input) &&
+               str_starts_with($this->getStarterKit($input), 'laravel/');
+    }
+
+    /**
      * Determine if a starter kit is being used.
      *
      * @param  \Symfony\Component\Console\Input\InputInterface
@@ -755,7 +773,7 @@ class NewCommand extends Command
      */
     protected function usingStarterKit(InputInterface $input)
     {
-        return $input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire');
+        return $input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire') || $input->getOption('using');
     }
 
     /**
