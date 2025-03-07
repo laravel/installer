@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.13.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.14.0...master)
+
+## [v5.14.0](https://github.com/laravel/installer/compare/v5.13.0...v5.14.0) - 2025-03-07
+
+* [12.x] Adds an option to install a custom starter kits by [@tonysm](https://github.com/tonysm) in https://github.com/laravel/installer/pull/407
 
 ## [v5.13.0](https://github.com/laravel/installer/compare/v5.12.2...v5.13.0) - 2025-02-28
 
