@@ -52,6 +52,8 @@ class NewCommand extends Command
             ->addOption('vue', null, InputOption::VALUE_NONE, 'Install the Vue Starter Kit')
             ->addOption('livewire', null, InputOption::VALUE_NONE, 'Install the Livewire Starter Kit')
             ->addOption('livewire-class-components', null, InputOption::VALUE_NONE, 'Generate stand-alone Livewire class components')
+            ->addOption('api', null, InputOption::VALUE_NONE, 'Install Laravel API with Sanctum')
+            ->addOption('withPassport', null, InputOption::VALUE_NONE, 'Use Passport for authentication')
             ->addOption('workos', null, InputOption::VALUE_NONE, 'Use WorkOS for authentication')
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Install the Pest testing framework')
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Install the PHPUnit testing framework')
@@ -125,6 +127,36 @@ class NewCommand extends Command
                 'livewire' => $input->setOption('livewire', true),
                 default => null,
             };
+
+            if(! $this->usingLaravelStarterKit($input) || $this->usingLaravelStarterKit($input)) {
+                match(select(
+                    label: 'Would you like to install API?',
+                    options: [
+                        'no' => 'No',
+                        'yes' => 'Yes'
+                    ],
+                    default: 'no',
+                )) {
+                    'no' => $input->setOption('api', false),
+                    'yes' => $input->setOption('api', true),
+                    default => false,
+                };
+            }
+
+            if($input->getOption('api')) {
+                match(select(
+                    label: 'Would you like to use Passport?',
+                    options: [
+                        'no' =>'No',
+                        'yes' => 'Yes',
+                    ],
+                    default: 'no',
+                )) {
+                    'no' => $input->setOption('withPassport', false),
+                    'yes'=> $input->setOption('withPassport', true),
+                    default => false,
+                };
+            }
 
             if ($this->usingLaravelStarterKit($input)) {
                 match (select(
@@ -289,6 +321,10 @@ class NewCommand extends Command
 
             if ($input->getOption('git') || $input->getOption('github') !== false) {
                 $this->createRepository($directory, $input, $output);
+            }
+
+            if($input->getOption('api')) {
+                $this->installAPI($directory, $input, $output);
             }
 
             if ($input->getOption('pest')) {
@@ -567,6 +603,27 @@ class NewCommand extends Command
         if ($input->getOption('database') && ! in_array($input->getOption('database'), $drivers = ['mysql', 'mariadb', 'pgsql', 'sqlite', 'sqlsrv'])) {
             throw new \InvalidArgumentException("Invalid database driver [{$input->getOption('database')}]. Valid options are: ".implode(', ', $drivers).'.');
         }
+    }
+
+    /**
+     * Install API routes to the application
+     *
+     * @param \Symfony\Component\Input\InputInterface $input
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @return void
+     */
+    protected function installAPI(string $directory, InputInterface $input, OutputInterface $output) {
+        if($input->getOption('withPassport')) {
+            $commands = [
+                'php artisan install:api --passport',
+            ];
+        } else {
+            $commands = [
+                 'php artisan install:api',
+            ];
+        }
+
+        $this->runCommands($commands, $input, $output, workingPath: $directory);
     }
 
     /**
