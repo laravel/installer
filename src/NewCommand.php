@@ -149,17 +149,13 @@ class NewCommand extends Command
             }
         }
 
-        if ($this->usingLaravelStarterKit($input)) {
-            if (! $input->getOption('phpunit') &&
-                ! $input->getOption('pest')) {
-                $input->setOption('pest', select(
-                    label: 'Which testing framework do you prefer?',
-                    options: ['Pest', 'PHPUnit'],
-                    default: 'Pest',
-                ) === 'Pest');
-            }
-        } else {
-            $input->setOption('phpunit', true);
+        if (! $input->getOption('phpunit') &&
+            ! $input->getOption('pest')) {
+            $input->setOption('pest', select(
+                label: 'Which testing framework do you prefer?',
+                options: ['Pest', 'PHPUnit'],
+                default: 'Pest',
+            ) === 'Pest');
         }
     }
 
