@@ -48,6 +48,7 @@ class NewCommand extends Command
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
             ->addOption('database', null, InputOption::VALUE_REQUIRED, 'The database driver your application will use')
+            ->addOption('migrate', null, InputOption::VALUE_NONE, 'Run the default database migrations')
             ->addOption('react', null, InputOption::VALUE_NONE, 'Install the React Starter Kit')
             ->addOption('vue', null, InputOption::VALUE_NONE, 'Install the Vue Starter Kit')
             ->addOption('livewire', null, InputOption::VALUE_NONE, 'Install the Livewire Starter Kit')
@@ -109,58 +110,10 @@ class NewCommand extends Command
             );
         }
 
-        if (! $this->usingStarterKit($input)) {
-            match (select(
-                label: 'Which starter kit would you like to install?',
-                options: [
-                    'none' => 'None',
-                    'react' => 'React',
-                    'vue' => 'Vue',
-                    'livewire' => 'Livewire',
-                ],
-                default: 'none',
-            )) {
-                'react' => $input->setOption('react', true),
-                'vue' => $input->setOption('vue', true),
-                'livewire' => $input->setOption('livewire', true),
-                default => null,
-            };
-
-            if ($this->usingLaravelStarterKit($input)) {
-                match (select(
-                    label: 'Which authentication provider do you prefer?',
-                    options: [
-                        'laravel' => "Laravel's built-in authentication",
-                        'workos' => 'WorkOS (Requires WorkOS account)',
-                    ],
-                    default: 'laravel',
-                )) {
-                    'laravel' => $input->setOption('workos', false),
-                    'workos' => $input->setOption('workos', true),
-                    default => null,
-                };
-            }
-
-            if ($input->getOption('livewire') && ! $input->getOption('workos')) {
-                $input->setOption('livewire-class-components', ! confirm(
-                    label: 'Would you like to use Laravel Volt?',
-                    default: true,
-                ));
-            }
-        }
-
-        if ($this->usingLaravelStarterKit($input)) {
-            if (! $input->getOption('phpunit') &&
-                ! $input->getOption('pest')) {
-                $input->setOption('pest', select(
-                    label: 'Which testing framework do you prefer?',
-                    options: ['Pest', 'PHPUnit'],
-                    default: 'Pest',
-                ) === 'Pest');
-            }
-        } else {
-            $input->setOption('phpunit', true);
-        }
+        $this->promptForStarterKitOptions($input);
+        $this->promptForTestingFrameworkOptions($input);
+        $this->promptForDatabaseOptions($input);
+        $this->promptForNpmOptions($input);
     }
 
     /**
@@ -267,7 +220,8 @@ class NewCommand extends Command
                     $directory.'/.env'
                 );
 
-                [$database, $migrate] = $this->promptForDatabaseOptions($directory, $input);
+                $database = $input->getOption('database');
+                $migrate = $input->getOption('migrate');
 
                 $this->configureDefaultDatabaseConnection($directory, $database, $name);
 
@@ -307,12 +261,6 @@ class NewCommand extends Command
             }
 
             $runNpm = $input->getOption('npm');
-
-            if (! $input->getOption('npm') && $input->isInteractive()) {
-                $runNpm = confirm(
-                    label: 'Would you like to run <options=bold>npm install</> and <options=bold>npm run build</>?'
-                );
-            }
 
             if ($runNpm) {
                 $this->runCommands(['npm install', 'npm run build'], $input, $output, workingPath: $directory);
@@ -502,11 +450,10 @@ class NewCommand extends Command
     /**
      * Determine the default database connection.
      *
-     * @param  string  $directory
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @return array
+     * @return void
      */
-    protected function promptForDatabaseOptions(string $directory, InputInterface $input)
+    protected function promptForDatabaseOptions(InputInterface $input)
     {
         $defaultDatabase = collect(
             $databaseOptions = $this->databaseOptions()
@@ -514,8 +461,7 @@ class NewCommand extends Command
 
         if ($this->usingStarterKit($input)) {
             // Starter kits will already be migrated in post composer create-project command...
-            $migrate = false;
-
+            $input->setOption('migrate', false);
             $input->setOption('database', 'sqlite');
         }
 
@@ -527,15 +473,103 @@ class NewCommand extends Command
             ));
 
             if ($input->getOption('database') !== 'sqlite') {
-                $migrate = confirm(
-                    label: 'Default database updated. Would you like to run the default database migrations?'
-                );
+                $input->setOption('migrate', confirm(
+                    label: 'Would you like to run the default database migrations?'
+                ));
             } else {
-                $migrate = true;
+                $input->setOption('migrate', false);
             }
         }
+    }
 
-        return [$input->getOption('database') ?? $defaultDatabase, $migrate ?? $input->hasOption('database')];
+    /**
+     * Determine if npm should be run.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @return void
+     */
+    protected function promptForNpmOptions(InputInterface $input)
+    {
+        if ($input->getOption('npm') && !$input->isInteractive()) {
+            return;
+        }
+
+        $input->setOption('npm', confirm(
+            label: 'Would you like to run <options=bold>npm install</> and <options=bold>npm run build</>?'
+        ));
+    }
+
+    /**
+     * Determine if a starter kit should be installed.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @return void
+     */
+    protected function promptForStarterKitOptions(InputInterface $input)
+    {
+        if ($this->usingStarterKit($input)) {
+            return;
+        }
+
+        match (select(
+            label: 'Which starter kit would you like to install?',
+            options: [
+                'none' => 'None',
+                'react' => 'React',
+                'vue' => 'Vue',
+                'livewire' => 'Livewire',
+            ],
+            default: 'none',
+        )) {
+            'react' => $input->setOption('react', true),
+            'vue' => $input->setOption('vue', true),
+            'livewire' => $input->setOption('livewire', true),
+            default => null,
+        };
+
+        if ($this->usingLaravelStarterKit($input)) {
+            match (select(
+                label: 'Which authentication provider do you prefer?',
+                options: [
+                    'laravel' => "Laravel's built-in authentication",
+                    'workos' => 'WorkOS (Requires WorkOS account)',
+                ],
+                default: 'laravel',
+            )) {
+                'laravel' => $input->setOption('workos', false),
+                'workos' => $input->setOption('workos', true),
+                default => null,
+            };
+        }
+
+        if ($input->getOption('livewire') && ! $input->getOption('workos')) {
+            $input->setOption('livewire-class-components', ! confirm(
+                label: 'Would you like to use Laravel Volt?',
+                default: true,
+            ));
+        }
+    }
+
+    /**
+     * Determine if Pest or PHPUnit should be installed.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @return void
+     */
+    protected function promptForTestingFrameworkOptions(InputInterface $input)
+    {
+        if ($this->usingLaravelStarterKit($input)) {
+            if (! $input->getOption('phpunit') &&
+                ! $input->getOption('pest')) {
+                $input->setOption('pest', select(
+                        label: 'Which testing framework do you prefer?',
+                        options: ['Pest', 'PHPUnit'],
+                        default: 'Pest',
+                    ) === 'Pest');
+            }
+        } else {
+            $input->setOption('phpunit', true);
+        }
     }
 
     /**
