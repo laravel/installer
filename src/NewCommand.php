@@ -48,7 +48,7 @@ class NewCommand extends Command
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
             ->addOption('database', null, InputOption::VALUE_REQUIRED, 'The database driver your application will use')
-            ->addOption('migrate', null, InputOption::VALUE_NONE, 'Run the default database migrations')
+            ->addOption('migrate', null, InputOption::VALUE_OPTIONAL, 'Run the default database migrations', false)
             ->addOption('react', null, InputOption::VALUE_NONE, 'Install the React Starter Kit')
             ->addOption('vue', null, InputOption::VALUE_NONE, 'Install the Vue Starter Kit')
             ->addOption('livewire', null, InputOption::VALUE_NONE, 'Install the Livewire Starter Kit')
@@ -220,7 +220,7 @@ class NewCommand extends Command
                     $directory.'/.env'
                 );
 
-                $database = $input->getOption('database');
+                $database = $input->getOption('database') ?? $this->defaultDataBase();
                 $migrate = $input->getOption('migrate');
 
                 $this->configureDefaultDatabaseConnection($directory, $database, $name);
@@ -302,6 +302,18 @@ class NewCommand extends Command
         $output = trim($process->getOutput());
 
         return $process->isSuccessful() && $output ? $output : 'main';
+    }
+
+    /**
+     * Return default database
+     *
+     * @return string
+     */
+    protected function defaultDatabase()
+    {
+        return collect(
+            $this->databaseOptions()
+        )->keys()->first();
     }
 
     /**
@@ -455,9 +467,7 @@ class NewCommand extends Command
      */
     protected function promptForDatabaseOptions(InputInterface $input)
     {
-        $defaultDatabase = collect(
-            $databaseOptions = $this->databaseOptions()
-        )->keys()->first();
+        $defaultDatabase = $this->defaultDataBase();
 
         if ($this->usingStarterKit($input)) {
             // Starter kits will already be migrated in post composer create-project command...
@@ -468,7 +478,7 @@ class NewCommand extends Command
         if (! $input->getOption('database') && $input->isInteractive()) {
             $input->setOption('database', select(
                 label: 'Which database will your application use?',
-                options: $databaseOptions,
+                options: $this->databaseOptions(),
                 default: $defaultDatabase,
             ));
 
@@ -734,7 +744,6 @@ class NewCommand extends Command
     /**
      * Configure the Composer "dev" script.
      *
-     * @param  string  $directory
      * @return void
      */
     protected function configureComposerDevScript(string $directory): void
