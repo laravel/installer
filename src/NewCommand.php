@@ -744,6 +744,7 @@ class NewCommand extends Command
     /**
      * Configure the Composer "dev" script.
      *
+     * @param  string  $directory
      * @return void
      */
     protected function configureComposerDevScript(string $directory): void
