@@ -6,6 +6,8 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Composer;
 use Illuminate\Support\ProcessUtils;
 use Illuminate\Support\Str;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -149,17 +151,12 @@ class NewCommand extends Command
             }
         }
 
-        if ($this->usingLaravelStarterKit($input)) {
-            if (! $input->getOption('phpunit') &&
-                ! $input->getOption('pest')) {
-                $input->setOption('pest', select(
-                    label: 'Which testing framework do you prefer?',
-                    options: ['Pest', 'PHPUnit'],
-                    default: 'Pest',
-                ) === 'Pest');
-            }
-        } else {
-            $input->setOption('phpunit', true);
+        if (! $input->getOption('phpunit') && ! $input->getOption('pest')) {
+            $input->setOption('pest', select(
+                label: 'Which testing framework do you prefer?',
+                options: ['Pest', 'PHPUnit'],
+                default: 'Pest',
+            ) === 'Pest');
         }
     }
 
@@ -587,25 +584,13 @@ class NewCommand extends Command
             $this->phpBinary().' ./vendor/bin/pest --init',
         ];
 
-        if ($this->usingStarterKit($input)) {
-            $commands[] = $composerBinary.' require pestphp/pest-plugin-drift --dev';
-            $commands[] = $this->phpBinary().' ./vendor/bin/pest --drift';
-            $commands[] = $composerBinary.' remove pestphp/pest-plugin-drift --dev';
-        }
+        $commands[] = $composerBinary.' require pestphp/pest-plugin-drift --dev';
+        $commands[] = $this->phpBinary().' ./vendor/bin/pest --drift';
+        $commands[] = $composerBinary.' remove pestphp/pest-plugin-drift --dev';
 
         $this->runCommands($commands, $input, $output, workingPath: $directory, env: [
             'PEST_NO_SUPPORT' => 'true',
         ]);
-
-        $this->replaceFile(
-            'pest/Feature.php',
-            $directory.'/tests/Feature/ExampleTest.php',
-        );
-
-        $this->replaceFile(
-            'pest/Unit.php',
-            $directory.'/tests/Unit/ExampleTest.php',
-        );
 
         if ($this->usingStarterKit($input)) {
             $this->replaceInFile(
@@ -613,10 +598,31 @@ class NewCommand extends Command
                 './vendor/bin/pest',
                 $directory.'/.github/workflows/tests.yml',
             );
-        }
 
-        if ($this->usingStarterKit($input) && $input->getOption('phpunit')) {
-            $this->deleteFile($directory.'/tests/Pest.php');
+            $contents = file_get_contents("$directory/tests/Pest.php");
+
+            $contents = str_replace(
+                " // ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)",
+                "    ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)",
+                $contents,
+            );
+
+            file_put_contents("$directory/tests/Pest.php", $contents);
+
+            $directoryIterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
+
+            foreach ($directoryIterator as $testFile) {
+                if ($testFile->isDir()) {
+                    continue;
+                }
+
+                $contents = file_get_contents($testFile);
+
+                file_put_contents(
+                    $testFile,
+                    str_replace("\n\nuses(\Illuminate\Foundation\Testing\RefreshDatabase::class);", '', $contents),
+                );
+            }
         }
 
         $this->commitChanges('Install Pest', $directory, $input, $output);
