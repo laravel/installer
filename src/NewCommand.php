@@ -305,7 +305,7 @@ class NewCommand extends Command
     }
 
     /**
-     * Return default database
+     * Return default database.
      *
      * @return string
      */
@@ -500,7 +500,7 @@ class NewCommand extends Command
      */
     protected function promptForNpmOptions(InputInterface $input)
     {
-        if ($input->getOption('npm') && !$input->isInteractive()) {
+        if ($input->getOption('npm') && ! $input->isInteractive()) {
             return;
         }
 
@@ -572,10 +572,10 @@ class NewCommand extends Command
             if (! $input->getOption('phpunit') &&
                 ! $input->getOption('pest')) {
                 $input->setOption('pest', select(
-                        label: 'Which testing framework do you prefer?',
-                        options: ['Pest', 'PHPUnit'],
-                        default: 'Pest',
-                    ) === 'Pest');
+                    label: 'Which testing framework do you prefer?',
+                    options: ['Pest', 'PHPUnit'],
+                    default: 'Pest',
+                ) === 'Pest');
             }
         } else {
             $input->setOption('phpunit', true);
