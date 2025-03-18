@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.14.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.14.1...master)
+
+## [v5.14.1](https://github.com/laravel/installer/compare/v5.14.0...v5.14.1) - 2025-03-18
+
+* Adding Pest option back in Laravel app and improve pest experience by [@tnylea](https://github.com/tnylea) in https://github.com/laravel/installer/pull/413
 
 ## [v5.14.0](https://github.com/laravel/installer/compare/v5.13.0...v5.14.0) - 2025-03-07
 
