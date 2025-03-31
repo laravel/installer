@@ -151,14 +151,12 @@ class NewCommand extends Command
             }
         }
 
-        if ($this->usingLaravelStarterKit($input) || ! $input->getOption('using')) {
-            if (! $input->getOption('phpunit') && ! $input->getOption('pest')) {
-                $input->setOption('pest', select(
-                    label: 'Which testing framework do you prefer?',
-                    options: ['Pest', 'PHPUnit'],
-                    default: 'Pest',
-                ) === 'Pest');
-            }
+        if (! $input->getOption('phpunit') && ! $input->getOption('pest') && ! $input->getOption('using')) {
+            $input->setOption('pest', select(
+                label: 'Which testing framework do you prefer?',
+                options: ['Pest', 'PHPUnit'],
+                default: 'Pest',
+            ) === 'Pest');
         }
     }
 
@@ -245,11 +243,10 @@ class NewCommand extends Command
         ];
 
         if ($this->usingLaravelStarterKit($input)) {
-            $commands = [
-                ...$commands,
+            $commands = array_merge($commands, [
                 $composer." run post-root-package-install -d \"$directory\"",
                 $phpBinary." \"$directory/artisan\" key:generate --ansi",
-            ];
+            ]);
         }
 
         if ($directory != '.' && $input->getOption('force')) {
@@ -766,7 +763,7 @@ class NewCommand extends Command
             $input->getOption('react') => 'laravel/react-starter-kit',
             $input->getOption('vue') => 'laravel/vue-starter-kit',
             $input->getOption('livewire') => 'laravel/livewire-starter-kit',
-            default => $input->getOption('using'),
+            default => $input->getOption('using') ?? 'laravel/laravel',
         };
     }
 
