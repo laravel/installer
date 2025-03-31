@@ -609,7 +609,7 @@ class NewCommand extends Command
 
             file_put_contents("$directory/tests/Pest.php", $contents);
 
-            $directoryIterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
+            $directoryIterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator("$directory/tests"));
 
             foreach ($directoryIterator as $testFile) {
                 if ($testFile->isDir()) {
