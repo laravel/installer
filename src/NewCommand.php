@@ -151,12 +151,14 @@ class NewCommand extends Command
             }
         }
 
-        if (! $input->getOption('phpunit') && ! $input->getOption('pest')) {
-            $input->setOption('pest', select(
-                label: 'Which testing framework do you prefer?',
-                options: ['Pest', 'PHPUnit'],
-                default: 'Pest',
-            ) === 'Pest');
+        if ($this->usingLaravelStarterKit($input) || ! $input->getOption('using')) {
+            if (! $input->getOption('phpunit') && ! $input->getOption('pest')) {
+                $input->setOption('pest', select(
+                    label: 'Which testing framework do you prefer?',
+                    options: ['Pest', 'PHPUnit'],
+                    default: 'Pest',
+                ) === 'Pest');
+            }
         }
     }
 
@@ -240,9 +242,15 @@ class NewCommand extends Command
 
         $commands = [
             $createProjectCommand,
-            $composer." run post-root-package-install -d \"$directory\"",
-            $phpBinary." \"$directory/artisan\" key:generate --ansi",
         ];
+
+        if ($this->usingLaravelStarterKit($input)) {
+            $commands = [
+                ...$commands,
+                $composer." run post-root-package-install -d \"$directory\"",
+                $phpBinary." \"$directory/artisan\" key:generate --ansi",
+            ];
+        }
 
         if ($directory != '.' && $input->getOption('force')) {
             if (PHP_OS_FAMILY == 'Windows') {
@@ -256,7 +264,7 @@ class NewCommand extends Command
             $commands[] = "chmod 755 \"$directory/artisan\"";
         }
 
-        if (($process = $this->runCommands($commands, $input, $output))->isSuccessful()) {
+        if (($process = $this->runCommands($commands, $input, $output))->isSuccessful() && $this->usingLaravelStarterKit($input)) {
             if ($name !== '.') {
                 $this->replaceInFile(
                     'APP_URL=http://localhost',
