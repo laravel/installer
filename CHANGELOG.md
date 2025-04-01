@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.14.1...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.14.2...master)
+
+## [v5.14.2](https://github.com/laravel/installer/compare/v5.14.1...v5.14.2) - 2025-04-01
+
+* [5.x] Only open files in the tests directory when converting to Pest by [@tonysm](https://github.com/tonysm) in https://github.com/laravel/installer/pull/414
 
 ## [v5.14.1](https://github.com/laravel/installer/compare/v5.14.0...v5.14.1) - 2025-03-18
 
