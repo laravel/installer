@@ -832,7 +832,7 @@ class NewCommand extends Command
             return 'dev-master';
         }
 
-        return ''; # Default to the latest stable version
+        return ''; // Default to the latest stable version
     }
 
     /**
