@@ -557,7 +557,7 @@ class NewCommand extends Command
     /**
      * Validate the database driver input.
      *
-     * @param  \Symfony\Components\Console\Input\InputInterface $input
+     * @param  \Symfony\Components\Console\Input\InputInterface  $input
      */
     protected function validateDatabaseOption(InputInterface $input)
     {
@@ -752,7 +752,7 @@ class NewCommand extends Command
     /**
      * Get the starter kit repository, if any.
      *
-     * @param \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @return string|null
      */
     protected function getStarterKit(InputInterface $input): ?string
@@ -768,7 +768,7 @@ class NewCommand extends Command
     /**
      * Determine if a Laravel first-party starter kit has been chosen.
      *
-     * @param \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @return bool
      */
     protected function usingLaravelStarterKit(InputInterface $input): bool
