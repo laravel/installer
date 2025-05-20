@@ -260,7 +260,7 @@ class NewCommand extends Command
             if ($name !== '.') {
                 $this->replaceInFile(
                     'APP_URL=http://localhost',
-                    'APP_URL='.$this->generateAppUrl($name),
+                    'APP_URL='.$this->generateAppUrl($name, $directory),
                     $directory.'/.env'
                 );
 
@@ -323,7 +323,7 @@ class NewCommand extends Command
             }
 
             if ($this->isParkedOnHerdOrValet($directory)) {
-                $url = $this->generateAppUrl($name);
+                $url = $this->generateAppUrl($name, $directory);
                 $output->writeln('<fg=gray>➜</> Open: <options=bold;href='.$url.'>'.$url.'</>');
             } else {
                 $output->writeln('<fg=gray>➜</> <options=bold>composer run dev</>');
@@ -740,10 +740,15 @@ class NewCommand extends Command
      * Generate a valid APP_URL for the given application name.
      *
      * @param  string  $name
+     * @param  string  $directory
      * @return string
      */
-    protected function generateAppUrl($name)
+    protected function generateAppUrl($name, $directory)
     {
+        if (! $this->isParkedOnHerdOrValet($directory)) {
+            return 'http://localhost:8000';
+        }
+
         $hostname = mb_strtolower($name).'.'.$this->getTld();
 
         return $this->canResolveHostname($hostname) ? 'http://'.$hostname : 'http://localhost';
