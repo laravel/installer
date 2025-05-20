@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.14.2...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.15.0...master)
+
+## [v5.15.0](https://github.com/laravel/installer/compare/v5.14.2...v5.15.0) - 2025-05-20
+
+* add missing variable name to doc tags and missing doc tags to methods by [@Muetze42](https://github.com/Muetze42) in https://github.com/laravel/installer/pull/420
 
 ## [v5.14.2](https://github.com/laravel/installer/compare/v5.14.1...v5.14.2) - 2025-04-01
 
