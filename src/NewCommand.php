@@ -509,7 +509,7 @@ class NewCommand extends Command
             $databaseOptions = $this->databaseOptions()
         )->keys()->first();
 
-        if ($this->usingStarterKit($input)) {
+        if (! $input->getOption('database') && $this->usingStarterKit($input)) {
             // Starter kits will already be migrated in post composer create-project command...
             $migrate = false;
 
