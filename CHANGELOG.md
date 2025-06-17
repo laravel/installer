@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.15.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.16.0...master)
+
+## [v5.16.0](https://github.com/laravel/installer/compare/v5.15.0...v5.16.0) - 2025-06-17
+
+* fix: Starter kits should not ignore the `--database` option by [@mathiasgrimm](https://github.com/mathiasgrimm) in https://github.com/laravel/installer/pull/422
 
 ## [v5.15.0](https://github.com/laravel/installer/compare/v5.14.2...v5.15.0) - 2025-05-20
 
