@@ -853,22 +853,22 @@ class NewCommand extends Command
             'bun' => [
                 'name' => 'bun',
                 'installCommand' => 'bun install',
-                'buildCommand' => 'bun run build'
+                'buildCommand' => 'bun run build',
             ],
             'pnpm' => [
                 'name' => 'pnpm',
                 'installCommand' => 'pnpm install',
-                'buildCommand' => 'pnpm run build'
+                'buildCommand' => 'pnpm run build',
             ],
             'yarn' => [
                 'name' => 'yarn',
                 'installCommand' => 'yarn install',
-                'buildCommand' => 'yarn build'
+                'buildCommand' => 'yarn build',
             ],
             default => [
                 'name' => 'npm',
                 'installCommand' => 'npm install',
-                'buildCommand' => 'npm run build'
+                'buildCommand' => 'npm run build',
             ]
         };
     }
