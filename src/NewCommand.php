@@ -58,6 +58,7 @@ class NewCommand extends Command
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Install the Pest testing framework')
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Install the PHPUnit testing framework')
             ->addOption('npm', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies')
+            ->addOption('node', null, InputOption::VALUE_NONE, 'Install and build Node.js dependencies')
             ->addOption('using', null, InputOption::VALUE_OPTIONAL, 'Install a custom starter kit from a community maintained package')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
@@ -303,23 +304,32 @@ class NewCommand extends Command
                 $output->writeln('');
             }
 
-            $runNpm = $input->getOption('npm');
+            $runNpm = $input->getOption('npm') || $input->getOption('node');
 
-            if (! $input->getOption('npm') && $input->isInteractive()) {
+            if (! $input->getOption('npm') && ! $input->getOption('node') && $input->isInteractive()) {
+                $packageManager = $this->getPackageManagerCommands($directory);
+                $installCommand = $packageManager['installCommand'];
+                $buildCommand = $packageManager['buildCommand'];
                 $runNpm = confirm(
-                    label: 'Would you like to run <options=bold>npm install</> and <options=bold>npm run build</>?'
+                    label: "Would you like to run <options=bold>{$installCommand}</> and <options=bold>{$buildCommand}</>?"
                 );
             }
 
             if ($runNpm) {
-                $this->runCommands(['npm install', 'npm run build'], $input, $output, workingPath: $directory);
+                $packageManager = $input->getOption('npm') ? 'npm' : null;
+                $packageManager = $this->getPackageManagerCommands($directory, $packageManager);
+                $this->runCommands([$packageManager['installCommand'], $packageManager['buildCommand']], $input, $output, workingPath: $directory);
             }
 
             $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:".PHP_EOL);
             $output->writeln('<fg=gray>➜</> <options=bold>cd '.$name.'</>');
 
             if (! $runNpm) {
-                $output->writeln('<fg=gray>➜</> <options=bold>npm install && npm run build</>');
+                $packageManager = $input->getOption('npm') ? 'npm' : null;
+                $packageManager = $this->getPackageManagerCommands($directory, $packageManager);
+                $installCommand = $packageManager['installCommand'];
+                $buildCommand = $packageManager['buildCommand'];
+                $output->writeln("<fg=gray>➜</> <options=bold>{$installCommand} && {$buildCommand}</>");
             }
 
             if ($this->isParkedOnHerdOrValet($directory)) {
@@ -812,6 +822,51 @@ class NewCommand extends Command
     protected function canResolveHostname($hostname)
     {
         return gethostbyname($hostname.'.') !== $hostname.'.';
+    }
+
+    /**
+     * Get package manager commands based on lock files present.
+     *
+     * @param  string  $directory
+     * @param  string|null  $packageManager
+     * @return array{name: string, installCommand: string, buildCommand: string}
+     */
+    protected function getPackageManagerCommands(string $directory, ?string $packageManager = null): array
+    {
+        if (! $packageManager) {
+            if (file_exists($directory.'/bun.lockb')) {
+                $packageManager = 'bun';
+            } elseif (file_exists($directory.'/pnpm-lock.yaml')) {
+                $packageManager = 'pnpm';
+            } elseif (file_exists($directory.'/yarn.lock')) {
+                $packageManager = 'yarn';
+            } else {
+                $packageManager = 'npm';
+            }
+        }
+
+        return match ($packageManager) {
+            'bun' => [
+                'name' => 'bun',
+                'installCommand' => 'bun install',
+                'buildCommand' => 'bun run build'
+            ],
+            'pnpm' => [
+                'name' => 'pnpm',
+                'installCommand' => 'pnpm install',
+                'buildCommand' => 'pnpm run build'
+            ],
+            'yarn' => [
+                'name' => 'yarn',
+                'installCommand' => 'yarn install',
+                'buildCommand' => 'yarn build'
+            ],
+            default => [
+                'name' => 'npm',
+                'installCommand' => 'npm install',
+                'buildCommand' => 'npm run build'
+            ]
+        };
     }
 
     /**
