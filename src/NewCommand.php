@@ -837,7 +837,7 @@ class NewCommand extends Command
             $lockFiles = [
                 'bun.lockb' => 'bun',
                 'pnpm-lock.yaml' => 'pnpm',
-                'yarn.lock' => 'yarn'
+                'yarn.lock' => 'yarn',
             ];
 
             $packageManager = 'npm';
