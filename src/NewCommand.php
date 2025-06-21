@@ -834,14 +834,18 @@ class NewCommand extends Command
     protected function getPackageManagerCommands(string $directory, ?string $packageManager = null): array
     {
         if (! $packageManager) {
-            if (file_exists($directory.'/bun.lockb')) {
-                $packageManager = 'bun';
-            } elseif (file_exists($directory.'/pnpm-lock.yaml')) {
-                $packageManager = 'pnpm';
-            } elseif (file_exists($directory.'/yarn.lock')) {
-                $packageManager = 'yarn';
-            } else {
-                $packageManager = 'npm';
+            $lockFiles = [
+                'bun.lockb' => 'bun',
+                'pnpm-lock.yaml' => 'pnpm',
+                'yarn.lock' => 'yarn'
+            ];
+
+            $packageManager = 'npm';
+            foreach ($lockFiles as $file => $manager) {
+                if (file_exists($directory.'/'.$file)) {
+                    $packageManager = $manager;
+                    break;
+                }
             }
         }
 
