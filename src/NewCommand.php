@@ -26,7 +26,7 @@ class NewCommand extends Command
     use Concerns\ConfiguresPrompts;
     use Concerns\InteractsWithHerdOrValet;
 
-    const DATABASE_DRIVERS = ['mysql', 'mariadb', 'pgsql', 'sqlite', 'sqlsrv'];
+    public const DATABASE_DRIVERS = ['mysql', 'mariadb', 'pgsql', 'sqlite', 'sqlsrv'];
 
     /**
      * The Composer instance.
@@ -47,6 +47,7 @@ class NewCommand extends Command
             ->setDescription('Create a new Laravel application')
             ->addArgument('name', InputArgument::REQUIRED)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Install the latest "development" release')
+            ->addOption('ver', null, InputOption::VALUE_REQUIRED, 'Specify Laravel version to install (e.g., ^10.0, ^11.0, 10.48.0)')
             ->addOption('git', null, InputOption::VALUE_NONE, 'Initialize a Git repository')
             ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'The branch that should be created for a new repository', $this->defaultBranch())
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
@@ -67,8 +68,6 @@ class NewCommand extends Command
     /**
      * Interact with the user before validating the input.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
     protected function interact(InputInterface $input, OutputInterface $output)
@@ -111,6 +110,38 @@ class NewCommand extends Command
             $this->verifyApplicationDoesntExist(
                 $this->getInstallationDirectory($input->getArgument('name'))
             );
+        }
+
+        if (! $input->getOption('ver') && ! $input->getOption('dev') && ! $this->usingStarterKit($input) && $input->isInteractive()) {
+            $versionChoice = select(
+                label: 'Which Laravel version would you like to install?',
+                options: [
+                    'latest' => 'Latest stable version',
+                    '^11.0' => 'Laravel 11.x (latest)',
+                    '^10.0' => 'Laravel 10.x',
+                    '^9.0' => 'Laravel 9.x',
+                    'custom' => 'Specify custom version',
+                ],
+                default: 'latest',
+            );
+
+            if ($versionChoice === 'custom') {
+                $customVersion = text(
+                    label: 'Enter Laravel version (e.g., ^10.0, 10.48.0, dev-master)',
+                    placeholder: 'E.g. ^10.0',
+                    required: 'Version is required when using custom option.',
+                    validate: function ($value) {
+                        if (empty(trim($value))) {
+                            return 'Version cannot be empty.';
+                        }
+
+                        return null;
+                    }
+                );
+                $input->setOption('ver', $customVersion);
+            } elseif ($versionChoice !== 'latest') {
+                $input->setOption('ver', $versionChoice);
+            }
         }
 
         if (! $this->usingStarterKit($input)) {
@@ -165,9 +196,6 @@ class NewCommand extends Command
     /**
      * Ensure that the required PHP extensions are installed.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-     * @return void
      *
      * @throws \RuntimeException
      */
@@ -196,10 +224,6 @@ class NewCommand extends Command
 
     /**
      * Execute the command.
-     *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-     * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -209,13 +233,15 @@ class NewCommand extends Command
 
         $directory = $this->getInstallationDirectory($name);
 
-        $this->composer = new Composer(new Filesystem(), $directory);
+        $this->composer = new Composer(new Filesystem, $directory);
 
         $version = $this->getVersion($input);
 
         if (! $input->getOption('force')) {
             $this->verifyApplicationDoesntExist($directory);
         }
+
+        $this->validateVersionOption($input);
 
         if ($input->getOption('force') && $directory === '.') {
             throw new RuntimeException('Cannot use --force option when using current directory for installation!');
@@ -317,7 +343,9 @@ class NewCommand extends Command
                 $this->runCommands(['npm install', 'npm run build'], $input, $output, workingPath: $directory);
             }
 
-            $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:".PHP_EOL);
+            // Display installed Laravel version
+            $installedVersion = $this->getInstalledLaravelVersion($directory);
+            $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</> with Laravel <options=bold>{$installedVersion}</>. You can start your local development using:".PHP_EOL);
             $output->writeln('<fg=gray>➜</> <options=bold>cd '.$name.'</>');
 
             if (! $runNpm) {
@@ -358,9 +386,6 @@ class NewCommand extends Command
     /**
      * Configure the default database connection.
      *
-     * @param  string  $directory
-     * @param  string  $database
-     * @param  string  $name
      * @return void
      */
     protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name)
@@ -427,9 +452,6 @@ class NewCommand extends Command
 
     /**
      * Determine if the application is using Laravel 11 or newer.
-     *
-     * @param  string  $directory
-     * @return bool
      */
     public function usingLaravelVersionOrNewer(int $usingVersion, string $directory): bool
     {
@@ -442,9 +464,6 @@ class NewCommand extends Command
 
     /**
      * Comment the irrelevant database configuration entries for SQLite applications.
-     *
-     * @param  string  $directory
-     * @return void
      */
     protected function commentDatabaseConfigurationForSqlite(string $directory): void
     {
@@ -472,7 +491,6 @@ class NewCommand extends Command
     /**
      * Uncomment the relevant database configuration entries for non SQLite applications.
      *
-     * @param  string  $directory
      * @return void
      */
     protected function uncommentDatabaseConfiguration(string $directory)
@@ -501,8 +519,6 @@ class NewCommand extends Command
     /**
      * Determine the default database connection.
      *
-     * @param  string  $directory
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @return array
      */
     protected function promptForDatabaseOptions(string $directory, InputInterface $input)
@@ -539,8 +555,6 @@ class NewCommand extends Command
 
     /**
      * Get the available database options.
-     *
-     * @return array
      */
     protected function databaseOptions(): array
     {
@@ -571,8 +585,6 @@ class NewCommand extends Command
     /**
      * Install Pest into the application.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
     protected function installPest(string $directory, InputInterface $input, OutputInterface $output)
@@ -633,9 +645,6 @@ class NewCommand extends Command
     /**
      * Create a Git repository and commit the base Laravel skeleton.
      *
-     * @param  string  $directory
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
     protected function createRepository(string $directory, InputInterface $input, OutputInterface $output)
@@ -655,10 +664,6 @@ class NewCommand extends Command
     /**
      * Commit any changes in the current working directory.
      *
-     * @param  string  $message
-     * @param  string  $directory
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
     protected function commitChanges(string $message, string $directory, InputInterface $input, OutputInterface $output)
@@ -678,10 +683,6 @@ class NewCommand extends Command
     /**
      * Create a GitHub repository and push the git log to it.
      *
-     * @param  string  $name
-     * @param  string  $directory
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
     protected function pushToGitHub(string $name, string $directory, InputInterface $input, OutputInterface $output)
@@ -707,9 +708,6 @@ class NewCommand extends Command
 
     /**
      * Configure the Composer "dev" script.
-     *
-     * @param  string  $directory
-     * @return void
      */
     protected function configureComposerDevScript(string $directory): void
     {
@@ -758,9 +756,6 @@ class NewCommand extends Command
 
     /**
      * Get the starter kit repository, if any.
-     *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @return string|null
      */
     protected function getStarterKit(InputInterface $input): ?string
     {
@@ -774,20 +769,16 @@ class NewCommand extends Command
 
     /**
      * Determine if a Laravel first-party starter kit has been chosen.
-     *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @return bool
      */
     protected function usingLaravelStarterKit(InputInterface $input): bool
     {
         return $this->usingStarterKit($input) &&
-               str_starts_with($this->getStarterKit($input), 'laravel/');
+            str_starts_with($this->getStarterKit($input), 'laravel/');
     }
 
     /**
      * Determine if a starter kit is being used.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @return bool
      */
     protected function usingStarterKit(InputInterface $input)
@@ -819,7 +810,6 @@ class NewCommand extends Command
     /**
      * Get the installation directory.
      *
-     * @param  string  $name
      * @return string
      */
     protected function getInstallationDirectory(string $name)
@@ -830,7 +820,6 @@ class NewCommand extends Command
     /**
      * Get the version that should be downloaded.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @return string
      */
     protected function getVersion(InputInterface $input)
@@ -839,7 +828,54 @@ class NewCommand extends Command
             return 'dev-master';
         }
 
+        if ($input->getOption('ver')) {
+            return $input->getOption('ver');
+        }
+
         return '';
+    }
+
+    /**
+     * Validate the version option.
+     *
+     *
+     * @throws \InvalidArgumentException
+     */
+    protected function validateVersionOption(InputInterface $input): void
+    {
+        $version = $input->getOption('ver');
+        $dev = $input->getOption('dev');
+
+        if ($version && $dev) {
+            throw new \InvalidArgumentException('Cannot use both --ver and --dev options simultaneously.');
+        }
+
+        if ($version && $this->usingStarterKit($input)) {
+            $output = $input->hasParameterOption(['-v', '--verbose']) ? 'verbose' : 'normal';
+            if ($output === 'verbose') {
+                echo "  <fg=yellow>WARN</> Version option is ignored when using starter kits.\n";
+            }
+        }
+    }
+
+    /**
+     * Get the installed Laravel version from composer.json.
+     */
+    protected function getInstalledLaravelVersion(string $directory): string
+    {
+        $composerJsonPath = $directory.'/composer.json';
+
+        if (! file_exists($composerJsonPath)) {
+            return 'unknown';
+        }
+
+        $composerContent = json_decode(file_get_contents($composerJsonPath), true);
+
+        if (isset($composerContent['require']['laravel/framework'])) {
+            return $composerContent['require']['laravel/framework'];
+        }
+
+        return 'unknown';
     }
 
     /**
@@ -872,10 +908,6 @@ class NewCommand extends Command
      * Run the given commands.
      *
      * @param  array  $commands
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-     * @param  string|null  $workingPath
-     * @param  array  $env
      * @return \Symfony\Component\Process\Process
      */
     protected function runCommands($commands, InputInterface $input, OutputInterface $output, ?string $workingPath = null, array $env = [])
@@ -920,8 +952,6 @@ class NewCommand extends Command
     /**
      * Replace the given file.
      *
-     * @param  string  $replace
-     * @param  string  $file
      * @return void
      */
     protected function replaceFile(string $replace, string $file)
@@ -937,9 +967,6 @@ class NewCommand extends Command
     /**
      * Replace the given string in the given file.
      *
-     * @param  string|array  $search
-     * @param  string|array  $replace
-     * @param  string  $file
      * @return void
      */
     protected function replaceInFile(string|array $search, string|array $replace, string $file)
@@ -955,7 +982,6 @@ class NewCommand extends Command
      *
      * @param  string|array  $search
      * @param  string|array  $replace
-     * @param  string  $file
      * @return void
      */
     protected function pregReplaceInFile(string $pattern, string $replace, string $file)
@@ -969,7 +995,6 @@ class NewCommand extends Command
     /**
      * Delete the given file.
      *
-     * @param  string  $file
      * @return void
      */
     protected function deleteFile(string $file)
