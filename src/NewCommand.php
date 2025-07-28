@@ -47,6 +47,7 @@ class NewCommand extends Command
             ->setDescription('Create a new Laravel application')
             ->addArgument('name', InputArgument::REQUIRED)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Install the latest "development" release')
+            ->addOption('ver', null, InputOption::VALUE_REQUIRED, 'Specify Laravel version to install (e.g., ^10.0, ^11.0, 10.48.0)')
             ->addOption('git', null, InputOption::VALUE_NONE, 'Initialize a Git repository')
             ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'The branch that should be created for a new repository', $this->defaultBranch())
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
@@ -113,6 +114,37 @@ class NewCommand extends Command
             );
         }
 
+        if (! $input->getOption('ver') && ! $input->getOption('dev') && ! $this->usingStarterKit($input) && $input->isInteractive()) {
+            $versionChoice = select(
+                label: 'Which Laravel version would you like to install?',
+                options: [
+                    'latest' => 'Latest stable version',
+                    '^11.0' => 'Laravel 11.x (latest)',
+                    '^10.0' => 'Laravel 10.x',
+                    '^9.0' => 'Laravel 9.x',
+                    'custom' => 'Specify custom version',
+                ],
+                default: 'latest',
+    );
+
+            if ($versionChoice === 'custom') {
+                $customVersion = text(
+                    label: 'Enter Laravel version (e.g., ^10.0, 10.48.0, dev-master)',
+                    placeholder: 'E.g. ^10.0',
+                    required: 'Version is required when using custom option.',
+                    validate: function ($value) {
+                        if (empty(trim($value))) {
+                            return 'Version cannot be empty.';
+                        }
+                        return null;
+                    }
+                );
+                $input->setOption('ver', $customVersion);
+            } elseif ($versionChoice !== 'latest') {
+                $input->setOption('ver', $versionChoice);
+            }
+        }
+
         if (! $this->usingStarterKit($input)) {
             match (select(
                 label: 'Which starter kit would you like to install?',
@@ -155,9 +187,9 @@ class NewCommand extends Command
 
         if (! $input->getOption('phpunit') && ! $input->getOption('pest')) {
             $input->setOption('pest', select(
-                label: 'Which testing framework do you prefer?',
-                options: ['Pest', 'PHPUnit'],
-                default: 'Pest',
+                    label: 'Which testing framework do you prefer?',
+                    options: ['Pest', 'PHPUnit'],
+                    default: 'Pest',
             ) === 'Pest');
         }
     }
@@ -216,6 +248,8 @@ class NewCommand extends Command
         if (! $input->getOption('force')) {
             $this->verifyApplicationDoesntExist($directory);
         }
+
+        $this->validateVersionOption($input);
 
         if ($input->getOption('force') && $directory === '.') {
             throw new RuntimeException('Cannot use --force option when using current directory for installation!');
@@ -317,7 +351,9 @@ class NewCommand extends Command
                 $this->runCommands(['npm install', 'npm run build'], $input, $output, workingPath: $directory);
             }
 
-            $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:".PHP_EOL);
+            // Display installed Laravel version
+            $installedVersion = $this->getInstalledLaravelVersion($directory);
+            $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</> with Laravel <options=bold>{$installedVersion}</>. You can start your local development using:".PHP_EOL);
             $output->writeln('<fg=gray>➜</> <options=bold>cd '.$name.'</>');
 
             if (! $runNpm) {
@@ -781,7 +817,7 @@ class NewCommand extends Command
     protected function usingLaravelStarterKit(InputInterface $input): bool
     {
         return $this->usingStarterKit($input) &&
-               str_starts_with($this->getStarterKit($input), 'laravel/');
+            str_starts_with($this->getStarterKit($input), 'laravel/');
     }
 
     /**
@@ -839,7 +875,59 @@ class NewCommand extends Command
             return 'dev-master';
         }
 
+        if ($input->getOption('ver')) {
+            return $input->getOption('ver');
+        }
+
         return '';
+    }
+
+    /**
+     * Validate the version option.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @return void
+     *
+     * @throws \InvalidArgumentException
+     */
+    protected function validateVersionOption(InputInterface $input): void
+    {
+        $version = $input->getOption('ver');
+        $dev = $input->getOption('dev');
+
+        if ($version && $dev) {
+            throw new \InvalidArgumentException('Cannot use both --ver and --dev options simultaneously.');
+        }
+
+        if ($version && $this->usingStarterKit($input)) {
+            $output = $input->hasParameterOption(['-v', '--verbose']) ? 'verbose' : 'normal';
+            if ($output === 'verbose') {
+                echo "  <fg=yellow>WARN</> Version option is ignored when using starter kits.\n";
+            }
+        }
+    }
+
+    /**
+     * Get the installed Laravel version from composer.json.
+     *
+     * @param  string  $directory
+     * @return string
+     */
+    protected function getInstalledLaravelVersion(string $directory): string
+    {
+        $composerJsonPath = $directory.'/composer.json';
+
+        if (! file_exists($composerJsonPath)) {
+            return 'unknown';
+        }
+
+        $composerContent = json_decode(file_get_contents($composerJsonPath), true);
+
+        if (isset($composerContent['require']['laravel/framework'])) {
+            return $composerContent['require']['laravel/framework'];
+        }
+
+        return 'unknown';
     }
 
     /**
