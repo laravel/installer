@@ -240,7 +240,7 @@ class NewCommand extends Command
             }
         }
 
-        $createProjectCommand.=' --no-scripts';
+        $createProjectCommand .= ' --no-scripts';
 
         $commands = [
             $createProjectCommand,
