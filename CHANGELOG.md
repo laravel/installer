@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.16.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.17.0...master)
+
+## [v5.17.0](https://github.com/laravel/installer/compare/v5.16.0...v5.17.0) - 2025-08-07
+
+* List possible values for database driver by [@dmarcoux](https://github.com/dmarcoux) in https://github.com/laravel/installer/pull/426
 
 ## [v5.16.0](https://github.com/laravel/installer/compare/v5.15.0...v5.16.0) - 2025-06-17
 
