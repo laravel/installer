@@ -245,7 +245,7 @@ class NewCommand extends Command
             }
 
             if (!$this->usingLaravelStarterKit($input) && str_contains($starterKit, '://')) {
-                $createProjectCommand = "git clone --depth=1 ".$starterKit." \"".$directory."\" && cd \"".$directory."\" && rm -rf .git && composer install";
+                $createProjectCommand = "npx tiged@latest ".$starterKit." \"".$directory."\" && cd \"".$directory."\" && composer install";
             }
         }
 
