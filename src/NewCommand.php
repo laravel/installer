@@ -244,8 +244,8 @@ class NewCommand extends Command
                 $createProjectCommand = str_replace(" {$starterKit} ", " {$starterKit}:dev-workos ", $createProjectCommand);
             }
 
-            if (!$this->usingLaravelStarterKit($input) && str_contains($starterKit, '://')) {
-                $createProjectCommand = "npx tiged@latest ".$starterKit." \"".$directory."\" && cd \"".$directory."\" && composer install";
+            if (! $this->usingLaravelStarterKit($input) && str_contains($starterKit, '://')) {
+                $createProjectCommand = 'npx tiged@latest '.$starterKit.' "'.$directory.'" && cd "'.$directory.'" && composer install';
             }
         }
 
