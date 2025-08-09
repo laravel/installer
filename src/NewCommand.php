@@ -310,12 +310,12 @@ class NewCommand extends Command
                 $output->writeln('');
             }
 
-            $packageInstall = "npm install";
+            $packageInstall = 'npm install';
 
             if (file_exists($directory.'/pnpm-lock.yaml')) {
-                $packageInstall = "pnpm install";
-            } else if (file_exists($directory.'/yarn.lock')) {
-                $packageInstall = "yarn install";
+                $packageInstall = 'pnpm install';
+            } elseif (file_exists($directory.'/yarn.lock')) {
+                $packageInstall = 'yarn install';
             }
 
             $runNpm = $input->getOption('npm');
