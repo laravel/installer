@@ -310,23 +310,31 @@ class NewCommand extends Command
                 $output->writeln('');
             }
 
+            $packageInstall = 'npm install';
+
+            if (file_exists($directory.'/pnpm-lock.yaml')) {
+                $packageInstall = 'pnpm install';
+            } elseif (file_exists($directory.'/yarn.lock')) {
+                $packageInstall = 'yarn install';
+            }
+
             $runNpm = $input->getOption('npm');
 
             if (! $input->getOption('npm') && $input->isInteractive()) {
                 $runNpm = confirm(
-                    label: 'Would you like to run <options=bold>npm install</> and <options=bold>npm run build</>?'
+                    label: 'Would you like to run <options=bold>'.$packageInstall.'</> and <options=bold>npm run build</>?'
                 );
             }
 
             if ($runNpm) {
-                $this->runCommands(['npm install', 'npm run build'], $input, $output, workingPath: $directory);
+                $this->runCommands([$packageInstall, 'npm run build'], $input, $output, workingPath: $directory);
             }
 
             $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:".PHP_EOL);
             $output->writeln('<fg=gray>➜</> <options=bold>cd '.$name.'</>');
 
             if (! $runNpm) {
-                $output->writeln('<fg=gray>➜</> <options=bold>npm install && npm run build</>');
+                $output->writeln('<fg=gray>➜</> <options=bold>'.$packageInstall.' && npm run build</>');
             }
 
             if ($this->isParkedOnHerdOrValet($directory)) {
