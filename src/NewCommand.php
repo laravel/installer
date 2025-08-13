@@ -57,7 +57,6 @@ class NewCommand extends Command
             ->addOption('livewire', null, InputOption::VALUE_NONE, 'Install the Livewire Starter Kit')
             ->addOption('livewire-class-components', null, InputOption::VALUE_NONE, 'Generate stand-alone Livewire class components')
             ->addOption('workos', null, InputOption::VALUE_NONE, 'Use WorkOS for authentication')
-            ->addOption('no-authentication', null, InputOption::VALUE_NONE, 'Do not generate authentication scaffolding')
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Install the Pest testing framework')
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Install the PHPUnit testing framework')
             ->addOption('npm', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies')
@@ -137,20 +136,16 @@ class NewCommand extends Command
                     options: [
                         'laravel' => "Laravel's built-in authentication",
                         'workos' => 'WorkOS (Requires WorkOS account)',
-                        'none' => 'No authentication scaffolding',
                     ],
                     default: 'laravel',
                 )) {
                     'laravel' => $input->setOption('workos', false),
                     'workos' => $input->setOption('workos', true),
-                    'none' => $input->setOption('no-authentication', true),
                     default => null,
                 };
             }
 
-            if ($input->getOption('livewire') &&
-                ! $input->getOption('workos') &&
-                ! $input->getOption('no-authentication')) {
+            if ($input->getOption('livewire') && ! $input->getOption('workos')) {
                 $input->setOption('livewire-class-components', ! confirm(
                     label: 'Would you like to use Laravel Volt?',
                     default: true,
@@ -781,15 +776,6 @@ class NewCommand extends Command
      */
     protected function getStarterKit(InputInterface $input): ?string
     {
-        if ($input->getOption('no-authentication')) {
-            return match (true) {
-                $input->getOption('react') => 'laravel/blank-react-starter-kit',
-                $input->getOption('vue') => 'laravel/blank-vue-starter-kit',
-                $input->getOption('livewire') => 'laravel/blank-livewire-starter-kit',
-                default => $input->getOption('using'),
-            };
-        }
-
         return match (true) {
             $input->getOption('react') => 'laravel/react-starter-kit',
             $input->getOption('vue') => 'laravel/vue-starter-kit',
