@@ -928,7 +928,7 @@ class NewCommand extends Command
 
         $process = Process::fromShellCommandline(implode(' && ', $commands), $workingPath, $env, null, null);
 
-        if ('\\' !== DIRECTORY_SEPARATOR && file_exists('/dev/tty') && is_readable('/dev/tty')) {
+        if (Process::isTtySupported()) {
             try {
                 $process->setTty(true);
             } catch (RuntimeException $e) {
