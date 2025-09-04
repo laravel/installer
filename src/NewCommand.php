@@ -908,7 +908,7 @@ class NewCommand extends Command
     {
         if (! $output->isDecorated()) {
             $commands = array_map(function ($value) {
-                if (Str::startsWith($value, ['chmod', 'git', $this->phpBinary().' ./vendor/bin/pest'])) {
+                if (Str::startsWith($value, ['chmod', 'rm', 'git', $this->phpBinary().' ./vendor/bin/pest'])) {
                     return $value;
                 }
 
@@ -918,7 +918,7 @@ class NewCommand extends Command
 
         if ($input->getOption('quiet')) {
             $commands = array_map(function ($value) {
-                if (Str::startsWith($value, ['chmod', 'git', $this->phpBinary().' ./vendor/bin/pest'])) {
+                if (Str::startsWith($value, ['chmod', 'rm', 'git', $this->phpBinary().' ./vendor/bin/pest'])) {
                     return $value;
                 }
 
