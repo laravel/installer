@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.17.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.18.0...master)
+
+## [v5.18.0](https://github.com/laravel/installer/compare/v5.17.0...v5.18.0) - 2025-09-23
+
+* Support pnpm and yarn package managers by [@adrum](https://github.com/adrum) in https://github.com/laravel/installer/pull/433
+* Add the ability to use a git repo as custom kit by [@adrum](https://github.com/adrum) in https://github.com/laravel/installer/pull/432
+* Don't pass --no-ansi to rm, properly check if output is a TTY by [@stancl](https://github.com/stancl) in https://github.com/laravel/installer/pull/437
 
 ## [v5.17.0](https://github.com/laravel/installer/compare/v5.16.0...v5.17.0) - 2025-08-07
 
