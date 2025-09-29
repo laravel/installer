@@ -228,7 +228,7 @@ class NewCommand extends Command
             return;
         }
 
-        $output->writeln("  <bg=yellow;fg=black> WARN </> A new version of the Laravel Installer is available. You have version {$version} installed, the latest version is {$latestVersion}.");
+        $output->writeln("  <bg=yellow;fg=black> WARN </> A new version of the Laravel installer is available. You have version {$version} installed, the latest version is {$latestVersion}.");
 
         $laravelInstallerPath = (new ExecutableFinder())->find('laravel') ?? '';
         $isHerd = str_contains($laravelInstallerPath, DIRECTORY_SEPARATOR.'Herd'.DIRECTORY_SEPARATOR);
