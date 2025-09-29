@@ -236,12 +236,14 @@ class NewCommand extends Command
         $isHerdLite = str_contains($laravelInstallerPath, DIRECTORY_SEPARATOR.'herd-lite'.DIRECTORY_SEPARATOR);
 
         if ($isHerd) {
-            return $this->confirmUpdateAndContinue(
+            $this->confirmUpdateAndContinue(
                 'To update, open <options=bold>Herd</> > <options=bold>Settings</> > <options=bold>PHP</> > <options=bold>Laravel Installer</> '
                     .'and click the <options=bold>"Update"</> button.',
                 $input,
                 $output
             );
+
+            return;
         }
 
         if ($isHerdLite) {
@@ -253,7 +255,9 @@ class NewCommand extends Command
                 default => '/bin/bash -c "$(curl -fsSL https://php.new/install/linux)"',
             };
 
-            return $this->confirmUpdateAndContinue($message, $input, $output);
+            $this->confirmUpdateAndContinue($message, $input, $output);
+
+            return;
         }
 
         if (confirm(label: 'Would you like to update now?')) {
@@ -295,7 +299,7 @@ class NewCommand extends Command
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
-    protected function proxyLaravelNew(InputInterface $input, OutputInterface $output)
+    protected function proxyLaravelNew(InputInterface $input, OutputInterface $output): void
     {
         $output->writeln('');
         $this->runCommands(['laravel '.$input], $input, $output, workingPath: getcwd());
