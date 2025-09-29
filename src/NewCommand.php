@@ -14,6 +14,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Process\ExecutableFinder;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 use Throwable;
@@ -229,14 +230,77 @@ class NewCommand extends Command
 
         $output->writeln("  <bg=yellow;fg=black> WARN </> A new version of the Laravel Installer is available. You have version {$version} installed, the latest version is {$latestVersion}.");
 
-        $shouldUpdate = confirm(
-            label: 'Would you like to update now?'
-        );
+        $laravelInstallerPath = (new ExecutableFinder())->find('laravel') ?? '';
+        $isHerd = str_contains($laravelInstallerPath, DIRECTORY_SEPARATOR.'Herd'.DIRECTORY_SEPARATOR);
+        // Intalled via php.new
+        $isHerdLite = str_contains($laravelInstallerPath, DIRECTORY_SEPARATOR.'herd-lite'.DIRECTORY_SEPARATOR);
 
-        if ($shouldUpdate) {
-            $this->runCommands(['composer global update laravel/installer'], $input, $output);
-            $output->writeln('');
+        if ($isHerd) {
+            return $this->confirmUpdateAndContinue(
+                "To update, open <options=bold>Herd</> > <options=bold>Settings</> > <options=bold>PHP</> > <options=bold>Laravel Installer</> "
+                    ."and click the <options=bold>\"Update\"</> button.",
+                $input,
+                $output
+            );
         }
+
+        if ($isHerdLite) {
+            $message = match(PHP_OS_FAMILY) {
+                'Windows' => "Set-ExecutionPolicy Bypass -Scope Process -Force; "
+                    ."[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; "
+                    ."iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows'))",
+                'Darwin' => '/bin/bash -c "$(curl -fsSL https://php.new/install/mac)"',
+                default => '/bin/bash -c "$(curl -fsSL https://php.new/install/linux)"',
+            };
+
+           return $this->confirmUpdateAndContinue($message, $input, $output);
+        }
+
+        if (confirm(label: 'Would you like to update now?')) {
+            $this->runCommands(['composer global update laravel/installer'], $input, $output);
+            $this->proxyLaravelNew($input, $output);
+        }
+    }
+
+    /**
+     * Allow the user to update the Laravel installer and continue.
+     *
+     * @param  string  $message
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function confirmUpdateAndContinue(string $message, InputInterface $input, OutputInterface $output): void
+    {
+            $output->writeln("");
+            $output->writeln("  {$message}");
+
+            $updated = confirm(
+                label: 'Would you like to update now?',
+                yes: 'I have updated',
+                no: 'Not now',
+            );
+
+            if (!$updated) {
+                return;
+            }
+
+            $this->proxyLaravelNew($input, $output);
+    }
+
+
+    /**
+     * Proxy the command to the globally installed Laravel installer.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function proxyLaravelNew(InputInterface $input, OutputInterface $output)
+    {
+        $output->writeln('');
+        $this->runCommands(['laravel '.$input], $input, $output, workingPath: getcwd());
+        exit;
     }
 
     /**
@@ -275,7 +339,7 @@ class NewCommand extends Command
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HEADER => true,
             CURLOPT_HTTPHEADER => $headers,
-            CURLOPT_TIMEOUT => 10,
+            CURLOPT_TIMEOUT => 3,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_SSL_VERIFYPEER => true,
         ]);
