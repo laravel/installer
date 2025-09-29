@@ -245,7 +245,7 @@ class NewCommand extends Command
         }
 
         if ($isHerdLite) {
-            $message = match(PHP_OS_FAMILY) {
+            $message = match (PHP_OS_FAMILY) {
                 'Windows' => 'Set-ExecutionPolicy Bypass -Scope Process -Force; '
                     .'[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; '
                     ."iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows'))",
@@ -272,7 +272,7 @@ class NewCommand extends Command
      */
     protected function confirmUpdateAndContinue(string $message, InputInterface $input, OutputInterface $output): void
     {
-        $output->writeln("");
+        $output->writeln('');
         $output->writeln("  {$message}");
 
         $updated = confirm(
@@ -281,7 +281,7 @@ class NewCommand extends Command
             no: 'Not now',
         );
 
-        if (!$updated) {
+        if (! $updated) {
             return;
         }
 
