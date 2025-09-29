@@ -307,6 +307,7 @@ class NewCommand extends Command
 
         if ($httpCode === 304 && $cacheExists) {
             touch($cachedPath);
+            
             return file_get_contents($cachedPath);
         }
 
