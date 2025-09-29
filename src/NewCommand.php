@@ -228,7 +228,7 @@ class NewCommand extends Command
             return;
         }
 
-        $output->writeln("  <bg=yellow;fg=black> WARN </> A new version of the Laravel installer is available. You have version {$version} installed, the latest version is {$latestVersion}.");
+        $output->writeln("  <bg=yellow;fg=black> WARN </> A new version of the Laravel Installer is available. You have version {$version} installed, the latest version is {$latestVersion}.");
 
         $laravelInstallerPath = (new ExecutableFinder())->find('laravel') ?? '';
         $isHerd = str_contains($laravelInstallerPath, DIRECTORY_SEPARATOR.'Herd'.DIRECTORY_SEPARATOR);
@@ -263,7 +263,7 @@ class NewCommand extends Command
     }
 
     /**
-     * Allow the user to update the Laravel installer and continue.
+     * Allow the user to update the Laravel Installer and continue.
      *
      * @param  string  $message
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
@@ -290,7 +290,7 @@ class NewCommand extends Command
 
 
     /**
-     * Proxy the command to the globally installed Laravel installer.
+     * Proxy the command to the globally installed Laravel Installer.
      *
      * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @param  \Symfony\Component\Console\Output\OutputInterface  $output
