@@ -255,6 +255,9 @@ class NewCommand extends Command
                 default => '/bin/bash -c "$(curl -fsSL https://php.new/install/linux)"',
             };
 
+            $output->writeln('');
+            $output->writeln('  To update, run the following command in your terminal:');
+
             $this->confirmUpdateAndContinue($message, $input, $output);
 
             return;
