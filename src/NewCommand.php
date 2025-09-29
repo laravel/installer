@@ -288,7 +288,6 @@ class NewCommand extends Command
         $this->proxyLaravelNew($input, $output);
     }
 
-
     /**
      * Proxy the command to the globally installed Laravel Installer.
      *
