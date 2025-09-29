@@ -237,8 +237,8 @@ class NewCommand extends Command
 
         if ($isHerd) {
             return $this->confirmUpdateAndContinue(
-                "To update, open <options=bold>Herd</> > <options=bold>Settings</> > <options=bold>PHP</> > <options=bold>Laravel Installer</> "
-                    ."and click the <options=bold>\"Update\"</> button.",
+                'To update, open <options=bold>Herd</> > <options=bold>Settings</> > <options=bold>PHP</> > <options=bold>Laravel Installer</> '
+                    .'and click the <options=bold>"Update"</> button.',
                 $input,
                 $output
             );
@@ -246,14 +246,14 @@ class NewCommand extends Command
 
         if ($isHerdLite) {
             $message = match(PHP_OS_FAMILY) {
-                'Windows' => "Set-ExecutionPolicy Bypass -Scope Process -Force; "
-                    ."[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; "
+                'Windows' => 'Set-ExecutionPolicy Bypass -Scope Process -Force; '
+                    .'[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; '
                     ."iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows'))",
                 'Darwin' => '/bin/bash -c "$(curl -fsSL https://php.new/install/mac)"',
                 default => '/bin/bash -c "$(curl -fsSL https://php.new/install/linux)"',
             };
 
-           return $this->confirmUpdateAndContinue($message, $input, $output);
+            return $this->confirmUpdateAndContinue($message, $input, $output);
         }
 
         if (confirm(label: 'Would you like to update now?')) {
@@ -272,20 +272,20 @@ class NewCommand extends Command
      */
     protected function confirmUpdateAndContinue(string $message, InputInterface $input, OutputInterface $output): void
     {
-            $output->writeln("");
-            $output->writeln("  {$message}");
+        $output->writeln("");
+        $output->writeln("  {$message}");
 
-            $updated = confirm(
-                label: 'Would you like to update now?',
-                yes: 'I have updated',
-                no: 'Not now',
-            );
+        $updated = confirm(
+            label: 'Would you like to update now?',
+            yes: 'I have updated',
+            no: 'Not now',
+        );
 
-            if (!$updated) {
-                return;
-            }
+        if (!$updated) {
+            return;
+        }
 
-            $this->proxyLaravelNew($input, $output);
+        $this->proxyLaravelNew($input, $output);
     }
 
 
