@@ -14,9 +14,12 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Process\ExecutableFinder;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
+use Throwable;
 
+use function Illuminate\Filesystem\join_paths;
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
@@ -86,6 +89,8 @@ class NewCommand extends Command
   |______\__,_|_|  \__,_| \_/ \___|_|</>'.PHP_EOL.PHP_EOL);
 
         $this->ensureExtensionsAreAvailable($input, $output);
+
+        $this->checkForUpdate($input, $output);
 
         if (! $input->getArgument('name')) {
             $input->setArgument('name', text(
@@ -197,6 +202,192 @@ class NewCommand extends Command
         throw new \RuntimeException(
             sprintf('The following PHP extensions are required but are not installed: %s', $missingExtensions->join(', ', ', and '))
         );
+    }
+
+    /**
+     * Check for newer version of the installer package.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function checkForUpdate(InputInterface $input, OutputInterface $output)
+    {
+        $package = 'laravel/installer';
+        $version = $this->getApplication()->getVersion();
+        $versionData = $this->getLatestVersionData($package);
+
+        if ($versionData === false) {
+            return;
+        }
+
+        $data = json_decode($versionData, true);
+        $latestVersion = ltrim($data['packages'][$package][0]['version'], 'v');
+
+        if (version_compare($version, $latestVersion) !== -1) {
+            return;
+        }
+
+        $output->writeln("  <bg=yellow;fg=black> WARN </> A new version of the Laravel installer is available. You have version {$version} installed, the latest version is {$latestVersion}.");
+
+        $laravelInstallerPath = (new ExecutableFinder())->find('laravel') ?? '';
+        $isHerd = str_contains($laravelInstallerPath, DIRECTORY_SEPARATOR.'Herd'.DIRECTORY_SEPARATOR);
+        // Intalled via php.new
+        $isHerdLite = str_contains($laravelInstallerPath, DIRECTORY_SEPARATOR.'herd-lite'.DIRECTORY_SEPARATOR);
+
+        if ($isHerd) {
+            $this->confirmUpdateAndContinue(
+                'To update, open <options=bold>Herd</> > <options=bold>Settings</> > <options=bold>PHP</> > <options=bold>Laravel Installer</> '
+                    .'and click the <options=bold>"Update"</> button.',
+                $input,
+                $output
+            );
+
+            return;
+        }
+
+        if ($isHerdLite) {
+            $message = match (PHP_OS_FAMILY) {
+                'Windows' => 'Set-ExecutionPolicy Bypass -Scope Process -Force; '
+                    .'[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; '
+                    ."iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows'))",
+                'Darwin' => '/bin/bash -c "$(curl -fsSL https://php.new/install/mac)"',
+                default => '/bin/bash -c "$(curl -fsSL https://php.new/install/linux)"',
+            };
+
+            $output->writeln('');
+            $output->writeln('  To update, run the following command in your terminal:');
+
+            $this->confirmUpdateAndContinue($message, $input, $output);
+
+            return;
+        }
+
+        if (confirm(label: 'Would you like to update now?')) {
+            $this->runCommands(['composer global update laravel/installer'], $input, $output);
+            $this->proxyLaravelNew($input, $output);
+        }
+    }
+
+    /**
+     * Allow the user to update the Laravel Installer and continue.
+     *
+     * @param  string  $message
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function confirmUpdateAndContinue(string $message, InputInterface $input, OutputInterface $output): void
+    {
+        $output->writeln('');
+        $output->writeln("  {$message}");
+
+        $updated = confirm(
+            label: 'Would you like to update now?',
+            yes: 'I have updated',
+            no: 'Not now',
+        );
+
+        if (! $updated) {
+            return;
+        }
+
+        $this->proxyLaravelNew($input, $output);
+    }
+
+    /**
+     * Proxy the command to the globally installed Laravel Installer.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function proxyLaravelNew(InputInterface $input, OutputInterface $output): void
+    {
+        $output->writeln('');
+        $this->runCommands(['laravel '.$input], $input, $output, workingPath: getcwd());
+        exit;
+    }
+
+    /**
+     * Get the latest version of the installer package from Packagist.
+     *
+     * @param  string  $package
+     * @return string|false
+     */
+    protected function getLatestVersionData(string $package): string|false
+    {
+        $packagePrefix = str_replace('/', '-', $package);
+        $cachedPath = join_paths(sys_get_temp_dir(), $packagePrefix.'-version-check.json');
+        $lastModifiedPath = join_paths(sys_get_temp_dir(), $packagePrefix.'-last-modified');
+
+        $cacheExists = file_exists($cachedPath);
+        $lastModifiedExists = file_exists($lastModifiedPath);
+
+        $cacheLastWrittenAt = $cacheExists ? filemtime($cachedPath) : 0;
+        $lastModifiedResponse = $lastModifiedExists ? file_get_contents($lastModifiedPath) : null;
+
+        if ($cacheLastWrittenAt > time() - 86400) {
+            // Cache is less than 24 hours old, use it
+            return file_get_contents($cachedPath);
+        }
+
+        $curl = curl_init();
+
+        $headers = ['User-Agent: Laravel Installer'];
+
+        if ($lastModifiedResponse) {
+            $headers[] = "If-Modified-Since: {$lastModifiedResponse}";
+        }
+
+        curl_setopt_array($curl, [
+            CURLOPT_URL => "https://repo.packagist.org/p2/{$package}.json",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HEADER => true,
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_TIMEOUT => 3,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_SSL_VERIFYPEER => true,
+        ]);
+
+        try {
+            $response = curl_exec($curl);
+            $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+            $headerSize = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
+            $error = curl_error($curl);
+            curl_close($curl);
+        } catch (Throwable $e) {
+            return false;
+        }
+
+        if ($error) {
+            return false;
+        }
+
+        $responseHeaders = substr($response, 0, $headerSize);
+        $result = substr($response, $headerSize);
+
+        $lastModifiedFromResponse = null;
+
+        if (preg_match('/^Last-Modified:\s*(.+)$/mi', $responseHeaders, $matches)) {
+            $lastModifiedFromResponse = trim($matches[1]);
+        }
+
+        file_put_contents($lastModifiedPath, $lastModifiedFromResponse);
+
+        if ($httpCode === 304 && $cacheExists) {
+            touch($cachedPath);
+
+            return file_get_contents($cachedPath);
+        }
+
+        if ($httpCode === 200 && $result !== false) {
+            file_put_contents($cachedPath, $result);
+
+            return $result;
+        }
+
+        return ($cacheExists) ? file_get_contents($cachedPath) : false;
     }
 
     /**
