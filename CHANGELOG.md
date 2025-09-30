@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.18.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.19.0...master)
+
+## [v5.19.0](https://github.com/laravel/installer/compare/v5.18.0...v5.19.0) - 2025-09-30
+
+* Check for new version of installer on `new` by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/installer/pull/438
 
 ## [v5.18.0](https://github.com/laravel/installer/compare/v5.17.0...v5.18.0) - 2025-09-23
 
