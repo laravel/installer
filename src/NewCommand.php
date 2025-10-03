@@ -506,23 +506,29 @@ class NewCommand extends Command
             }
 
             $packageInstall = 'npm install';
+            $packageBuild = 'npm run build';
 
             if (file_exists($directory.'/pnpm-lock.yaml')) {
                 $packageInstall = 'pnpm install';
+                $packageBuild = 'pnpm run build';
             } elseif (file_exists($directory.'/yarn.lock')) {
                 $packageInstall = 'yarn install';
+                $packageBuild = 'yarn run build';
+            } elseif (file_exists($directory.'/bun.lock')) {
+                $packageInstall = 'bun install';
+                $packageBuild = 'bun run build';
             }
 
             $runNpm = $input->getOption('npm');
 
             if (! $input->getOption('npm') && $input->isInteractive()) {
                 $runNpm = confirm(
-                    label: 'Would you like to run <options=bold>'.$packageInstall.'</> and <options=bold>npm run build</>?'
+                    label: 'Would you like to run <options=bold>'.$packageInstall.'</> and <options=bold>'.$packageBuild.'</>?'
                 );
             }
 
             if ($runNpm) {
-                $this->runCommands([$packageInstall, 'npm run build'], $input, $output, workingPath: $directory);
+                $this->runCommands([$packageInstall, $packageBuild], $input, $output, workingPath: $directory);
             }
 
             $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:".PHP_EOL);
