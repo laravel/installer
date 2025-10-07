@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.19.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.20.0...master)
+
+## [v5.20.0](https://github.com/laravel/installer/compare/v5.19.0...v5.20.0) - 2025-10-07
+
+* feat: bun package install/build by [@ludo237](https://github.com/ludo237) in https://github.com/laravel/installer/pull/439
 
 ## [v5.19.0](https://github.com/laravel/installer/compare/v5.18.0...v5.19.0) - 2025-09-30
 
