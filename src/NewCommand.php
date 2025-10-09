@@ -21,6 +21,7 @@ use Throwable;
 
 use function Illuminate\Filesystem\join_paths;
 use function Laravel\Prompts\confirm;
+use function Laravel\Prompts\info;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
 
@@ -63,7 +64,10 @@ class NewCommand extends Command
             ->addOption('no-authentication', null, InputOption::VALUE_NONE, 'Do not generate authentication scaffolding')
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Install the Pest testing framework')
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Install the PHPUnit testing framework')
-            ->addOption('npm', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies')
+            ->addOption('npm', null, InputOption::VALUE_NONE, 'Install and build JavaScript dependencies via Npm')
+            ->addOption('bun', null, InputOption::VALUE_NONE, 'Install and build JavaScript dependencies via Bun')
+            ->addOption('yarn', null, InputOption::VALUE_NONE, 'Install and build JavaScript dependencies via Yarn')
+            ->addOption('pnpm', null, InputOption::VALUE_NONE, 'Install and build JavaScript dependencies via Pnpm')
             ->addOption('using', null, InputOption::VALUE_OPTIONAL, 'Install a custom starter kit from a community maintained package')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
@@ -399,6 +403,7 @@ class NewCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+
         $this->validateDatabaseOption($input);
 
         $name = rtrim($input->getArgument('name'), '/\\');
@@ -505,37 +510,53 @@ class NewCommand extends Command
                 $output->writeln('');
             }
 
-            $packageInstall = 'npm install';
-            $packageBuild = 'npm run build';
-
-            if (file_exists($directory.'/pnpm-lock.yaml')) {
-                $packageInstall = 'pnpm install';
-                $packageBuild = 'pnpm run build';
-            } elseif (file_exists($directory.'/yarn.lock')) {
-                $packageInstall = 'yarn install';
-                $packageBuild = 'yarn run build';
-            } elseif (file_exists($directory.'/bun.lock')) {
-                $packageInstall = 'bun install';
-                $packageBuild = 'bun run build';
+            $packageManagers = [
+                'npm' => ['install' => 'npm install', 'build' => 'npm run build'],
+                'yarn' => ['install' => 'yarn install', 'build' => 'yarn run build'],
+                'pnpm' => ['install' => 'pnpm install', 'build' => 'pnpm run build'],
+                'bun' => ['install' => 'bun install', 'build' => 'bun run build'],
+            ];
+            $selectedPackageManager = null;
+            foreach (array_keys($packageManagers) as $managerName) {
+                if ($input->getOption($managerName)) {
+                    $selectedPackageManager = $managerName;
+                    break;
+                }
             }
-
-            $runNpm = $input->getOption('npm');
-
-            if (! $input->getOption('npm') && $input->isInteractive()) {
-                $runNpm = confirm(
-                    label: 'Would you like to run <options=bold>'.$packageInstall.'</> and <options=bold>'.$packageBuild.'</>?'
+            
+            if (! $selectedPackageManager && $input->isInteractive()) {
+                $selectedPackageManager = select(
+                    label: 'Which package manager would you like to use for installing dependencies?',
+                    options: [
+                        'npm' => 'npm (default)',
+                        'yarn' => 'yarn',
+                        'pnpm' => 'pnpm',
+                        'bun' => 'bun',
+                        'skip' => 'Skip installation',
+                    ],
+                    default: 'npm'
                 );
             }
 
-            if ($runNpm) {
-                $this->runCommands([$packageInstall, $packageBuild], $input, $output, workingPath: $directory);
+            if ($selectedPackageManager === 'skip' || ! $selectedPackageManager) {
+                $shouldRunPackageManager = false;
+                $selectedPackageManager = 'npm';
+            } else {
+                $shouldRunPackageManager = true;
             }
 
+            $packageInstall = $packageManagers[$selectedPackageManager]['install'];
+            $packageBuild = $packageManagers[$selectedPackageManager]['build'];
+
+            if ($shouldRunPackageManager) {
+                $this->runCommands([$packageInstall, $packageBuild], $input, $output, workingPath: $directory);
+            }
+            
             $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:".PHP_EOL);
             $output->writeln('<fg=gray>➜</> <options=bold>cd '.$name.'</>');
 
-            if (! $runNpm) {
-                $output->writeln('<fg=gray>➜</> <options=bold>'.$packageInstall.' && npm run build</>');
+            if (! $shouldRunPackageManager) {
+                $output->writeln('<fg=gray>➜</> <options=bold>'.$packageInstall.' && '.$packageBuild.'</>');
             }
 
             if ($this->isParkedOnHerdOrValet($directory)) {
