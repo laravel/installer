@@ -402,7 +402,6 @@ class NewCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-
         $this->validateDatabaseOption($input);
 
         $name = rtrim($input->getArgument('name'), '/\\');
