@@ -522,7 +522,7 @@ class NewCommand extends Command
                     break;
                 }
             }
-            
+
             if (! $selectedPackageManager && $input->isInteractive()) {
                 $selectedPackageManager = select(
                     label: 'Which package manager would you like to use for installing dependencies?',
@@ -550,7 +550,7 @@ class NewCommand extends Command
             if ($shouldRunPackageManager) {
                 $this->runCommands([$packageInstall, $packageBuild], $input, $output, workingPath: $directory);
             }
-            
+
             $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:".PHP_EOL);
             $output->writeln('<fg=gray>➜</> <options=bold>cd '.$name.'</>');
 
