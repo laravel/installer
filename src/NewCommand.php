@@ -6,6 +6,7 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Composer;
 use Illuminate\Support\ProcessUtils;
 use Illuminate\Support\Str;
+use Laravel\Installer\Console\Enums\NodePackageManager;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
@@ -64,6 +65,9 @@ class NewCommand extends Command
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Install the Pest testing framework')
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Install the PHPUnit testing framework')
             ->addOption('npm', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies')
+            ->addOption('pnpm', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies via PNPM')
+            ->addOption('bun', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies via Bun')
+            ->addOption('yarn', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies via Yarn')
             ->addOption('using', null, InputOption::VALUE_OPTIONAL, 'Install a custom starter kit from a community maintained package')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
@@ -499,43 +503,35 @@ class NewCommand extends Command
                 $output->writeln('');
             }
 
-            $this->configureComposerDevScript($directory);
+            [$packageManager, $runPackageManager] = $this->determinePackageManager($directory, $input);
+
+            $this->configureComposerScripts($packageManager);
 
             if ($input->getOption('pest')) {
                 $output->writeln('');
             }
 
-            $packageInstall = 'npm install';
-            $packageBuild = 'npm run build';
-
-            if (file_exists($directory.'/pnpm-lock.yaml')) {
-                $packageInstall = 'pnpm install';
-                $packageBuild = 'pnpm run build';
-            } elseif (file_exists($directory.'/yarn.lock')) {
-                $packageInstall = 'yarn install';
-                $packageBuild = 'yarn run build';
-            } elseif (file_exists($directory.'/bun.lock')) {
-                $packageInstall = 'bun install';
-                $packageBuild = 'bun run build';
-            }
-
-            $runNpm = $input->getOption('npm');
-
-            if (! $input->getOption('npm') && $input->isInteractive()) {
-                $runNpm = confirm(
-                    label: 'Would you like to run <options=bold>'.$packageInstall.'</> and <options=bold>'.$packageBuild.'</>?'
+            if (! $runPackageManager && $input->isInteractive()) {
+                $runPackageManager = confirm(
+                    label: 'Would you like to run <options=bold>'.$packageManager->installCommand().'</> and <options=bold>'.$packageManager->buildCommand().'</>?'
                 );
             }
 
-            if ($runNpm) {
-                $this->runCommands([$packageInstall, $packageBuild], $input, $output, workingPath: $directory);
+            foreach (NodePackageManager::allLockFiles() as $lockFile) {
+                if (! in_array($lockFile, $packageManager->lockFiles()) && file_exists($directory.'/'.$lockFile)) {
+                    (new Filesystem())->delete($directory.'/'.$lockFile);
+                }
+            }
+
+            if ($runPackageManager) {
+                $this->runCommands([$packageManager->installCommand(), $packageManager->buildCommand()], $input, $output, workingPath: $directory);
             }
 
             $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:".PHP_EOL);
             $output->writeln('<fg=gray>➜</> <options=bold>cd '.$name.'</>');
 
-            if (! $runNpm) {
-                $output->writeln('<fg=gray>➜</> <options=bold>'.$packageInstall.' && npm run build</>');
+            if (! $runPackageManager) {
+                $output->writeln('<fg=gray>➜</> <options=bold>'.$packageManager->installCommand().' && '.$packageManager->buildCommand().'</>');
             }
 
             if ($this->isParkedOnHerdOrValet($directory)) {
@@ -551,6 +547,48 @@ class NewCommand extends Command
         }
 
         return $process->getExitCode();
+    }
+
+    /**
+     * Determine the Node package manager to use.
+     *
+     * @param  string  $directory
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @return array{NodePackageManager, bool}
+     */
+    protected function determinePackageManager(string $directory, InputInterface $input): array
+    {
+        // If they passed a specific flag, respect the user's choice
+        if ($input->getOption('pnpm')) {
+            return [NodePackageManager::PNPM, true];
+        }
+
+        if ($input->getOption('bun')) {
+            return [NodePackageManager::BUN, true];
+        }
+
+        if ($input->getOption('yarn')) {
+            return [NodePackageManager::YARN, true];
+        }
+
+        if ($input->getOption('npm')) {
+            return [NodePackageManager::NPM, true];
+        }
+
+        // Check for an existing lock file to determine the package manager
+        foreach (NodePackageManager::cases() as $packageManager) {
+            if ($packageManager === NodePackageManager::NPM) {
+                continue;
+            }
+
+            foreach ($packageManager->lockFiles() as $lockFile) {
+                if (file_exists($directory.'/'.$lockFile)) {
+                    return [$packageManager, false];
+                }
+            }
+        }
+
+        return [NodePackageManager::NPM, false];
     }
 
     /**
@@ -920,19 +958,29 @@ class NewCommand extends Command
     }
 
     /**
-     * Configure the Composer "dev" script.
+     * Configure the Composer scripts for the selected package manager.
      *
-     * @param  string  $directory
+     * @param  NodePackageManager  $packageManager
      * @return void
      */
-    protected function configureComposerDevScript(string $directory): void
+    protected function configureComposerScripts(NodePackageManager $packageManager): void
     {
-        $this->composer->modify(function (array $content) {
+        $this->composer->modify(function (array $content) use ($packageManager) {
             if (windows_os()) {
                 $content['scripts']['dev'] = [
                     'Composer\\Config::disableProcessTimeout',
                     "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"npm run dev\" --names='server,queue,vite'",
                 ];
+            }
+
+            foreach (['dev', 'dev:ssr', 'setup'] as $scriptKey) {
+                if (array_key_exists($scriptKey, $content['scripts'])) {
+                    $content['scripts'][$scriptKey] = str_replace(
+                        ['npm', 'npx', 'ppnpm'],
+                        [$packageManager->value, $packageManager->runLocalOrRemoteCommand(), 'pnpm'],
+                        $content['scripts'][$scriptKey],
+                    );
+                }
             }
 
             return $content;
