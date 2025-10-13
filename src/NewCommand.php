@@ -558,7 +558,7 @@ class NewCommand extends Command
      */
     protected function determinePackageManager(string $directory, InputInterface $input): array
     {
-        // If they passed a specific flag, respect the user's choice
+        // If they passed a specific flag, respect the user's choice...
         if ($input->getOption('pnpm')) {
             return [NodePackageManager::PNPM, true];
         }
@@ -575,7 +575,7 @@ class NewCommand extends Command
             return [NodePackageManager::NPM, true];
         }
 
-        // Check for an existing lock file to determine the package manager
+        // Check for an existing lock file to determine the package manager...
         foreach (NodePackageManager::cases() as $packageManager) {
             if ($packageManager === NodePackageManager::NPM) {
                 continue;
