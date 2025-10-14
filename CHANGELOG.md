@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.20.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.21.0...master)
+
+## [v5.21.0](https://github.com/laravel/installer/compare/v5.20.0...v5.21.0) - 2025-10-14
+
+* Pass flags for alternative Node package managers by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/installer/pull/442
 
 ## [v5.20.0](https://github.com/laravel/installer/compare/v5.19.0...v5.20.0) - 2025-10-07
 
