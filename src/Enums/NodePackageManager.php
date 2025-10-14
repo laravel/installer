@@ -40,7 +40,7 @@ enum NodePackageManager: string
             self::NPM => 'npx',
             self::YARN => 'npx',
             self::PNPM => 'pnpm dlx',
-            self::BUN => 'npx',
+            self::BUN => 'bunx',
         };
     }
 
