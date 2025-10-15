@@ -41,4 +41,3 @@ interface FileManagerInterface
      */
     public function copy(string $source, string $destination): void;
 }
-

@@ -8,7 +8,7 @@ use Symfony\Component\Console\Input\InputInterface;
 
 /**
  * Value object representing all options for creating a new Laravel application.
- * 
+ *
  * This immutable object encapsulates all configuration needed to create
  * a new Laravel app, making it easier to pass around and test.
  */
@@ -30,7 +30,9 @@ final class ApplicationOptions
         public readonly bool $usePhpunit,
         public readonly bool $installDependencies,
         public readonly ?string $packageManager,
-    ) {}
+    ) {
+        
+    }
 
     /**
      * Create ApplicationOptions from Symfony Console input.
@@ -100,9 +102,9 @@ final class ApplicationOptions
      */
     private static function shouldInstallDependencies(InputInterface $input): bool
     {
-        return $input->getOption('npm') 
-            || $input->getOption('pnpm') 
-            || $input->getOption('bun') 
+        return $input->getOption('npm')
+            || $input->getOption('pnpm')
+            || $input->getOption('bun')
             || $input->getOption('yarn');
     }
 
@@ -141,9 +143,8 @@ final class ApplicationOptions
      */
     public function getFullName(): string
     {
-        return $this->githubOrganization 
-            ? $this->githubOrganization.'/'.$this->name 
+        return $this->githubOrganization
+            ? $this->githubOrganization.'/'.$this->name
             : $this->name;
     }
 }
-

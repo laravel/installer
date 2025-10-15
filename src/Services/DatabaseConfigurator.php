@@ -6,7 +6,7 @@ namespace Laravel\Installer\Console\Services;
 
 /**
  * Handles database configuration for new Laravel applications.
- * 
+ *
  * This service is responsible for:
  * - Updating .env and .env.example files with the correct database driver
  * - Commenting/uncommenting database configuration based on the driver
@@ -30,14 +30,16 @@ class DatabaseConfigurator
 
     public function __construct(
         private FileManagerInterface $fileManager
-    ) {}
+    ) {
+
+    }
 
     /**
      * Configure the default database connection for the application.
      *
-     * @param  string  $directory  The application directory
-     * @param  string  $database   The database driver (mysql, pgsql, sqlite, etc.)
-     * @param  string  $name       The application name
+     * @param  string  $directory
+     * @param  string  $database
+     * @param  string  $name
      * @return void
      */
     public function configure(string $directory, string $database, string $name): void
@@ -98,7 +100,7 @@ class DatabaseConfigurator
     private function commentDatabaseFields(string $directory): void
     {
         $commentedFields = array_map(
-            fn($field) => "# {$field}",
+            fn ($field) => "# {$field}",
             self::SQLITE_COMMENTED_FIELDS
         );
 
@@ -121,7 +123,7 @@ class DatabaseConfigurator
     private function uncommentDatabaseFields(string $directory): void
     {
         $commentedFields = array_map(
-            fn($field) => "# {$field}",
+            fn ($field) => "# {$field}",
             self::SQLITE_COMMENTED_FIELDS
         );
 
@@ -191,4 +193,3 @@ class DatabaseConfigurator
         return str_replace('-', '_', strtolower($name));
     }
 }
-

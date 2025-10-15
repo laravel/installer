@@ -45,7 +45,7 @@ class DatabaseConfiguratorTest extends TestCase
     {
         // Arrange
         $fileManager = $this->createMock(FileManagerInterface::class);
-        
+          
         // Should update DB_CONNECTION in .env and .env.example
         $fileManager->expects($this->exactly(2))
             ->method('pregReplace');
@@ -66,7 +66,7 @@ class DatabaseConfiguratorTest extends TestCase
     {
         // Arrange
         $fileManager = $this->createMock(FileManagerInterface::class);
-        
+
         // Update connection string
         $fileManager->expects($this->exactly(2))
             ->method('pregReplace');
@@ -88,4 +88,3 @@ class DatabaseConfiguratorTest extends TestCase
         $this->assertTrue($replaceCalled, 'Database name should be sanitized (dashes to underscores)');
     }
 }
-

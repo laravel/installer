@@ -667,7 +667,6 @@ class NewCommand extends Command
         return $version >= $usingVersion;
     }
 
-
     /**
      * Determine the default database connection.
      *

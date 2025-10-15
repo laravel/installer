@@ -66,4 +66,3 @@ class FileManager implements FileManagerInterface
         copy($source, $destination);
     }
 }
-
