@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Laravel\Installer\Console\ValueObjects;
 
 use Symfony\Component\Console\Input\InputInterface;
