@@ -45,8 +45,6 @@ class DatabaseConfiguratorTest extends TestCase
     {
         // Arrange
         $fileManager = $this->createMock(FileManagerInterface::class);
-          
-        // Should update DB_CONNECTION in .env and .env.example
         $fileManager->expects($this->exactly(2))
             ->method('pregReplace');
 
@@ -57,7 +55,6 @@ class DatabaseConfiguratorTest extends TestCase
         // Act
         $configurator = new DatabaseConfigurator($fileManager);
         $configurator->configure('/test-app', 'pgsql', 'test-app');
-        
         // Assert - expectations verified by mock
         $this->assertTrue(true);
     }
@@ -83,7 +80,7 @@ class DatabaseConfiguratorTest extends TestCase
         // Act
         $configurator = new DatabaseConfigurator($fileManager);
         $configurator->configure('/test-app', 'mysql', 'my-app-name');
-        
+
         // Assert
         $this->assertTrue($replaceCalled, 'Database name should be sanitized (dashes to underscores)');
     }

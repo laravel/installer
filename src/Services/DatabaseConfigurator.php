@@ -31,7 +31,6 @@ class DatabaseConfigurator
     public function __construct(
         private FileManagerInterface $fileManager
     ) {
-
     }
 
     /**

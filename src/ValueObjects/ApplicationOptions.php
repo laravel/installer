@@ -30,8 +30,7 @@ final class ApplicationOptions
         public readonly bool $usePhpunit,
         public readonly bool $installDependencies,
         public readonly ?string $packageManager,
-    ) {
-        
+    ) {  
     }
 
     /**
