@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Laravel\Installer\Console\Services;
 
 interface FileManagerInterface
