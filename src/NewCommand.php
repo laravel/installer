@@ -7,6 +7,9 @@ use Illuminate\Support\Composer;
 use Illuminate\Support\ProcessUtils;
 use Illuminate\Support\Str;
 use Laravel\Installer\Console\Enums\NodePackageManager;
+use Laravel\Installer\Console\Services\DatabaseConfigurator;
+use Laravel\Installer\Console\Services\FileManager;
+use Laravel\Installer\Console\Services\FileManagerInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
@@ -38,6 +41,35 @@ class NewCommand extends Command
      * @var \Illuminate\Support\Composer
      */
     protected $composer;
+
+    /**
+     * The File Manager instance.
+     *
+     * @var \Laravel\Installer\Console\Services\FileManagerInterface
+     */
+    protected $fileManager;
+
+    /**
+     * The Database Configurator instance.
+     *
+     * @var \Laravel\Installer\Console\Services\DatabaseConfigurator
+     */
+    protected $databaseConfigurator;
+
+    /**
+     * Create a new command instance.
+     *
+     * @param  \Laravel\Installer\Console\Services\FileManagerInterface|null  $fileManager
+     * @param  \Laravel\Installer\Console\Services\DatabaseConfigurator|null  $databaseConfigurator
+     * @return void
+     */
+    public function __construct(?FileManagerInterface $fileManager = null, ?DatabaseConfigurator $databaseConfigurator = null)
+    {
+        parent::__construct();
+
+        $this->fileManager = $fileManager ?? new FileManager();
+        $this->databaseConfigurator = $databaseConfigurator ?? new DatabaseConfigurator($this->fileManager);
+    }
 
     /**
      * Configure the command options.
@@ -617,64 +649,7 @@ class NewCommand extends Command
      */
     protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name)
     {
-        $this->pregReplaceInFile(
-            '/DB_CONNECTION=.*/',
-            'DB_CONNECTION='.$database,
-            $directory.'/.env'
-        );
-
-        $this->pregReplaceInFile(
-            '/DB_CONNECTION=.*/',
-            'DB_CONNECTION='.$database,
-            $directory.'/.env.example'
-        );
-
-        if ($database === 'sqlite') {
-            $environment = file_get_contents($directory.'/.env');
-
-            // If database options aren't commented, comment them for SQLite...
-            if (! str_contains($environment, '# DB_HOST=127.0.0.1')) {
-                $this->commentDatabaseConfigurationForSqlite($directory);
-
-                return;
-            }
-
-            return;
-        }
-
-        // Any commented database configuration options should be uncommented when not on SQLite...
-        $this->uncommentDatabaseConfiguration($directory);
-
-        $defaultPorts = [
-            'pgsql' => '5432',
-            'sqlsrv' => '1433',
-        ];
-
-        if (isset($defaultPorts[$database])) {
-            $this->replaceInFile(
-                'DB_PORT=3306',
-                'DB_PORT='.$defaultPorts[$database],
-                $directory.'/.env'
-            );
-
-            $this->replaceInFile(
-                'DB_PORT=3306',
-                'DB_PORT='.$defaultPorts[$database],
-                $directory.'/.env.example'
-            );
-        }
-
-        $this->replaceInFile(
-            'DB_DATABASE=laravel',
-            'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
-            $directory.'/.env'
-        );
-
-        $this->replaceInFile(
-            'DB_DATABASE=laravel',
-            'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
-            $directory.'/.env.example'
-        );
+        $this->databaseConfigurator->configure($directory, $database, $name);
     }
 
     /**
@@ -692,63 +667,6 @@ class NewCommand extends Command
         return $version >= $usingVersion;
     }
 
-    /**
-     * Comment the irrelevant database configuration entries for SQLite applications.
-     *
-     * @param  string  $directory
-     * @return void
-     */
-    protected function commentDatabaseConfigurationForSqlite(string $directory): void
-    {
-        $defaults = [
-            'DB_HOST=127.0.0.1',
-            'DB_PORT=3306',
-            'DB_DATABASE=laravel',
-            'DB_USERNAME=root',
-            'DB_PASSWORD=',
-        ];
-
-        $this->replaceInFile(
-            $defaults,
-            collect($defaults)->map(fn ($default) => "# {$default}")->all(),
-            $directory.'/.env'
-        );
-
-        $this->replaceInFile(
-            $defaults,
-            collect($defaults)->map(fn ($default) => "# {$default}")->all(),
-            $directory.'/.env.example'
-        );
-    }
-
-    /**
-     * Uncomment the relevant database configuration entries for non SQLite applications.
-     *
-     * @param  string  $directory
-     * @return void
-     */
-    protected function uncommentDatabaseConfiguration(string $directory)
-    {
-        $defaults = [
-            '# DB_HOST=127.0.0.1',
-            '# DB_PORT=3306',
-            '# DB_DATABASE=laravel',
-            '# DB_USERNAME=root',
-            '# DB_PASSWORD=',
-        ];
-
-        $this->replaceInFile(
-            $defaults,
-            collect($defaults)->map(fn ($default) => substr($default, 2))->all(),
-            $directory.'/.env'
-        );
-
-        $this->replaceInFile(
-            $defaults,
-            collect($defaults)->map(fn ($default) => substr($default, 2))->all(),
-            $directory.'/.env.example'
-        );
-    }
 
     /**
      * Determine the default database connection.
@@ -811,7 +729,7 @@ class NewCommand extends Command
     /**
      * Validate the database driver input.
      *
-     * @param  \Symfony\Components\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
      */
     protected function validateDatabaseOption(InputInterface $input)
     {
@@ -1199,9 +1117,9 @@ class NewCommand extends Command
     {
         $stubs = dirname(__DIR__).'/stubs';
 
-        file_put_contents(
+        $this->fileManager->write(
             $file,
-            file_get_contents("$stubs/$replace"),
+            $this->fileManager->read("$stubs/$replace")
         );
     }
 
@@ -1215,10 +1133,7 @@ class NewCommand extends Command
      */
     protected function replaceInFile(string|array $search, string|array $replace, string $file)
     {
-        file_put_contents(
-            $file,
-            str_replace($search, $replace, file_get_contents($file))
-        );
+        $this->fileManager->replace($file, $search, $replace);
     }
 
     /**
@@ -1231,10 +1146,7 @@ class NewCommand extends Command
      */
     protected function pregReplaceInFile(string $pattern, string $replace, string $file)
     {
-        file_put_contents(
-            $file,
-            preg_replace($pattern, $replace, file_get_contents($file))
-        );
+        $this->fileManager->pregReplace($file, $pattern, $replace);
     }
 
     /**
@@ -1245,6 +1157,6 @@ class NewCommand extends Command
      */
     protected function deleteFile(string $file)
     {
-        unlink($file);
+        $this->fileManager->delete($file);
     }
 }
