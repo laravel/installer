@@ -12,7 +12,7 @@ class DatabaseConfiguratorTest extends TestCase
     {
         // Arrange
         $fileManager = $this->createMock(FileManagerInterface::class);
-        
+
         $fileManager->expects($this->exactly(2))
             ->method('pregReplace')
             ->willReturnCallback(function ($path, $pattern, $replacement) {
