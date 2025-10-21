@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.21.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.22.0...master)
+
+## [v5.22.0](https://github.com/laravel/installer/compare/v5.21.0...v5.22.0) - 2025-10-21
+
+* Use `bunx` as `npx` equivalent by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/installer/pull/443
+* Symfony namespace spelling issue by [@Mdsujansarkar](https://github.com/Mdsujansarkar) in https://github.com/laravel/installer/pull/445
 
 ## [v5.21.0](https://github.com/laravel/installer/compare/v5.20.0...v5.21.0) - 2025-10-14
 
