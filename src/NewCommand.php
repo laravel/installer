@@ -1029,7 +1029,7 @@ class NewCommand extends Command
     }
 
     /**
-     * Add boost:update command in a composer script.
+     * Add boost:update command to the post-update-cmd Composer script.
      *
      * @return void
      */
