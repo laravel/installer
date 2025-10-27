@@ -178,7 +178,7 @@ class NewCommand extends Command
 
         if (! $input->getOption('boost')) {
             $input->setOption('boost', confirm(
-                label: 'Do you want to install and configure Laravel Boost?',
+                label: 'Do you want to install and configure Laravel Boost to improve AI assisted coding?',
             ));
         }
     }
