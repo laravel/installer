@@ -68,7 +68,7 @@ class NewCommand extends Command
             ->addOption('pnpm', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies via PNPM')
             ->addOption('bun', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies via Bun')
             ->addOption('yarn', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies via Yarn')
-            ->addOption('boost', null, InputOption::VALUE_NONE, 'Install Laravel Boost for AI-assisted coding')
+            ->addOption('boost', null, InputOption::VALUE_NONE, 'Install Laravel Boost to improve AI assisted coding')
             ->addOption('using', null, InputOption::VALUE_OPTIONAL, 'Install a custom starter kit from a community maintained package')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
