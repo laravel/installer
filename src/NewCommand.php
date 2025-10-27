@@ -68,6 +68,7 @@ class NewCommand extends Command
             ->addOption('pnpm', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies via PNPM')
             ->addOption('bun', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies via Bun')
             ->addOption('yarn', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies via Yarn')
+            ->addOption('boost', null, InputOption::VALUE_NONE, 'Install Laravel Boost for AI-assisted coding')
             ->addOption('using', null, InputOption::VALUE_OPTIONAL, 'Install a custom starter kit from a community maintained package')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
@@ -173,6 +174,12 @@ class NewCommand extends Command
                 options: ['Pest', 'PHPUnit'],
                 default: 'Pest',
             ) === 'Pest');
+        }
+
+        if (! $input->getOption('boost')) {
+            $input->setOption('boost', confirm(
+                label: 'Do you want to install and configure Laravel Boost?',
+            ));
         }
     }
 
@@ -498,6 +505,10 @@ class NewCommand extends Command
                 $this->installPest($directory, $input, $output);
             }
 
+            if ($input->getOption('boost')) {
+                $this->installBoost($directory, $input, $output);
+            }
+
             if ($input->getOption('github') !== false) {
                 $this->pushToGitHub($name, $directory, $input, $output);
                 $output->writeln('');
@@ -525,6 +536,11 @@ class NewCommand extends Command
 
             if ($runPackageManager) {
                 $this->runCommands([$packageManager->installCommand(), $packageManager->buildCommand()], $input, $output, workingPath: $directory);
+            }
+
+            if ($input->getOption('boost')) {
+                $this->configureBoostComposerScript();
+                $this->commitChanges('Configure Boost post-update script', $directory, $input, $output);
             }
 
             $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:".PHP_EOL);
@@ -883,6 +899,31 @@ class NewCommand extends Command
     }
 
     /**
+     * Install Laravel Boost into the application.
+     *
+     * @param  string  $directory
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function installBoost(string $directory, InputInterface $input, OutputInterface $output): void
+    {
+        $composerBinary = $this->findComposer();
+
+        $commands = [
+            $composerBinary.' require laravel/boost --dev',
+            trim(sprintf(
+                $this->phpBinary().' artisan boost:install %s',
+                ! $input->isInteractive() ? '--no-interaction' : '',
+            )),
+        ];
+
+        $this->runCommands($commands, $input, $output, workingPath: $directory);
+
+        $this->commitChanges('Install Laravel Boost', $directory, $input, $output);
+    }
+
+    /**
      * Create a Git repository and commit the base Laravel skeleton.
      *
      * @param  string  $directory
@@ -982,6 +1023,20 @@ class NewCommand extends Command
                     );
                 }
             }
+
+            return $content;
+        });
+    }
+
+    /**
+     * Add boost:update command in a composer script
+     *
+     * @return void
+     */
+    protected function configureBoostComposerScript(): void
+    {
+        $this->composer->modify(function (array $content) {
+            $content['scripts']['post-update-cmd'][] = '@php artisan boost:update --ansi';
 
             return $content;
         });
