@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.22.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.23.0...master)
+
+## [v5.23.0](https://github.com/laravel/installer/compare/v5.22.0...v5.23.0) - 2025-10-28
+
+* Add Laravel Boost Installation Option by [@pushpak1300](https://github.com/pushpak1300) in https://github.com/laravel/installer/pull/446
 
 ## [v5.22.0](https://github.com/laravel/installer/compare/v5.21.0...v5.22.0) - 2025-10-21
 
