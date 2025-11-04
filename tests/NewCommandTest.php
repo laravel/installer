@@ -85,4 +85,37 @@ class NewCommandTest extends TestCase
         $this->assertTrue($onLaravel11);
         $this->assertTrue($onLaravel12);
     }
+
+    public function test_it_can_add_laravel_ide_helper()
+    {
+        $scaffoldDirectoryName = 'tests-output/ide-helper-app';
+        $scaffoldDirectory = __DIR__.'/../'.$scaffoldDirectoryName;
+
+        if (file_exists($scaffoldDirectory)) {
+            if (PHP_OS_FAMILY == 'Windows') {
+                exec("rd /s /q \"$scaffoldDirectory\"");
+            } else {
+                exec("rm -rf \"$scaffoldDirectory\"");
+            }
+        }
+
+        $app = new Application('Laravel Installer');
+        $app->add(new NewCommand);
+
+        $tester = new CommandTester($app->find('new'));
+
+        $statusCode = $tester->execute(
+            ['name' => $scaffoldDirectoryName, '--ide-helper' => true],
+            ['interactive' => false]
+        );
+
+        $this->assertSame(0, $statusCode);
+        $this->assertDirectoryExists($scaffoldDirectory.'/vendor/barryvdh/laravel-ide-helper');
+
+        $gitignoreContents = file_get_contents($scaffoldDirectory.'/.gitignore');
+        $this->assertStringContainsString('# Laravel IDE Helper', $gitignoreContents);
+        $this->assertStringContainsString('_ide_helper.php', $gitignoreContents);
+        $this->assertStringContainsString('_ide_helper_models.php', $gitignoreContents);
+        $this->assertStringContainsString('phpstorm.meta.php', $gitignoreContents);
+    }
 }

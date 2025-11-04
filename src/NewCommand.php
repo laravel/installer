@@ -70,7 +70,8 @@ class NewCommand extends Command
             ->addOption('yarn', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies via Yarn')
             ->addOption('boost', null, InputOption::VALUE_NONE, 'Install Laravel Boost to improve AI assisted coding')
             ->addOption('using', null, InputOption::VALUE_OPTIONAL, 'Install a custom starter kit from a community maintained package')
-            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists')
+            ->addOption('ide-helper', null, InputOption::VALUE_NONE, 'Install Laravel ide-helper');
     }
 
     /**
@@ -179,6 +180,13 @@ class NewCommand extends Command
         if (! $input->getOption('boost')) {
             $input->setOption('boost', confirm(
                 label: 'Do you want to install Laravel Boost to improve AI assisted coding?',
+            ));
+        }
+
+        if (! $input->getOption('ide-helper')) {
+            $input->setOption('ide-helper', confirm(
+                label: 'Do you want to install Laravel IDE Helper?',
+                default: false,
             ));
         }
     }
@@ -543,6 +551,10 @@ class NewCommand extends Command
                 $this->commitChanges('Configure Boost post-update script', $directory, $input, $output);
             }
 
+            if ($input->getOption('ide-helper')) {
+                $this->installIdeHelper($directory, $input, $output);
+            }
+
             $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:".PHP_EOL);
             $output->writeln('<fg=gray>➜</> <options=bold>cd '.$name.'</>');
 
@@ -563,6 +575,32 @@ class NewCommand extends Command
         }
 
         return $process->getExitCode();
+    }
+
+    protected function installIdeHelper(string $directory, InputInterface $input, OutputInterface $output): void
+    {
+        $composerBinary = $this->findComposer();
+
+        $gitignoreContents = file_get_contents($directory.'/.gitignore');
+
+        file_put_contents(
+            $directory.'/.gitignore',
+            $gitignoreContents.
+            PHP_EOL.
+            '# Laravel IDE Helper'
+            .PHP_EOL.'_ide_helper.php'
+            .PHP_EOL.'_ide_helper_models.php'
+            .PHP_EOL.'.phpstorm.meta.php'
+        );
+
+        $commands = [
+            $composerBinary.' require --dev barryvdh/laravel-ide-helper',
+            $this->phpBinary().' artisan ide-helper:generate',
+            $this->phpBinary().' artisan ide-helper:models --nowrite',
+            $this->phpBinary().' artisan ide-helper:meta',
+        ];
+
+        $this->runCommands($commands, $input, $output, workingPath: $directory);
     }
 
     /**
