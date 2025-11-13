@@ -59,7 +59,6 @@ class NewCommand extends Command
             ->addOption('react', null, InputOption::VALUE_NONE, 'Install the React Starter Kit')
             ->addOption('vue', null, InputOption::VALUE_NONE, 'Install the Vue Starter Kit')
             ->addOption('livewire', null, InputOption::VALUE_NONE, 'Install the Livewire Starter Kit')
-            ->addOption('livewire-class-components', null, InputOption::VALUE_NONE, 'Generate stand-alone Livewire class components')
             ->addOption('workos', null, InputOption::VALUE_NONE, 'Use WorkOS for authentication')
             ->addOption('no-authentication', null, InputOption::VALUE_NONE, 'Do not generate authentication scaffolding')
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Install the Pest testing framework')
@@ -156,15 +155,6 @@ class NewCommand extends Command
                     'none' => $input->setOption('no-authentication', true),
                     default => null,
                 };
-            }
-
-            if ($input->getOption('livewire') &&
-                ! $input->getOption('workos') &&
-                ! $input->getOption('no-authentication')) {
-                $input->setOption('livewire-class-components', ! confirm(
-                    label: 'Would you like to use Laravel Volt?',
-                    default: true,
-                ));
             }
         }
 
@@ -437,10 +427,6 @@ class NewCommand extends Command
 
         if ($starterKit) {
             $createProjectCommand = $composer." create-project {$starterKit} \"{$directory}\" --stability=dev";
-
-            if ($this->usingLaravelStarterKit($input) && $input->getOption('livewire-class-components')) {
-                $createProjectCommand = str_replace(" {$starterKit} ", " {$starterKit}:dev-components ", $createProjectCommand);
-            }
 
             if ($this->usingLaravelStarterKit($input) && $input->getOption('workos')) {
                 $createProjectCommand = str_replace(" {$starterKit} ", " {$starterKit}:dev-workos ", $createProjectCommand);
