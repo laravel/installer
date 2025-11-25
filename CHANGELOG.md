@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.23.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.23.1...master)
+
+## [v5.23.1](https://github.com/laravel/installer/compare/v5.23.0...v5.23.1) - 2025-11-25
+
+* [5.x] PHP 8.5 Compatibility by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/449
 
 ## [v5.23.0](https://github.com/laravel/installer/compare/v5.22.0...v5.23.0) - 2025-10-28
 
