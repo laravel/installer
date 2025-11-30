@@ -58,4 +58,20 @@ enum NodePackageManager: string
             self::BUN => ['bun.lock', 'bun.lockb'],
         };
     }
+
+    public function isAvailable(): bool
+    {
+        return (new \Symfony\Component\Process\ExecutableFinder())->find($this->value) !== null;
+    }
+
+    public static function detect(): self
+    {
+        foreach ([self::BUN, self::PNPM, self::YARN, self::NPM] as $pm) {
+            if ($pm->isAvailable()) {
+                return $pm;
+            }
+        }
+
+        return self::NPM;
+    }
 }

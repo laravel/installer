@@ -604,7 +604,7 @@ class NewCommand extends Command
             }
         }
 
-        return [NodePackageManager::NPM, false];
+        return [NodePackageManager::detect(), false];
     }
 
     /**
