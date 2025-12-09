@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.23.1...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.23.2...master)
+
+## [v5.23.2](https://github.com/laravel/installer/compare/v5.23.1...v5.23.2) - 2025-12-09
+
+* Remove usage of deprecated `curl_close()` function by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/452
 
 ## [v5.23.1](https://github.com/laravel/installer/compare/v5.23.0...v5.23.1) - 2025-11-25
 
