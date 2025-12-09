@@ -366,7 +366,8 @@ class NewCommand extends Command
             $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $headerSize = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
             $error = curl_error($curl);
-            curl_close($curl);
+
+            unset($curl);
         } catch (Throwable $e) {
             return false;
         }
