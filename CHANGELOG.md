@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.23.2...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.24.0...master)
+
+## [v5.24.0](https://github.com/laravel/installer/compare/v5.23.2...v5.24.0) - 2026-01-07
+
+**Full Changelog**: https://github.com/laravel/installer/compare/v5.23.2...v5.24.0
 
 ## [v5.23.2](https://github.com/laravel/installer/compare/v5.23.1...v5.23.2) - 2025-12-09
 
