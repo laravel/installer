@@ -895,6 +895,26 @@ class NewCommand extends Command
                 $directory.'/.github/workflows/tests.yml',
             );
 
+            if ($this->usingBun($input)) {
+                $this->replaceInFile(
+                    '- uses: actions/setup-node@v4',
+                    '- uses: oven-sh/setup-bun@v1',
+                    $directory . '/.github/workflows/tests.yml',
+                );
+
+                $this->replaceInFile(
+                    'npm ci',
+                    'bun install --frozen-lockfile',
+                    $directory . '/.github/workflows/tests.yml',
+                );
+
+                $this->replaceInFile(
+                    'npm run build',
+                    'bun run build',
+                    $directory . '/.github/workflows/tests.yml',
+                );
+            }
+
             $contents = file_get_contents("$directory/tests/Pest.php");
 
             $contents = str_replace(
@@ -1327,5 +1347,16 @@ class NewCommand extends Command
     protected function deleteFile(string $file)
     {
         unlink($file);
+    }
+
+    /**
+     * Determine if Bun is being used as the package manager.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @return bool
+     */
+    protected function usingBun(InputInterface $input): bool
+    {
+        return $input->getOption('bun');
     }
 }
