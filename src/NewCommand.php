@@ -356,7 +356,8 @@ class NewCommand extends Command
             $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $headerSize = curl_getinfo($curl, CURLINFO_HEADER_SIZE);
             $error = curl_error($curl);
-            curl_close($curl);
+
+            unset($curl);
         } catch (Throwable $e) {
             return false;
         }
@@ -400,6 +401,8 @@ class NewCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $this->pingNewInstallUrl();
+
         $this->validateDatabaseOption($input);
 
         $name = rtrim($input->getArgument('name'), '/\\');
@@ -549,6 +552,29 @@ class NewCommand extends Command
         }
 
         return $process->getExitCode();
+    }
+
+    /**
+     * Ping the new install URL.
+     *
+     * @return void
+     */
+    protected function pingNewInstallUrl(): void
+    {
+        $curl = curl_init();
+
+        curl_setopt_array($curl, [
+            CURLOPT_URL => 'https://laravel.com/new-install',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => ['User-Agent: Laravel Installer'],
+            CURLOPT_TIMEOUT => 3,
+        ]);
+
+        try {
+            curl_exec($curl);
+        } catch (Throwable $e) {
+            //
+        }
     }
 
     /**
