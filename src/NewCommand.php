@@ -899,19 +899,19 @@ class NewCommand extends Command
                 $this->replaceInFile(
                     '- uses: actions/setup-node@v4',
                     '- uses: oven-sh/setup-bun@v1',
-                    $directory . '/.github/workflows/tests.yml',
+                    $directory.'/.github/workflows/tests.yml',
                 );
 
                 $this->replaceInFile(
                     'npm ci',
                     'bun install --frozen-lockfile',
-                    $directory . '/.github/workflows/tests.yml',
+                    $directory.'/.github/workflows/tests.yml',
                 );
 
                 $this->replaceInFile(
                     'npm run build',
                     'bun run build',
-                    $directory . '/.github/workflows/tests.yml',
+                    $directory.'/.github/workflows/tests.yml',
                 );
             }
 
