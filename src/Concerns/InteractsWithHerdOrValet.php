@@ -19,7 +19,7 @@ trait InteractsWithHerdOrValet
 
         $decodedOutput = json_decode($output);
 
-        return is_array($decodedOutput) && in_array(dirname($directory), $decodedOutput);
+        return is_array($decodedOutput) && (in_array(dirname($directory), $decodedOutput) || in_array(dirname($directory) . DIRECTORY_SEPARATOR, $decodedOutput));
     }
 
     /**
