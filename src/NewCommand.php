@@ -162,7 +162,7 @@ class NewCommand extends Command
                 ! $input->getOption('workos') &&
                 ! $input->getOption('no-authentication')) {
                 $input->setOption('livewire-class-components', ! confirm(
-                    label: 'Would you like to Single File Components?',
+                    label: 'Would you like to Single File Livewire Components?',
                     default: true,
                 ));
             }
