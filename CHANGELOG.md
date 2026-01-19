@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.24.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.24.1...master)
+
+## [v5.24.1](https://github.com/laravel/installer/compare/v5.24.0...v5.24.1) - 2026-01-19
+
+* Single File Components by [@inmanturbo](https://github.com/inmanturbo) in https://github.com/laravel/installer/pull/459
+* Change add method with addCommand. Because add is deprecated in symfony/console by [@mt-shihab26](https://github.com/mt-shihab26) in https://github.com/laravel/installer/pull/460
+* Fix Herd/Valet detection based on stored paths by [@mpociot](https://github.com/mpociot) in https://github.com/laravel/installer/pull/458
 
 ## [v5.24.0](https://github.com/laravel/installer/compare/v5.23.2...v5.24.0) - 2026-01-07
 
