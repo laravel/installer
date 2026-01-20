@@ -1,6 +1,14 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.24.1...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.24.2...master)
+
+## [v5.24.2](https://github.com/laravel/installer/compare/v5.24.1...v5.24.2) - 2026-01-20
+
+* Fix current release version by [@xHeaven](https://github.com/xHeaven) in https://github.com/laravel/installer/pull/461
+
+### New Contributors
+
+* [@xHeaven](https://github.com/xHeaven) made their first contribution in https://github.com/laravel/installer/pull/461
 
 ## [v5.24.1](https://github.com/laravel/installer/compare/v5.24.0...v5.24.1) - 2026-01-19
 
