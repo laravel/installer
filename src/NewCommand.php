@@ -86,12 +86,7 @@ class NewCommand extends Command
 
         $this->configurePrompts($input, $output);
 
-        $output->write(PHP_EOL.'<fg=red> ██╗       █████╗  ██████╗   █████╗  ██╗   ██╗ ███████╗ ██╗
- ██║      ██╔══██╗ ██╔══██╗ ██╔══██╗ ██║   ██║ ██╔════╝ ██║
- ██║      ███████║ ██████╔╝ ███████║ ██║   ██║ █████╗   ██║
- ██║      ██╔══██║ ██╔══██╗ ██╔══██║ ╚██╗ ██╔╝ ██╔══╝   ██║
- ███████╗ ██║  ██║ ██║  ██║ ██║  ██║  ╚████╔╝  ███████╗ ███████╗
- ╚══════╝ ╚═╝  ╚═╝ ╚═╝  ╚═╝ ╚═╝  ╚═╝   ╚═══╝   ╚══════╝ ╚══════╝</>'.PHP_EOL);
+        $this->displayHeader($output);
 
         $this->ensureExtensionsAreAvailable($input, $output);
 
@@ -180,6 +175,45 @@ class NewCommand extends Command
             $input->setOption('boost', confirm(
                 label: 'Do you want to install Laravel Boost to improve AI assisted coding?',
             ));
+        }
+    }
+
+    /**
+     * Display the Laravel header with gradient colors.
+     *
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @return void
+     */
+    protected function displayHeader(OutputInterface $output): void
+    {
+        $output->writeln('');
+
+        $lines = [
+            ' ██╗       █████╗  ██████╗   █████╗  ██╗   ██╗ ███████╗ ██╗',
+            ' ██║      ██╔══██╗ ██╔══██╗ ██╔══██╗ ██║   ██║ ██╔════╝ ██║',
+            ' ██║      ███████║ ██████╔╝ ███████║ ██║   ██║ █████╗   ██║',
+            ' ██║      ██╔══██║ ██╔══██╗ ██╔══██║ ╚██╗ ██╔╝ ██╔══╝   ██║',
+            ' ███████╗ ██║  ██║ ██║  ██║ ██║  ██║  ╚████╔╝  ███████╗ ███████╗',
+            ' ╚══════╝ ╚═╝  ╚═╝ ╚═╝  ╚═╝ ╚═╝  ╚═╝   ╚═══╝   ╚══════╝ ╚══════╝',
+        ];
+
+        $gradients = [
+            'Red' => [196, 160, 124, 88, 52, 88],
+            'Gray' => [250, 248, 245, 243, 240, 238],
+            'Ocean' => [81, 75, 69, 63, 57, 21],
+            'Vaporwave' => [213, 177, 141, 105, 69, 39],
+            'Sunset' => [214, 208, 202, 196, 160, 124],
+            'Aurora' => [51, 50, 49, 48, 47, 41],
+            'Ember' => [227, 221, 215, 209, 203, 197],
+            'Cyberpunk' => [201, 165, 129, 93, 57, 21],
+        ];
+
+        $themeName = array_rand($gradients);
+        $gradient = $gradients[$themeName];
+
+        foreach ($lines as $index => $line) {
+            $color = $gradient[$index];
+            $output->writeln("\e[38;5;{$color}m{$line}\e[0m");
         }
     }
 
