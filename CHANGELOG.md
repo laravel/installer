@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.24.2...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.24.3...master)
+
+## [v5.24.3](https://github.com/laravel/installer/compare/v5.24.2...v5.24.3) - 2026-01-23
+
+* Update ASCII art banner by [@cjmellor](https://github.com/cjmellor) in https://github.com/laravel/installer/pull/463
+* Add gradient color display for Laravel header by [@pushpak1300](https://github.com/pushpak1300) in https://github.com/laravel/installer/pull/464
 
 ## [v5.24.2](https://github.com/laravel/installer/compare/v5.24.1...v5.24.2) - 2026-01-20
 
