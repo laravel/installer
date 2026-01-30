@@ -273,6 +273,7 @@ class NewCommand extends Command
             return;
         }
 
+        $output->writeln("");
         $output->writeln("  <bg=yellow;fg=black> WARN </> A new version of the Laravel installer is available. You have version {$version} installed, the latest version is {$latestVersion}.");
 
         $laravelInstallerPath = (new ExecutableFinder())->find('laravel') ?? '';
