@@ -469,7 +469,7 @@ class NewCommand extends Command
         $composer = $this->findComposer();
         $phpBinary = $this->phpBinary();
 
-        $createProjectCommand = $composer." create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist --no-scripts";
+        $createProjectCommand = $composer." create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist";
 
         $starterKit = $this->getStarterKit($input);
 
@@ -488,6 +488,8 @@ class NewCommand extends Command
                 $createProjectCommand = 'npx tiged@latest '.$starterKit.' "'.$directory.'" && cd "'.$directory.'" && composer install';
             }
         }
+
+        $createProjectCommand .= ' --no-scripts';
 
         $commands = [
             $createProjectCommand,
@@ -840,7 +842,7 @@ class NewCommand extends Command
             $databaseOptions = $this->databaseOptions()
         )->keys()->first();
 
-        if (! $input->getOption('database') && $this->usingStarterKit($input)) {
+        if (! $input->getOption('database') && $this->usingStarterKit($input) && ! $input->isInteractive()) {
             // Starter kits will already be migrated in post composer create-project command...
             $migrate = false;
 
