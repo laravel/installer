@@ -57,6 +57,7 @@ class NewCommand extends Command
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
             ->addOption('database', null, InputOption::VALUE_REQUIRED, 'The database driver your application will use. Possible values are: '.implode(', ', self::DATABASE_DRIVERS))
             ->addOption('react', null, InputOption::VALUE_NONE, 'Install the React Starter Kit')
+            ->addOption('svelte', null, InputOption::VALUE_NONE, 'Install the Svelte Starter Kit')
             ->addOption('vue', null, InputOption::VALUE_NONE, 'Install the Vue Starter Kit')
             ->addOption('livewire', null, InputOption::VALUE_NONE, 'Install the Livewire Starter Kit')
             ->addOption('livewire-class-components', null, InputOption::VALUE_NONE, 'Generate stand-alone Livewire class components')
@@ -125,12 +126,14 @@ class NewCommand extends Command
                 options: [
                     'none' => 'None',
                     'react' => 'React',
+                    'svelte' => 'Svelte',
                     'vue' => 'Vue',
                     'livewire' => 'Livewire',
                 ],
                 default: 'none',
             )) {
                 'react' => $input->setOption('react', true),
+                'svelte' => $input->setOption('svelte', true),
                 'vue' => $input->setOption('vue', true),
                 'livewire' => $input->setOption('livewire', true),
                 default => null,
@@ -1145,6 +1148,7 @@ class NewCommand extends Command
         if ($input->getOption('no-authentication')) {
             return match (true) {
                 $input->getOption('react') => 'laravel/blank-react-starter-kit',
+                $input->getOption('svelte') => 'laravel/blank-svelte-starter-kit',
                 $input->getOption('vue') => 'laravel/blank-vue-starter-kit',
                 $input->getOption('livewire') => 'laravel/blank-livewire-starter-kit',
                 default => $input->getOption('using'),
@@ -1153,6 +1157,7 @@ class NewCommand extends Command
 
         return match (true) {
             $input->getOption('react') => 'laravel/react-starter-kit',
+            $input->getOption('svelte') => 'laravel/svelte-starter-kit',
             $input->getOption('vue') => 'laravel/vue-starter-kit',
             $input->getOption('livewire') => 'laravel/livewire-starter-kit',
             default => $input->getOption('using'),
@@ -1179,7 +1184,7 @@ class NewCommand extends Command
      */
     protected function usingStarterKit(InputInterface $input)
     {
-        return $input->getOption('react') || $input->getOption('vue') || $input->getOption('livewire') || $input->getOption('using');
+        return $input->getOption('react') || $input->getOption('svelte') || $input->getOption('vue') || $input->getOption('livewire') || $input->getOption('using');
     }
 
     /**
