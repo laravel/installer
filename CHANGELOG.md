@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.24.6...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.24.7...master)
+
+## [v5.24.7](https://github.com/laravel/installer/compare/v5.24.6...v5.24.7) - 2026-02-24
+
+* Laravel 13.x Compatibility by [@laravel-shift](https://github.com/laravel-shift) in https://github.com/laravel/installer/pull/467
 
 ## [v5.24.6](https://github.com/laravel/installer/compare/v5.24.5...v5.24.6) - 2026-02-17
 
