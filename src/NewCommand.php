@@ -70,6 +70,7 @@ class NewCommand extends Command
             ->addOption('bun', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies via Bun')
             ->addOption('yarn', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies via Yarn')
             ->addOption('boost', null, InputOption::VALUE_NONE, 'Install Laravel Boost to improve AI assisted coding')
+            ->addOption('no-boost', null, InputOption::VALUE_NONE, 'Skip Laravel Boost installation')
             ->addOption('using', null, InputOption::VALUE_OPTIONAL, 'Install a custom starter kit from a community maintained package')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Forces install even if the directory already exists');
     }
@@ -174,7 +175,7 @@ class NewCommand extends Command
             ) === 'Pest');
         }
 
-        if (! $input->getOption('boost')) {
+        if (! $input->getOption('boost') && ! $input->getOption('no-boost')) {
             $input->setOption('boost', confirm(
                 label: 'Do you want to install Laravel Boost to improve AI assisted coding?',
             ));
@@ -546,7 +547,7 @@ class NewCommand extends Command
                 $this->installPest($directory, $input, $output);
             }
 
-            if ($input->getOption('boost')) {
+            if ($input->getOption('boost') && ! $input->getOption('no-boost')) {
                 $this->installBoost($directory, $input, $output);
             }
 
@@ -579,7 +580,7 @@ class NewCommand extends Command
                 $this->runCommands([$packageManager->installCommand(), $packageManager->buildCommand()], $input, $output, workingPath: $directory);
             }
 
-            if ($input->getOption('boost')) {
+            if ($input->getOption('boost') && ! $input->getOption('no-boost')) {
                 $this->configureBoostComposerScript();
                 $this->commitChanges('Configure Boost post-update script', $directory, $input, $output);
             }
