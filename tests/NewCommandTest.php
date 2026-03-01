@@ -85,4 +85,27 @@ class NewCommandTest extends TestCase
         $this->assertTrue($onLaravel11);
         $this->assertTrue($onLaravel12);
     }
+
+    public function test_it_handles_absolute_paths_correctly()
+    {
+        if (PHP_OS_FAMILY === 'Windows') {
+            $this->markTestSkipped('This test is for Unix/Linux systems only.');
+        }
+
+        $command = new class extends NewCommand
+        {
+            public function getInstallationDirectoryPublic(string $name)
+            {
+                return $this->getInstallationDirectory($name);
+            }
+        };
+
+        $absolutePath = '/tmp/my-app';
+        $this->assertSame($absolutePath, $command->getInstallationDirectoryPublic($absolutePath));
+
+        $relativePath = 'my-app';
+        $this->assertSame(getcwd().'/'.$relativePath, $command->getInstallationDirectoryPublic($relativePath));
+
+        $this->assertSame('.', $command->getInstallationDirectoryPublic('.'));
+    }
 }
