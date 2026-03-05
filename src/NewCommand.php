@@ -560,6 +560,10 @@ class NewCommand extends Command
 
             $this->configureComposerScripts($packageManager);
 
+            if ($this->usingLaravelStarterKit($input)) {
+                $this->configureWorkflowPackageManager($directory, $packageManager);
+            }
+
             if ($input->getOption('pest')) {
                 $output->writeln('');
             }
@@ -1091,6 +1095,72 @@ class NewCommand extends Command
 
             return $content;
         });
+    }
+
+    /**
+     * Configure the starter kit workflow files for the selected package manager.
+     *
+     * @param  string  $directory
+     * @param  NodePackageManager  $packageManager
+     * @return void
+     */
+    protected function configureWorkflowPackageManager(string $directory, NodePackageManager $packageManager): void
+    {
+        if ($packageManager === NodePackageManager::NPM) {
+            return;
+        }
+
+        foreach (['tests.yml', 'lint.yml'] as $workflowFile) {
+            $workflowPath = $directory.'/.github/workflows/'.$workflowFile;
+
+            if (! file_exists($workflowPath)) {
+                continue;
+            }
+
+            $contents = file_get_contents($workflowPath);
+
+            if ($contents === false) {
+                continue;
+            }
+
+            $lineEnding = str_contains($contents, "\r\n") ? "\r\n" : "\n";
+
+            $installNodeDependenciesAnchor = "      - name: Install Node Dependencies{$lineEnding}";
+            $installDependenciesAnchor = "      - name: Install Dependencies{$lineEnding}";
+            $installAnchor = str_contains($contents, $installNodeDependenciesAnchor)
+                ? $installNodeDependenciesAnchor
+                : $installDependenciesAnchor;
+
+            if ($packageManager === NodePackageManager::PNPM && ! str_contains($contents, 'corepack enable')) {
+                $contents = str_replace(
+                    $installAnchor,
+                    "      - name: Setup PNPM{$lineEnding}        run: |{$lineEnding}          corepack enable{$lineEnding}          corepack prepare pnpm@latest --activate{$lineEnding}{$lineEnding}{$installAnchor}",
+                    $contents,
+                );
+            }
+
+            if ($packageManager === NodePackageManager::BUN && ! str_contains($contents, 'setup-bun')) {
+                $contents = str_replace(
+                    $installAnchor,
+                    "      - name: Setup Bun{$lineEnding}        uses: oven-sh/setup-bun@v2{$lineEnding}{$lineEnding}{$installAnchor}",
+                    $contents,
+                );
+            }
+
+            $contents = preg_replace('/\bnpm (?:install|i)\b/', $packageManager->installCommand(), $contents);
+
+            if ($contents === null) {
+                continue;
+            }
+
+            $contents = preg_replace('/\bnpm run ([\w:-]+)/', $packageManager->runCommand().' $1', $contents);
+
+            if ($contents === null) {
+                continue;
+            }
+
+            file_put_contents($workflowPath, $contents);
+        }
     }
 
     /**
