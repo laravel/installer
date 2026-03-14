@@ -547,10 +547,6 @@ class NewCommand extends Command
                 $this->installPest($directory, $input, $output);
             }
 
-            if ($input->getOption('boost') && ! $input->getOption('no-boost')) {
-                $this->installBoost($directory, $input, $output);
-            }
-
             if ($input->getOption('github') !== false) {
                 $this->pushToGitHub($name, $directory, $input, $output);
                 $output->writeln('');
@@ -578,6 +574,10 @@ class NewCommand extends Command
 
             if ($runPackageManager) {
                 $this->runCommands([$packageManager->installCommand(), $packageManager->buildCommand()], $input, $output, workingPath: $directory);
+            }
+
+            if ($input->getOption('boost') && ! $input->getOption('no-boost')) {
+                $this->installBoost($directory, $input, $output);
             }
 
             if ($input->getOption('boost') && ! $input->getOption('no-boost')) {
