@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.24.7...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.24.8...master)
+
+## [v5.24.8](https://github.com/laravel/installer/compare/v5.24.7...v5.24.8) - 2026-03-16
+
+* Add `--no-boost` flag by [@josephmiclaus](https://github.com/josephmiclaus) in https://github.com/laravel/installer/pull/468
+* Fix absolute path handling on Linux/Unix systems by [@mt-shihab26](https://github.com/mt-shihab26) in https://github.com/laravel/installer/pull/469
+* Move boost:install after Node package installation by [@pushpak1300](https://github.com/pushpak1300) in https://github.com/laravel/installer/pull/473
 
 ## [v5.24.7](https://github.com/laravel/installer/compare/v5.24.6...v5.24.7) - 2026-02-24
 
