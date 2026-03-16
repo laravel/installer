@@ -624,6 +624,7 @@ class NewCommand extends Command
                 'X-Agent' => match (true) {
                     isset($_SERVER['CLAUDECODE']) && $_SERVER['CLAUDECODE'] === '1' => 'Claude Code',
                     isset($_SERVER['OPENCODE']) && $_SERVER['OPENCODE'] === '1' => 'OpenCode',
+                    isset($_SERVER['CURSOR_AGENT']) => 'Cursor',
                     default => null,
                 },
             ]),
