@@ -619,7 +619,14 @@ class NewCommand extends Command
         curl_setopt_array($curl, [
             CURLOPT_URL => 'https://laravel.com/new-install',
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => ['User-Agent: Laravel Installer'],
+            CURLOPT_HTTPHEADER => array_filter([
+                'User-Agent: Laravel Installer',
+                'X-Agent' => match (true) {
+                    isset($_SERVER['CLAUDECODE']) && $_SERVER['CLAUDECODE'] === '1' => 'Claude Code',
+                    isset($_SERVER['OPENCODE']) && $_SERVER['OPENCODE'] === '1' => 'OpenCode',
+                    default => null,
+                },
+            ]),
             CURLOPT_TIMEOUT => 3,
         ]);
 
