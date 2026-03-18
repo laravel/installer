@@ -495,8 +495,6 @@ class NewCommand extends Command
 
         $commands = [
             $createProjectCommand,
-            $composer." run post-root-package-install -d \"$directory\"",
-            $phpBinary." \"$directory/artisan\" key:generate --ansi",
         ];
 
         if ($directory != '.' && $input->getOption('force')) {
@@ -507,11 +505,24 @@ class NewCommand extends Command
             }
         }
 
-        if (PHP_OS_FAMILY != 'Windows') {
-            $commands[] = "chmod 755 \"$directory/artisan\"";
-        }
-
         if (($process = $this->runCommands($commands, $input, $output))->isSuccessful()) {
+            if ($this->hasComposerScript('post-root-package-install', $directory)) {
+                $this->runCommands(
+                    [$composer." run post-root-package-install -d \"$directory\""],
+                    $input,
+                    $output,
+                );
+            }
+
+            $postCreateCommands = [
+                $phpBinary." \"$directory/artisan\" key:generate --ansi",
+            ];
+
+            if (PHP_OS_FAMILY != 'Windows') {
+                $postCreateCommands[] = "chmod 755 \"$directory/artisan\"";
+            }
+
+            $this->runCommands($postCreateCommands, $input, $output);
             if ($name !== '.') {
                 $this->replaceInFile(
                     'APP_URL=http://localhost',
@@ -1113,6 +1124,26 @@ class NewCommand extends Command
 
             return $content;
         });
+    }
+
+    /**
+     * Determine if the given Composer script exists in the application's composer.json.
+     *
+     * @param  string  $script
+     * @param  string  $directory
+     * @return bool
+     */
+    protected function hasComposerScript(string $script, string $directory): bool
+    {
+        $composerJson = $directory.'/composer.json';
+
+        if (! file_exists($composerJson)) {
+            return false;
+        }
+
+        $composer = json_decode(file_get_contents($composerJson), true);
+
+        return isset($composer['scripts'][$script]);
     }
 
     /**
