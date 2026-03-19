@@ -1305,7 +1305,13 @@ class NewCommand extends Command
             }, $commands);
         }
 
-        $process = Process::fromShellCommandline(implode(' && ', $commands), $workingPath, $env, null, null);
+        $commandline = implode(' && ', $commands);
+
+        if ('\\' === DIRECTORY_SEPARATOR && $input->isInteractive() && ! Process::isTtySupported()) {
+            return $this->runCommandsInteractivelyOnWindows($commandline, $workingPath, $env);
+        }
+
+        $process = Process::fromShellCommandline($commandline, $workingPath, $env, null, null);
 
         if (Process::isTtySupported()) {
             try {
@@ -1320,6 +1326,46 @@ class NewCommand extends Command
         });
 
         return $process;
+    }
+
+    /**
+     * Run the given command on Windows with inherited stdio for interactive support.
+     *
+     * On Windows, TTY/PTY modes are not available, so Symfony Process does not
+     * connect the subprocess stdin to the terminal. This causes interactive
+     * prompts (such as those from boost:install) to receive no input, skipping
+     * questions or crashing. Using proc_open with inherited descriptors allows
+     * the subprocess to read directly from the user's terminal.
+     *
+     * @param  string  $commandline
+     * @param  string|null  $workingPath
+     * @param  array  $env
+     * @return \Symfony\Component\Process\Process
+     */
+    protected function runCommandsInteractivelyOnWindows(string $commandline, ?string $workingPath, array $env): Process
+    {
+        $descriptors = [
+            0 => STDIN,
+            1 => STDOUT,
+            2 => STDERR,
+        ];
+
+        $envPairs = $env !== [] ? array_merge($_SERVER, $_ENV, $env) : null;
+
+        $proc = proc_open($commandline, $descriptors, $pipes, $workingPath, $envPairs);
+
+        if (is_resource($proc)) {
+            $exitCode = proc_close($proc);
+        } else {
+            $exitCode = 1;
+        }
+
+        // Return a completed Process instance that reflects the actual exit code
+        // so callers that check ->isSuccessful() continue to work as expected.
+        $sentinel = Process::fromShellCommandline('exit '.$exitCode, $workingPath);
+        $sentinel->run();
+
+        return $sentinel;
     }
 
     /**
