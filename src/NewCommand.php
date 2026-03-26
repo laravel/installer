@@ -1331,12 +1331,6 @@ class NewCommand extends Command
     /**
      * Run the given command on Windows with inherited stdio for interactive support.
      *
-     * On Windows, TTY/PTY modes are not available, so Symfony Process does not
-     * connect the subprocess stdin to the terminal. This causes interactive
-     * prompts (such as those from boost:install) to receive no input, skipping
-     * questions or crashing. Using proc_open with inherited descriptors allows
-     * the subprocess to read directly from the user's terminal.
-     *
      * @param  string  $commandline
      * @param  string|null  $workingPath
      * @param  array  $env
@@ -1360,9 +1354,9 @@ class NewCommand extends Command
             $exitCode = 1;
         }
 
-        // Return a completed Process instance that reflects the actual exit code
-        // so callers that check ->isSuccessful() continue to work as expected.
+        // Return a completed Process instance that reflects the actual exit code...
         $sentinel = Process::fromShellCommandline('exit '.$exitCode, $workingPath);
+
         $sentinel->run();
 
         return $sentinel;
