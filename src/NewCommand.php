@@ -62,6 +62,7 @@ class NewCommand extends Command
             ->addOption('livewire', null, InputOption::VALUE_NONE, 'Install the Livewire Starter Kit')
             ->addOption('livewire-class-components', null, InputOption::VALUE_NONE, 'Generate stand-alone Livewire class components')
             ->addOption('workos', null, InputOption::VALUE_NONE, 'Use WorkOS for authentication')
+            ->addOption('teams', null, InputOption::VALUE_NONE, 'Install team support')
             ->addOption('no-authentication', null, InputOption::VALUE_NONE, 'Do not generate authentication scaffolding')
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Install the Pest testing framework')
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Install the PHPUnit testing framework')
@@ -163,6 +164,15 @@ class NewCommand extends Command
                 $input->setOption('livewire-class-components', ! confirm(
                     label: 'Would you like to use single-file Livewire components?',
                     default: true,
+                ));
+            }
+
+            if ($this->usingLaravelStarterKit($input) &&
+                ! $input->getOption('no-authentication') &&
+                ! $input->getOption('livewire-class-components') &&
+                ! $input->getOption('teams')) {
+                $input->setOption('teams', confirm(
+                    label: 'Would you like to add teams support to your application?',
                 ));
             }
         }
@@ -484,8 +494,17 @@ class NewCommand extends Command
                 $createProjectCommand = str_replace(" {$starterKit} ", " {$starterKit}:dev-components ", $createProjectCommand);
             }
 
-            if ($this->usingLaravelStarterKit($input) && $input->getOption('workos')) {
-                $createProjectCommand = str_replace(" {$starterKit} ", " {$starterKit}:dev-workos ", $createProjectCommand);
+            if ($this->usingLaravelStarterKit($input)) {
+                $branch = match (true) {
+                    $input->getOption('workos') && $input->getOption('teams') => 'dev-workos-teams',
+                    $input->getOption('workos') => 'dev-workos',
+                    $input->getOption('teams') => 'dev-teams',
+                    default => null,
+                };
+
+                if ($branch) {
+                    $createProjectCommand = str_replace(" {$starterKit} ", " {$starterKit}:{$branch} ", $createProjectCommand);
+                }
             }
 
             if (! $this->usingLaravelStarterKit($input) && str_contains($starterKit, '://')) {
