@@ -108,4 +108,22 @@ class NewCommandTest extends TestCase
 
         $this->assertSame('.', $command->getInstallationDirectoryPublic('.'));
     }
+
+    public function test_bin_laravel_version_matches_packagist_latest()
+    {
+        $composer = json_decode(file_get_contents(__DIR__.'/../composer.json'), true, flags: JSON_THROW_ON_ERROR);
+        $composerVersion = $composer['version'] ?? null;
+
+        $this->assertNotNull($composerVersion, 'composer.json must define an explicit version');
+
+        $binLaravelContent = file_get_contents(__DIR__.'/../bin/laravel');
+
+        $this->assertStringContainsString(
+            "\$composer['version']",
+            $binLaravelContent,
+            'bin/laravel must use the version from composer.json'
+        );
+
+        $this->assertNotEmpty($composerVersion);
+    }
 }
