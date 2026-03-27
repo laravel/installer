@@ -169,6 +169,7 @@ class NewCommand extends Command
 
             if ($this->usingLaravelStarterKit($input) &&
                 ! $input->getOption('no-authentication') &&
+                ! $input->getOption('livewire-class-components') &&
                 ! $input->getOption('teams')) {
                 $input->setOption('teams', confirm(
                     label: 'Would you like to add teams support to your application?',
