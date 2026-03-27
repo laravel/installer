@@ -167,7 +167,8 @@ class NewCommand extends Command
                 ));
             }
 
-            if (! $input->getOption('no-authentication') &&
+            if ($this->usingLaravelStarterKit($input) &&
+                ! $input->getOption('no-authentication') &&
                 ! $input->getOption('teams')) {
                 $input->setOption('teams', confirm(
                     label: 'Would you like to add teams support to your application?',
