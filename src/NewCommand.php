@@ -173,6 +173,7 @@ class NewCommand extends Command
                 ! $input->getOption('teams')) {
                 $input->setOption('teams', confirm(
                     label: 'Would you like to add teams support to your application?',
+                    default: false,
                 ));
             }
         }
