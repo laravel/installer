@@ -1,6 +1,14 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.25.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.25.1...master)
+
+## [v5.25.1](https://github.com/laravel/installer/compare/v5.25.0...v5.25.1) - 2026-03-27
+
+### What's Changed
+
+* Fix version on bin file by [@WendellAdriel](https://github.com/WendellAdriel) in https://github.com/laravel/installer/pull/485
+
+**Full Changelog**: https://github.com/laravel/installer/compare/v5.25.0...v5.25.1
 
 ## [v5.25.0](https://github.com/laravel/installer/compare/v5.24.11...v5.25.0) - 2026-03-27
 
