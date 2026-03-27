@@ -1,6 +1,19 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.24.10...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.24.11...master)
+
+## [v5.24.11](https://github.com/laravel/installer/compare/v5.24.10...v5.24.11) - 2026-03-27
+
+### What's Changed
+
+* Fix interactive subprocess stdin on native Windows by [@JoshSalway](https://github.com/JoshSalway) in https://github.com/laravel/installer/pull/478
+* Add teams support option to the installer by [@WendellAdriel](https://github.com/WendellAdriel) in https://github.com/laravel/installer/pull/480
+
+### New Contributors
+
+* [@JoshSalway](https://github.com/JoshSalway) made their first contribution in https://github.com/laravel/installer/pull/478
+
+**Full Changelog**: https://github.com/laravel/installer/compare/v5.24.10...v5.24.11
 
 ## [v5.24.10](https://github.com/laravel/installer/compare/v5.24.9...v5.24.10) - 2026-03-24
 
