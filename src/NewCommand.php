@@ -533,8 +533,8 @@ class NewCommand extends Command
 
         if (($process = $this->runCommands($commands, $input, $output))->isSuccessful()) {
             if ($name !== '.') {
-                $this->replaceInFile(
-                    'APP_URL=http://localhost',
+                $this->pregReplaceInFile(
+                    '/APP_URL=http:\/\/localhost$/',
                     'APP_URL='.$this->generateAppUrl($name, $directory),
                     $directory.'/.env'
                 );
