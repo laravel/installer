@@ -12,10 +12,10 @@ enum NodePackageManager: string
     public function installCommand(): string
     {
         return match ($this) {
-            self::NPM => 'npm install',
-            self::YARN => 'yarn install',
-            self::PNPM => 'pnpm install',
-            self::BUN => 'bun install',
+            self::NPM => 'npm install --ignore-scripts',
+            self::YARN => 'yarn install --ignore-scripts',
+            self::PNPM => 'pnpm install --ignore-scripts',
+            self::BUN => 'bun install --ignore-scripts',
         };
     }
 
