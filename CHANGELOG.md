@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.25.1...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.25.2...master)
+
+## [v5.25.2](https://github.com/laravel/installer/compare/v5.25.1...v5.25.2) - 2026-03-31
+
+* Fix for #479: Replace APP_URL in .env file using regex by [@yuters](https://github.com/yuters) in https://github.com/laravel/installer/pull/487
+* Prevents installed package from executing malicious code via `postinstall` by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/489
 
 ## [v5.25.1](https://github.com/laravel/installer/compare/v5.25.0...v5.25.1) - 2026-03-27
 
