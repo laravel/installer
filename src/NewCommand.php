@@ -1006,7 +1006,7 @@ class NewCommand extends Command
         $composerBinary = $this->findComposer();
 
         $commands = [
-            $composerBinary.' require laravel/boost ^2.0 --dev -W',
+            $composerBinary.' require laravel/boost ^2.2 --dev -W',
             trim(sprintf(
                 $this->phpBinary().' artisan boost:install %s',
                 ! $input->isInteractive() ? '--no-interaction' : '',
