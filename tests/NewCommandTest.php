@@ -146,7 +146,6 @@ class NewCommandTest extends TestCase
         $output = $this->createMock(OutputInterface::class);
 
         $result = $command->handlePhpVersionMismatchPublic($input, $output, '8.2.0');
-
         // It should return dev-master regardless of mismatch if --dev is provided.
         $this->assertSame('dev-master', $result);
     }
@@ -169,7 +168,6 @@ class NewCommandTest extends TestCase
 
         // Under non-interactive run, falling back should automatically happen if a version is supported
         $result = $command->handlePhpVersionMismatchPublic($input, $output, '8.2.0');
-        
         $this->assertSame('"12.*"', $result);
     }
 
