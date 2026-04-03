@@ -108,4 +108,90 @@ class NewCommandTest extends TestCase
 
         $this->assertSame('.', $command->getInstallationDirectoryPublic('.'));
     }
+
+    public function test_php_version_mismatch_returns_empty_when_latest_supported()
+    {
+        $command = new class extends NewCommand
+        {
+            public function handlePhpVersionMismatchPublic($input, $output, $phpVersion)
+            {
+                return $this->handlePhpVersionMismatch($input, $output, $phpVersion);
+            }
+        };
+
+        $input = $this->createMock(\Symfony\Component\Console\Input\InputInterface::class);
+        $input->method('getOption')->with('dev')->willReturn(false);
+
+        $output = $this->createMock(\Symfony\Component\Console\Output\OutputInterface::class);
+
+        $result = $command->handlePhpVersionMismatchPublic($input, $output, '8.3.0');
+
+        $this->assertSame('', $result);
+    }
+
+    public function test_php_version_mismatch_returns_dev_master_when_dev_flag_passed()
+    {
+        $command = new class extends NewCommand
+        {
+            public function handlePhpVersionMismatchPublic($input, $output, $phpVersion)
+            {
+                return $this->handlePhpVersionMismatch($input, $output, $phpVersion);
+            }
+        };
+
+        $input = $this->createMock(\Symfony\Component\Console\Input\InputInterface::class);
+        $input->method('getOption')->with('dev')->willReturn(true);
+
+        $output = $this->createMock(\Symfony\Component\Console\Output\OutputInterface::class);
+
+        $result = $command->handlePhpVersionMismatchPublic($input, $output, '8.2.0');
+
+        // It should return dev-master regardless of mismatch if --dev is provided.
+        $this->assertSame('dev-master', $result);
+    }
+
+    public function test_php_version_mismatch_returns_version_when_not_interactive_and_unsupported()
+    {
+        $command = new class extends NewCommand
+        {
+            public function handlePhpVersionMismatchPublic($input, $output, $phpVersion)
+            {
+                return $this->handlePhpVersionMismatch($input, $output, $phpVersion);
+            }
+        };
+
+        $input = $this->createMock(\Symfony\Component\Console\Input\InputInterface::class);
+        $input->method('getOption')->with('dev')->willReturn(false);
+        $input->method('isInteractive')->willReturn(false);
+
+        $output = $this->createMock(\Symfony\Component\Console\Output\OutputInterface::class);
+
+        // Under non-interactive run, falling back should automatically happen if a version is supported
+        $result = $command->handlePhpVersionMismatchPublic($input, $output, '8.2.0');
+        
+        $this->assertSame('"12.*"', $result);
+    }
+
+    public function test_php_version_mismatch_throws_exception_when_no_version_supported()
+    {
+        $command = new class extends NewCommand
+        {
+            public function handlePhpVersionMismatchPublic($input, $output, $phpVersion)
+            {
+                return $this->handlePhpVersionMismatch($input, $output, $phpVersion);
+            }
+        };
+
+        $input = $this->createMock(\Symfony\Component\Console\Input\InputInterface::class);
+        $input->method('getOption')->with('dev')->willReturn(false);
+        $input->method('isInteractive')->willReturn(false);
+
+        $output = $this->createMock(\Symfony\Component\Console\Output\OutputInterface::class);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Installation aborted because PHP version requirements are not met.');
+
+        // PHP 8.0 is less than 10.* requirement of 8.1
+        $command->handlePhpVersionMismatchPublic($input, $output, '8.0.0');
+    }
 }

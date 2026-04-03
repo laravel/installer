@@ -471,7 +471,7 @@ class NewCommand extends Command
 
         $this->composer = new Composer(new Filesystem(), $directory);
 
-        $version = $this->getVersion($input);
+        $version = $this->handlePhpVersionMismatch($input, $output);
 
         if (! $input->getOption('force')) {
             $this->verifyApplicationDoesntExist($directory);
@@ -1348,6 +1348,61 @@ class NewCommand extends Command
         });
 
         return $process;
+    }
+
+    /**
+     * Handle PHP version mismatch by offering fallback.
+     *
+     * @param  \Symfony\Component\Console\Input\InputInterface  $input
+     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
+     * @param  string|null  $currentPhp
+     * @return string|null  New Laravel version or null to abort
+     */
+    protected function handlePhpVersionMismatch(InputInterface $input, OutputInterface $output, ?string $currentPhp = null): ?string
+    {
+        $currentPhp = $currentPhp ?? PHP_VERSION;
+
+        $versions = [
+            '13.*' => '8.3',
+            '12.*' => '8.2',
+            '11.*' => '8.2',
+            '10.*' => '8.1',
+        ];
+
+        $supportedVersion = null;
+
+        foreach ($versions as $laravelVersion => $requiredPhp) {
+            if (version_compare($currentPhp, $requiredPhp, '>=')) {
+                $supportedVersion = $laravelVersion;
+                break;
+            }
+        }
+
+        // If they ask for development version via flag, we should respect that instead.
+        if ($input->getOption('dev')) {
+            return 'dev-master';
+        }
+
+        if ($supportedVersion === '13.*') {
+            return '';
+        }
+
+        if ($supportedVersion) {
+            if ($input->isInteractive()) {
+                $output->writeln("<bg=yellow;fg=black> WARN </> Your PHP version ({$currentPhp}) does not meet the requirement for the latest Laravel version.");
+
+                $fallback = confirm("Would you like to install an older version of Laravel ({$supportedVersion}) instead?", default: true);
+
+                if (! $fallback) {
+                    throw new RuntimeException('Installation aborted because PHP version requirements are not met.');
+                }
+            }
+
+            // Return explicitly double-quoted to prevent shell wildcard expansion on asterisks
+            return '"'.$supportedVersion.'"';
+        }
+
+        throw new RuntimeException('Installation aborted because PHP version requirements are not met.');
     }
 
     /**
