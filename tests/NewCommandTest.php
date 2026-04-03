@@ -127,7 +127,6 @@ class NewCommandTest extends TestCase
         $output = $this->createMock(OutputInterface::class);
 
         $result = $command->handlePhpVersionMismatchPublic($input, $output, '8.3.0');
-
         $this->assertSame('', $result);
     }
 
