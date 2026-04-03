@@ -1361,7 +1361,7 @@ class NewCommand extends Command
     protected function handlePhpVersionMismatch(InputInterface $input, OutputInterface $output, ?string $currentPhp = null): ?string
     {
         $currentPhp = $currentPhp ?? PHP_VERSION;
-
+        
         $versions = [
             '13.*' => '8.3',
             '12.*' => '8.2',

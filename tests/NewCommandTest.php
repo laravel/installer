@@ -6,6 +6,8 @@ use Laravel\Installer\Console\Concerns\InteractsWithHerdOrValet;
 use Laravel\Installer\Console\NewCommand;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 
 class NewCommandTest extends TestCase
@@ -119,10 +121,10 @@ class NewCommandTest extends TestCase
             }
         };
 
-        $input = $this->createMock(\Symfony\Component\Console\Input\InputInterface::class);
+        $input = $this->createMock(InputInterface::class);
         $input->method('getOption')->with('dev')->willReturn(false);
 
-        $output = $this->createMock(\Symfony\Component\Console\Output\OutputInterface::class);
+        $output = $this->createMock(OutputInterface::class);
 
         $result = $command->handlePhpVersionMismatchPublic($input, $output, '8.3.0');
 
@@ -139,10 +141,10 @@ class NewCommandTest extends TestCase
             }
         };
 
-        $input = $this->createMock(\Symfony\Component\Console\Input\InputInterface::class);
+        $input = $this->createMock(InputInterface::class);
         $input->method('getOption')->with('dev')->willReturn(true);
 
-        $output = $this->createMock(\Symfony\Component\Console\Output\OutputInterface::class);
+        $output = $this->createMock(OutputInterface::class);
 
         $result = $command->handlePhpVersionMismatchPublic($input, $output, '8.2.0');
 
@@ -160,11 +162,11 @@ class NewCommandTest extends TestCase
             }
         };
 
-        $input = $this->createMock(\Symfony\Component\Console\Input\InputInterface::class);
+        $input = $this->createMock(InputInterface::class);
         $input->method('getOption')->with('dev')->willReturn(false);
         $input->method('isInteractive')->willReturn(false);
 
-        $output = $this->createMock(\Symfony\Component\Console\Output\OutputInterface::class);
+        $output = $this->createMock(OutputInterface::class);
 
         // Under non-interactive run, falling back should automatically happen if a version is supported
         $result = $command->handlePhpVersionMismatchPublic($input, $output, '8.2.0');
@@ -182,11 +184,11 @@ class NewCommandTest extends TestCase
             }
         };
 
-        $input = $this->createMock(\Symfony\Component\Console\Input\InputInterface::class);
+        $input = $this->createMock(InputInterface::class);
         $input->method('getOption')->with('dev')->willReturn(false);
         $input->method('isInteractive')->willReturn(false);
 
-        $output = $this->createMock(\Symfony\Component\Console\Output\OutputInterface::class);
+        $output = $this->createMock(OutputInterface::class);
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Installation aborted because PHP version requirements are not met.');
