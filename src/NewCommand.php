@@ -1125,6 +1125,7 @@ class NewCommand extends Command
             }
 
             $this->replaceInFile('npm install', $packageManager->installCommand(), $file);
+            $this->replaceInFile('npm i', $packageManager->installCommand(), $file);
             $this->replaceInFile('npm run build', $packageManager->buildCommand(), $file);
             $this->replaceInFile('npm run format', $packageManager->runCommand().' format', $file);
             $this->replaceInFile('npm run lint', $packageManager->runCommand().' lint', $file);
