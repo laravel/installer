@@ -1366,7 +1366,7 @@ class NewCommand extends Command
             2 => STDERR,
         ];
 
-        $envPairs = $env !== [] ? array_filter(array_merge($_SERVER, $_ENV, $env), 'is_string') : null;
+        $envPairs = $env !== [] ? array_filter(array_merge($_SERVER, $_ENV, $env), fn ($v) => ! is_array($v)) : null;
 
         $proc = proc_open($commandline, $descriptors, $pipes, $workingPath, $envPairs);
 
