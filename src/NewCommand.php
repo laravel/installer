@@ -316,9 +316,10 @@ class NewCommand extends Command
         if (confirm(label: 'Would you like to update now?')) {
             $this->runCommands(['composer global update laravel/installer'], $input, $output);
 
-            // Check the installed version after update to avoid a re-proxy loop
-            // if the update didn't actually install a newer version...
-            $checkProcess = new Process(['composer', 'global', 'show', 'laravel/installer', '--format=json']);
+            // Verify the update actually installed a newer version to avoid
+            // a re-proxy loop when the update silently fails or the version
+            // doesn't change (e.g. Herd's bundled phar, constraint conflicts)...
+            $checkProcess = Process::fromShellCommandline('composer global show laravel/installer --format=json');
             $checkProcess->run();
 
             if ($checkProcess->isSuccessful()) {
@@ -327,13 +328,11 @@ class NewCommand extends Command
 
                 if (version_compare($installedVersion, $version) > 0) {
                     $this->proxyLaravelNew($input, $output);
-
-                    return;
                 }
             }
 
             $output->writeln('');
-            $output->writeln('  <bg=yellow;fg=black> WARN </> Unable to update the installer. Continuing with the current version...');
+            $output->writeln('  <bg=yellow;fg=black> WARN </> The installer could not be updated. You may need to update manually. Continuing with the current version...');
             $output->writeln('');
         }
     }
