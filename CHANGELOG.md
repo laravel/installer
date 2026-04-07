@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.25.2...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.25.3...master)
+
+## [v5.25.3](https://github.com/laravel/installer/compare/v5.25.2...v5.25.3) - 2026-04-07
+
+* require laravel/boost ^2.2 for Inertia v3 compatibility by [@franbarbalopez](https://github.com/franbarbalopez) in https://github.com/laravel/installer/pull/495
+* Fix Boost install on Windows: quote version constraint to protect caret by [@JoshSalway](https://github.com/JoshSalway) in https://github.com/laravel/installer/pull/497
 
 ## [v5.25.2](https://github.com/laravel/installer/compare/v5.25.1...v5.25.2) - 2026-03-31
 
