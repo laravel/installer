@@ -576,6 +576,10 @@ class NewCommand extends Command
 
             $this->configureComposerScripts($packageManager);
 
+            if ($packageManager !== NodePackageManager::NPM) {
+                $this->configureGitHubWorkflows($packageManager, $directory);
+            }
+
             if ($input->getOption('pest')) {
                 $output->writeln('');
             }
@@ -1121,6 +1125,33 @@ class NewCommand extends Command
 
             return $content;
         });
+    }
+
+    /**
+     * Configure GitHub workflow files to use the selected package manager.
+     *
+     * @param  NodePackageManager  $packageManager
+     * @param  string  $directory
+     * @return void
+     */
+    protected function configureGitHubWorkflows(NodePackageManager $packageManager, string $directory): void
+    {
+        $workflowFiles = [
+            $directory.'/.github/workflows/tests.yml',
+            $directory.'/.github/workflows/lint.yml',
+        ];
+
+        foreach ($workflowFiles as $file) {
+            if (! file_exists($file)) {
+                continue;
+            }
+
+            $this->replaceInFile('npm install', $packageManager->installCommand(), $file);
+            $this->replaceInFile('npm i', $packageManager->installCommand(), $file);
+            $this->replaceInFile('npm run build', $packageManager->buildCommand(), $file);
+            $this->replaceInFile('npm run format', $packageManager->runCommand().' format', $file);
+            $this->replaceInFile('npm run lint', $packageManager->runCommand().' lint', $file);
+        }
     }
 
     /**
