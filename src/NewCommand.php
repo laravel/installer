@@ -291,8 +291,8 @@ class NewCommand extends Command
         $output->writeln('');
         $output->writeln("  <bg=yellow;fg=black> WARN </> A new version of the Laravel installer is available. You have version {$version} installed, the latest version is {$latestVersion}.");
 
-        $laravelInstallerPath = (new ExecutableFinder())->find('laravel') ?? '';
-        $isHerd = str_contains($laravelInstallerPath, DIRECTORY_SEPARATOR.'Herd'.DIRECTORY_SEPARATOR);
+        $laravelInstallerPath = strtolower((new ExecutableFinder())->find('laravel') ?? '');
+        $isHerd = str_contains($laravelInstallerPath, DIRECTORY_SEPARATOR.'herd'.DIRECTORY_SEPARATOR);
         // Intalled via php.new
         $isHerdLite = str_contains($laravelInstallerPath, DIRECTORY_SEPARATOR.'herd-lite'.DIRECTORY_SEPARATOR);
 
