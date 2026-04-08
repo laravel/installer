@@ -325,7 +325,7 @@ class NewCommand extends Command
         }
 
         if (confirm(label: 'Would you like to update now?')) {
-            $this->runCommands(['composer global update laravel/installer'], $input, $output);
+            $this->runCommands(['composer global update laravel/installer --with-all-dependencies'], $input, $output);
             $this->proxyLaravelNew($input, $output);
         }
     }
