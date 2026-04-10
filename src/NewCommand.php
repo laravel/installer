@@ -874,11 +874,13 @@ class NewCommand extends Command
             $databaseOptions = $this->databaseOptions()
         )->keys()->first();
 
-        if (! $input->getOption('database') && $this->usingStarterKit($input)) {
+        if ($this->usingStarterKit($input)) {
             // Starter kits will already be migrated in post composer create-project command...
             $migrate = false;
 
-            $input->setOption('database', 'sqlite');
+            if (! $input->getOption('database')) {
+                $input->setOption('database', 'sqlite');
+            }
         }
 
         if (! $input->getOption('database') && $input->isInteractive()) {
