@@ -643,6 +643,9 @@ class NewCommand extends Command
         return $process->getExitCode();
     }
 
+    /**
+     * Format the final step command with an arrow and styling.
+     */
     protected function finalStep(string $command): string
     {
         return ' <fg=gray>➜</> ' . (str_contains($command, '<') ? $command : "<options=bold>{$command}</>");
