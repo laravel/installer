@@ -1389,7 +1389,7 @@ class NewCommand extends Command
                         $logger->error('Command failed: '.$command);
                         $logger->error('Error output: '.$process->getErrorOutput());
 
-                        throw new RuntimeException("Command [{$command}] failed with exit code {$process->getExitCode()}.");
+                        return $process;
                     }
                 }
 
