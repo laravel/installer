@@ -1357,12 +1357,7 @@ class NewCommand extends Command
     }
 
     /**
-     * Run the given shell command within a Laravel Prompts task.
-     *
-     * @param  string  $label
-     * @param  string  $commandline
-     * @param  string|null  $success
-     * @param  string|null  $error
+     * Run the given shell commands within a Laravel Prompts task.
      */
     protected function runCommandsAsTask(
         array $commands,
