@@ -1376,25 +1376,22 @@ class NewCommand extends Command
             label: $taskLabel ?? '',
             keepSummary: true,
             callback: function (Logger $logger) use ($commands, $workingPath, $env, $taskLabel) {
-                // $logger->label($taskLabel ?? '');
-
                 foreach ($commands as $label => $command) {
-                    $logger->label($command);
-                    // $logger->subLabel($command);
+                    $logger->subLabel($command);
 
                     $process = Process::fromShellCommandline($command, $workingPath, $env, null, null);
-
-                    $output = '';
-
-                    $process->run(function ($type, $line) use ($logger, &$output) {
+                    $process->run(function ($type, $line) use ($logger) {
                         $logger->line($line);
-                        $output .= $line;
                     });
 
                     if ($process->isSuccessful()) {
                         $logger->success($label);
                     } else {
                         $logger->error($label);
+                        $logger->error('Command failed: '.$command);
+                        $logger->error('Error output: '.$process->getErrorOutput());
+
+                        throw new RuntimeException("Command [{$command}] failed with exit code {$process->getExitCode()}.");
                     }
                 }
 
