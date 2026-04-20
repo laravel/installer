@@ -514,7 +514,7 @@ class NewCommand extends Command
 
         $commands['Application installed'] = [$createProjectCommand];
 
-        $appInitializedLabel = 'Aplication initialized';
+        $appInitializedLabel = 'Application initialized';
 
         $commands[$appInitializedLabel] = [
             $composer." run post-root-package-install -d \"$directory\"",
