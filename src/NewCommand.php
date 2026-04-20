@@ -1348,7 +1348,7 @@ class NewCommand extends Command
 
         $commands = array_map(fn ($values) => implode(' && ', $values), $commands);
 
-        if (! array_is_list($commands) && $this->useConciseOutput($output)) {
+        if (function_exists('Laravel\Prompts\task') && ! array_is_list($commands) && $this->useConciseOutput($output)) {
             return $this->runCommandsAsTask($commands, $workingPath, $env, $taskLabel);
         }
 
