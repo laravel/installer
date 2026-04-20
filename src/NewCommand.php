@@ -2,11 +2,9 @@
 
 namespace Laravel\Installer\Console;
 
-use Carbon\CarbonInterval;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Composer;
 use Illuminate\Support\ProcessUtils;
-use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
 use Laravel\Installer\Console\Enums\NodePackageManager;
 use Laravel\Prompts\Support\Logger;
@@ -39,7 +37,7 @@ class NewCommand extends Command
     /**
      * The Composer instance.
      *
-     * @var \Illuminate\Support\Composer
+     * @var Composer
      */
     protected $composer;
 
@@ -59,7 +57,7 @@ class NewCommand extends Command
             ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'The branch that should be created for a new repository', $this->defaultBranch())
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
-            ->addOption('database', null, InputOption::VALUE_REQUIRED, 'The database driver your application will use. Possible values are: ' . implode(', ', self::DATABASE_DRIVERS))
+            ->addOption('database', null, InputOption::VALUE_REQUIRED, 'The database driver your application will use. Possible values are: '.implode(', ', self::DATABASE_DRIVERS))
             ->addOption('react', null, InputOption::VALUE_NONE, 'Install the React Starter Kit')
             ->addOption('svelte', null, InputOption::VALUE_NONE, 'Install the Svelte Starter Kit')
             ->addOption('vue', null, InputOption::VALUE_NONE, 'Install the Vue Starter Kit')
@@ -83,8 +81,6 @@ class NewCommand extends Command
     /**
      * Interact with the user before validating the input.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
     protected function interact(InputInterface $input, OutputInterface $output)
@@ -203,9 +199,6 @@ class NewCommand extends Command
 
     /**
      * Display the Laravel header with gradient colors.
-     *
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-     * @return void
      */
     protected function displayHeader(OutputInterface $output): void
     {
@@ -243,11 +236,8 @@ class NewCommand extends Command
     /**
      * Ensure that the required PHP extensions are installed.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-     * @return void
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     protected function ensureExtensionsAreAvailable(InputInterface $input, OutputInterface $output): void
     {
@@ -261,13 +251,13 @@ class NewCommand extends Command
             'openssl',
             'session',
             'tokenizer',
-        ])->reject(fn($extension) => in_array($extension, $availableExtensions));
+        ])->reject(fn ($extension) => in_array($extension, $availableExtensions));
 
         if ($missingExtensions->isEmpty()) {
             return;
         }
 
-        throw new \RuntimeException(
+        throw new RuntimeException(
             sprintf('The following PHP extensions are required but are not installed: %s', $missingExtensions->join(', ', ', and '))
         );
     }
@@ -275,8 +265,6 @@ class NewCommand extends Command
     /**
      * Check for newer version of the installer package.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
     protected function checkForUpdate(InputInterface $input, OutputInterface $output)
@@ -299,15 +287,15 @@ class NewCommand extends Command
         $output->writeln('');
         $output->writeln("  <bg=yellow;fg=black> WARN </> A new version of the Laravel installer is available. You have version {$version} installed, the latest version is {$latestVersion}.");
 
-        $laravelInstallerPath = (new ExecutableFinder())->find('laravel') ?? '';
-        $isHerd = str_contains($laravelInstallerPath, DIRECTORY_SEPARATOR . 'Herd' . DIRECTORY_SEPARATOR);
+        $laravelInstallerPath = (new ExecutableFinder)->find('laravel') ?? '';
+        $isHerd = str_contains($laravelInstallerPath, DIRECTORY_SEPARATOR.'Herd'.DIRECTORY_SEPARATOR);
         // Intalled via php.new
-        $isHerdLite = str_contains($laravelInstallerPath, DIRECTORY_SEPARATOR . 'herd-lite' . DIRECTORY_SEPARATOR);
+        $isHerdLite = str_contains($laravelInstallerPath, DIRECTORY_SEPARATOR.'herd-lite'.DIRECTORY_SEPARATOR);
 
         if ($isHerd) {
             $this->confirmUpdateAndContinue(
                 'To update, open <options=bold>Herd</> > <options=bold>Settings</> > <options=bold>PHP</> > <options=bold>Laravel Installer</> '
-                    . 'and click the <options=bold>"Update"</> button.',
+                    .'and click the <options=bold>"Update"</> button.',
                 $input,
                 $output
             );
@@ -318,8 +306,8 @@ class NewCommand extends Command
         if ($isHerdLite) {
             $message = match (PHP_OS_FAMILY) {
                 'Windows' => 'Set-ExecutionPolicy Bypass -Scope Process -Force; '
-                    . '[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; '
-                    . "iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows'))",
+                    .'[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; '
+                    ."iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows'))",
                 'Darwin' => '/bin/bash -c "$(curl -fsSL https://php.new/install/mac)"',
                 default => '/bin/bash -c "$(curl -fsSL https://php.new/install/linux)"',
             };
@@ -347,11 +335,6 @@ class NewCommand extends Command
 
     /**
      * Allow the user to update the Laravel Installer and continue.
-     *
-     * @param  string  $message
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-     * @return void
      */
     protected function confirmUpdateAndContinue(string $message, InputInterface $input, OutputInterface $output): void
     {
@@ -373,29 +356,22 @@ class NewCommand extends Command
 
     /**
      * Proxy the command to the globally installed Laravel Installer.
-     *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-     * @return void
      */
     protected function proxyLaravelNew(InputInterface $input, OutputInterface $output): void
     {
         $output->writeln('');
-        $this->runCommands(['laravel ' . $input], $input, $output, workingPath: getcwd());
+        $this->runCommands(['laravel '.$input], $input, $output, workingPath: getcwd());
         exit;
     }
 
     /**
      * Get the latest version of the installer package from Packagist.
-     *
-     * @param  string  $package
-     * @return string|false
      */
     protected function getLatestVersionData(string $package): string|false
     {
         $packagePrefix = str_replace('/', '-', $package);
-        $cachedPath = join_paths(sys_get_temp_dir(), $packagePrefix . '-version-check.json');
-        $lastModifiedPath = join_paths(sys_get_temp_dir(), $packagePrefix . '-last-modified');
+        $cachedPath = join_paths(sys_get_temp_dir(), $packagePrefix.'-version-check.json');
+        $lastModifiedPath = join_paths(sys_get_temp_dir(), $packagePrefix.'-last-modified');
 
         $cacheExists = file_exists($cachedPath);
         $lastModifiedExists = file_exists($lastModifiedPath);
@@ -469,10 +445,6 @@ class NewCommand extends Command
 
     /**
      * Execute the command.
-     *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-     * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -484,7 +456,7 @@ class NewCommand extends Command
 
         $directory = $this->getInstallationDirectory($name);
 
-        $this->composer = new Composer(new Filesystem(), $directory);
+        $this->composer = new Composer(new Filesystem, $directory);
 
         $version = $this->getVersion($input);
 
@@ -499,12 +471,12 @@ class NewCommand extends Command
         $composer = $this->findComposer();
         $phpBinary = $this->phpBinary();
 
-        $createProjectCommand = $composer . " create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist --no-scripts";
+        $createProjectCommand = $composer." create-project laravel/laravel \"$directory\" $version --remove-vcs --prefer-dist --no-scripts";
 
         $starterKit = $this->getStarterKit($input);
 
         if ($starterKit) {
-            $createProjectCommand = $composer . " create-project {$starterKit} \"{$directory}\" --stability=dev";
+            $createProjectCommand = $composer." create-project {$starterKit} \"{$directory}\" --stability=dev";
 
             if ($this->usingLaravelStarterKit($input) && $input->getOption('livewire-class-components')) {
                 $createProjectCommand = str_replace(" {$starterKit} ", " {$starterKit}:dev-components ", $createProjectCommand);
@@ -524,13 +496,13 @@ class NewCommand extends Command
             }
 
             if (! $this->usingLaravelStarterKit($input) && str_contains($starterKit, '://')) {
-                $createProjectCommand = 'npx tiged@latest ' . $starterKit . ' "' . $directory . '" && cd "' . $directory . '" && composer install';
+                $createProjectCommand = 'npx tiged@latest '.$starterKit.' "'.$directory.'" && cd "'.$directory.'" && composer install';
             }
         }
 
         $initializeApplicationCommands = [
-            $composer . " run post-root-package-install -d \"$directory\"",
-            $phpBinary . " \"$directory/artisan\" key:generate --ansi"
+            $composer." run post-root-package-install -d \"$directory\"",
+            $phpBinary." \"$directory/artisan\" key:generate --ansi",
         ];
 
         $commands = [
@@ -553,7 +525,7 @@ class NewCommand extends Command
 
         $commands[] = ['Application initialized', $initializeApplicationCommands];
 
-        $commands = collect($commands)->mapWithKeys(fn($c) => [$c[0] => $c[1]])->all();
+        $commands = collect($commands)->mapWithKeys(fn ($c) => [$c[0] => $c[1]])->all();
 
         if (($process = $this->runCommands(
             $commands,
@@ -564,8 +536,8 @@ class NewCommand extends Command
             if ($name !== '.') {
                 $this->pregReplaceInFile(
                     '/^APP_URL=http:\/\/localhost$/m',
-                    'APP_URL=' . $this->generateAppUrl($name, $directory),
-                    $directory . '/.env'
+                    'APP_URL='.$this->generateAppUrl($name, $directory),
+                    $directory.'/.env'
                 );
 
                 [$database, $migrate] = $this->promptForDatabaseOptions($directory, $input);
@@ -574,12 +546,12 @@ class NewCommand extends Command
 
                 if ($migrate) {
                     if ($database === 'sqlite') {
-                        touch($directory . '/database/database.sqlite');
+                        touch($directory.'/database/database.sqlite');
                     }
 
                     $commands = [
                         'artisan migrate' => trim(sprintf(
-                            $this->phpBinary() . ' artisan migrate %s',
+                            $this->phpBinary().' artisan migrate %s',
                             ! $input->isInteractive() ? '--no-interaction' : '',
                         )),
                     ];
@@ -617,13 +589,13 @@ class NewCommand extends Command
 
             if (! $runPackageManager && $input->isInteractive()) {
                 $runPackageManager = confirm(
-                    label: 'Would you like to run <options=bold>' . $packageManager->installCommand() . '</> and <options=bold>' . $packageManager->buildCommand() . '</>?'
+                    label: 'Would you like to run <options=bold>'.$packageManager->installCommand().'</> and <options=bold>'.$packageManager->buildCommand().'</>?'
                 );
             }
 
             foreach (NodePackageManager::allLockFiles() as $lockFile) {
-                if (! in_array($lockFile, $packageManager->lockFiles()) && file_exists($directory . '/' . $lockFile)) {
-                    (new Filesystem())->delete($directory . '/' . $lockFile);
+                if (! in_array($lockFile, $packageManager->lockFiles()) && file_exists($directory.'/'.$lockFile)) {
+                    (new Filesystem)->delete($directory.'/'.$lockFile);
                 }
             }
 
@@ -636,7 +608,7 @@ class NewCommand extends Command
                     $input,
                     $output,
                     workingPath: $directory,
-                    taskLabel: 'Setting up frontend dependencies with ' . $packageManager->value . '...',
+                    taskLabel: 'Setting up frontend dependencies with '.$packageManager->value.'...',
                 );
             }
 
@@ -649,16 +621,16 @@ class NewCommand extends Command
                 $this->commitChanges('Configure Boost post-update script', $directory, $input, $output);
             }
 
-            $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:" . PHP_EOL);
-            $output->writeln('<fg=gray>➜</> <options=bold>cd ' . $name . '</>');
+            $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:".PHP_EOL);
+            $output->writeln('<fg=gray>➜</> <options=bold>cd '.$name.'</>');
 
             if (! $runPackageManager) {
-                $output->writeln('<fg=gray>➜</> <options=bold>' . $packageManager->installCommand() . ' && ' . $packageManager->buildCommand() . '</>');
+                $output->writeln('<fg=gray>➜</> <options=bold>'.$packageManager->installCommand().' && '.$packageManager->buildCommand().'</>');
             }
 
             if ($this->isParkedOnHerdOrValet($directory)) {
                 $url = $this->generateAppUrl($name, $directory);
-                $output->writeln('<fg=gray>➜</> Open: <options=bold;href=' . $url . '>' . $url . '</>');
+                $output->writeln('<fg=gray>➜</> Open: <options=bold;href='.$url.'>'.$url.'</>');
             } else {
                 $output->writeln('<fg=gray>➜</> <options=bold>composer run dev</>');
             }
@@ -673,8 +645,6 @@ class NewCommand extends Command
 
     /**
      * Ping the new install URL.
-     *
-     * @return void
      */
     protected function pingNewInstallUrl(): void
     {
@@ -707,8 +677,6 @@ class NewCommand extends Command
     /**
      * Determine the Node package manager to use.
      *
-     * @param  string  $directory
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @return array{NodePackageManager, bool}
      */
     protected function determinePackageManager(string $directory, InputInterface $input): array
@@ -737,7 +705,7 @@ class NewCommand extends Command
             }
 
             foreach ($packageManager->lockFiles() as $lockFile) {
-                if (file_exists($directory . '/' . $lockFile)) {
+                if (file_exists($directory.'/'.$lockFile)) {
                     return [$packageManager, false];
                 }
             }
@@ -765,27 +733,24 @@ class NewCommand extends Command
     /**
      * Configure the default database connection.
      *
-     * @param  string  $directory
-     * @param  string  $database
-     * @param  string  $name
      * @return void
      */
     protected function configureDefaultDatabaseConnection(string $directory, string $database, string $name)
     {
         $this->pregReplaceInFile(
             '/DB_CONNECTION=.*/',
-            'DB_CONNECTION=' . $database,
-            $directory . '/.env'
+            'DB_CONNECTION='.$database,
+            $directory.'/.env'
         );
 
         $this->pregReplaceInFile(
             '/DB_CONNECTION=.*/',
-            'DB_CONNECTION=' . $database,
-            $directory . '/.env.example'
+            'DB_CONNECTION='.$database,
+            $directory.'/.env.example'
         );
 
         if ($database === 'sqlite') {
-            $environment = file_get_contents($directory . '/.env');
+            $environment = file_get_contents($directory.'/.env');
 
             // If database options aren't commented, comment them for SQLite...
             if (! str_contains($environment, '# DB_HOST=127.0.0.1')) {
@@ -808,39 +773,36 @@ class NewCommand extends Command
         if (isset($defaultPorts[$database])) {
             $this->replaceInFile(
                 'DB_PORT=3306',
-                'DB_PORT=' . $defaultPorts[$database],
-                $directory . '/.env'
+                'DB_PORT='.$defaultPorts[$database],
+                $directory.'/.env'
             );
 
             $this->replaceInFile(
                 'DB_PORT=3306',
-                'DB_PORT=' . $defaultPorts[$database],
-                $directory . '/.env.example'
+                'DB_PORT='.$defaultPorts[$database],
+                $directory.'/.env.example'
             );
         }
 
         $this->replaceInFile(
             'DB_DATABASE=laravel',
-            'DB_DATABASE=' . str_replace('-', '_', strtolower($name)),
-            $directory . '/.env'
+            'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
+            $directory.'/.env'
         );
 
         $this->replaceInFile(
             'DB_DATABASE=laravel',
-            'DB_DATABASE=' . str_replace('-', '_', strtolower($name)),
-            $directory . '/.env.example'
+            'DB_DATABASE='.str_replace('-', '_', strtolower($name)),
+            $directory.'/.env.example'
         );
     }
 
     /**
      * Determine if the application is using Laravel 11 or newer.
-     *
-     * @param  string  $directory
-     * @return bool
      */
     public function usingLaravelVersionOrNewer(int $usingVersion, string $directory): bool
     {
-        $version = json_decode(file_get_contents($directory . '/composer.json'), true)['require']['laravel/framework'];
+        $version = json_decode(file_get_contents($directory.'/composer.json'), true)['require']['laravel/framework'];
         $version = str_replace('^', '', $version);
         $version = explode('.', $version)[0];
 
@@ -849,9 +811,6 @@ class NewCommand extends Command
 
     /**
      * Comment the irrelevant database configuration entries for SQLite applications.
-     *
-     * @param  string  $directory
-     * @return void
      */
     protected function commentDatabaseConfigurationForSqlite(string $directory): void
     {
@@ -865,21 +824,20 @@ class NewCommand extends Command
 
         $this->replaceInFile(
             $defaults,
-            collect($defaults)->map(fn($default) => "# {$default}")->all(),
-            $directory . '/.env'
+            collect($defaults)->map(fn ($default) => "# {$default}")->all(),
+            $directory.'/.env'
         );
 
         $this->replaceInFile(
             $defaults,
-            collect($defaults)->map(fn($default) => "# {$default}")->all(),
-            $directory . '/.env.example'
+            collect($defaults)->map(fn ($default) => "# {$default}")->all(),
+            $directory.'/.env.example'
         );
     }
 
     /**
      * Uncomment the relevant database configuration entries for non SQLite applications.
      *
-     * @param  string  $directory
      * @return void
      */
     protected function uncommentDatabaseConfiguration(string $directory)
@@ -894,22 +852,20 @@ class NewCommand extends Command
 
         $this->replaceInFile(
             $defaults,
-            collect($defaults)->map(fn($default) => substr($default, 2))->all(),
-            $directory . '/.env'
+            collect($defaults)->map(fn ($default) => substr($default, 2))->all(),
+            $directory.'/.env'
         );
 
         $this->replaceInFile(
             $defaults,
-            collect($defaults)->map(fn($default) => substr($default, 2))->all(),
-            $directory . '/.env.example'
+            collect($defaults)->map(fn ($default) => substr($default, 2))->all(),
+            $directory.'/.env.example'
         );
     }
 
     /**
      * Determine the default database connection.
      *
-     * @param  string  $directory
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @return array
      */
     protected function promptForDatabaseOptions(string $directory, InputInterface $input)
@@ -946,8 +902,6 @@ class NewCommand extends Command
 
     /**
      * Get the available database options.
-     *
-     * @return array
      */
     protected function databaseOptions(): array
     {
@@ -958,28 +912,24 @@ class NewCommand extends Command
             'pgsql' => ['PostgreSQL', extension_loaded('pdo_pgsql')],
             'sqlsrv' => ['SQL Server', extension_loaded('pdo_sqlsrv')],
         ])
-            ->sortBy(fn($database) => $database[1] ? 0 : 1)
-            ->map(fn($database) => $database[0] . ($database[1] ? '' : ' (Missing PDO extension)'))
+            ->sortBy(fn ($database) => $database[1] ? 0 : 1)
+            ->map(fn ($database) => $database[0].($database[1] ? '' : ' (Missing PDO extension)'))
             ->all();
     }
 
     /**
      * Validate the database driver input.
-     *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
      */
     protected function validateDatabaseOption(InputInterface $input)
     {
         if ($input->getOption('database') && ! in_array($input->getOption('database'), self::DATABASE_DRIVERS)) {
-            throw new \InvalidArgumentException("Invalid database driver [{$input->getOption('database')}]. Possible values are: " . implode(', ', self::DATABASE_DRIVERS) . '.');
+            throw new \InvalidArgumentException("Invalid database driver [{$input->getOption('database')}]. Possible values are: ".implode(', ', self::DATABASE_DRIVERS).'.');
         }
     }
 
     /**
      * Install Pest into the application.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
     protected function installPest(string $directory, InputInterface $input, OutputInterface $output)
@@ -988,15 +938,15 @@ class NewCommand extends Command
 
         $commands = [
             'Pest installed' => [
-                $composerBinary . ' remove phpunit/phpunit --dev --no-update',
-                $composerBinary . ' require pestphp/pest pestphp/pest-plugin-laravel --no-update --dev',
-                $composerBinary . ' update',
+                $composerBinary.' remove phpunit/phpunit --dev --no-update',
+                $composerBinary.' require pestphp/pest pestphp/pest-plugin-laravel --no-update --dev',
+                $composerBinary.' update',
             ],
             'Pest initialized' => [
-                $this->phpBinary() . ' ./vendor/bin/pest --init',
-                $composerBinary . ' require pestphp/pest-plugin-drift --dev',
-                $this->phpBinary() . ' ./vendor/bin/pest --drift',
-                $composerBinary . ' remove pestphp/pest-plugin-drift --dev',
+                $this->phpBinary().' ./vendor/bin/pest --init',
+                $composerBinary.' require pestphp/pest-plugin-drift --dev',
+                $this->phpBinary().' ./vendor/bin/pest --drift',
+                $composerBinary.' remove pestphp/pest-plugin-drift --dev',
             ],
         ];
 
@@ -1013,7 +963,7 @@ class NewCommand extends Command
             $this->replaceInFile(
                 './vendor/bin/phpunit',
                 './vendor/bin/pest',
-                $directory . '/.github/workflows/tests.yml',
+                $directory.'/.github/workflows/tests.yml',
             );
 
             $contents = file_get_contents("$directory/tests/Pest.php");
@@ -1047,20 +997,15 @@ class NewCommand extends Command
 
     /**
      * Install Laravel Boost into the application.
-     *
-     * @param  string  $directory
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-     * @return void
      */
     protected function installBoost(string $directory, InputInterface $input, OutputInterface $output): void
     {
         $composerBinary = $this->findComposer();
 
         $commands = [
-            'Boost installed' => $composerBinary . ' require "laravel/boost:^2.2" --dev -W',
+            'Boost installed' => $composerBinary.' require "laravel/boost:^2.2" --dev -W',
             'Boost initialized' => trim(sprintf(
-                $this->phpBinary() . ' artisan boost:install %s',
+                $this->phpBinary().' artisan boost:install %s',
                 ! $input->isInteractive() ? '--no-interaction' : '',
             )),
         ];
@@ -1079,9 +1024,6 @@ class NewCommand extends Command
     /**
      * Create a Git repository and commit the base Laravel skeleton.
      *
-     * @param  string  $directory
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
     protected function createRepository(string $directory, InputInterface $input, OutputInterface $output)
@@ -1106,10 +1048,6 @@ class NewCommand extends Command
     /**
      * Commit any changes in the current working directory.
      *
-     * @param  string  $message
-     * @param  string  $directory
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
     protected function commitChanges(string $message, string $directory, InputInterface $input, OutputInterface $output)
@@ -1129,10 +1067,6 @@ class NewCommand extends Command
     /**
      * Create a GitHub repository and push the git log to it.
      *
-     * @param  string  $name
-     * @param  string  $directory
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
      * @return void
      */
     protected function pushToGitHub(string $name, string $directory, InputInterface $input, OutputInterface $output)
@@ -1141,12 +1075,12 @@ class NewCommand extends Command
         $process->run();
 
         if (! $process->isSuccessful()) {
-            $output->writeln('  <bg=yellow;fg=black> WARN </> Make sure the "gh" CLI tool is installed and that you\'re authenticated to GitHub. Skipping...' . PHP_EOL);
+            $output->writeln('  <bg=yellow;fg=black> WARN </> Make sure the "gh" CLI tool is installed and that you\'re authenticated to GitHub. Skipping...'.PHP_EOL);
 
             return;
         }
 
-        $name = $input->getOption('organization') ? $input->getOption('organization') . "/$name" : $name;
+        $name = $input->getOption('organization') ? $input->getOption('organization')."/$name" : $name;
         $flags = $input->getOption('github') ?: '--private';
 
         $commands = [
@@ -1164,9 +1098,6 @@ class NewCommand extends Command
 
     /**
      * Configure the Composer scripts for the selected package manager.
-     *
-     * @param  NodePackageManager  $packageManager
-     * @return void
      */
     protected function configureComposerScripts(NodePackageManager $packageManager): void
     {
@@ -1194,8 +1125,6 @@ class NewCommand extends Command
 
     /**
      * Add boost:update command to the post-update-cmd Composer script.
-     *
-     * @return void
      */
     protected function configureBoostComposerScript(): void
     {
@@ -1232,16 +1161,13 @@ class NewCommand extends Command
             return 'http://localhost:8000';
         }
 
-        $hostname = mb_strtolower($name) . '.' . $this->getTld();
+        $hostname = mb_strtolower($name).'.'.$this->getTld();
 
-        return $this->canResolveHostname($hostname) ? 'http://' . $hostname : 'http://localhost';
+        return $this->canResolveHostname($hostname) ? 'http://'.$hostname : 'http://localhost';
     }
 
     /**
      * Get the starter kit repository, if any.
-     *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @return string|null
      */
     protected function getStarterKit(InputInterface $input): ?string
     {
@@ -1266,9 +1192,6 @@ class NewCommand extends Command
 
     /**
      * Determine if a Laravel first-party starter kit has been chosen.
-     *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @return bool
      */
     protected function usingLaravelStarterKit(InputInterface $input): bool
     {
@@ -1279,7 +1202,6 @@ class NewCommand extends Command
     /**
      * Determine if a starter kit is being used.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @return bool
      */
     protected function usingStarterKit(InputInterface $input)
@@ -1305,13 +1227,12 @@ class NewCommand extends Command
      */
     protected function canResolveHostname($hostname)
     {
-        return gethostbyname($hostname . '.') !== $hostname . '.';
+        return gethostbyname($hostname.'.') !== $hostname.'.';
     }
 
     /**
      * Get the installation directory.
      *
-     * @param  string  $name
      * @return string
      */
     protected function getInstallationDirectory(string $name)
@@ -1320,13 +1241,12 @@ class NewCommand extends Command
             return '.';
         }
 
-        return str_starts_with($name, DIRECTORY_SEPARATOR) ? $name : getcwd() . '/' . $name;
+        return str_starts_with($name, DIRECTORY_SEPARATOR) ? $name : getcwd().'/'.$name;
     }
 
     /**
      * Get the version that should be downloaded.
      *
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
      * @return string
      */
     protected function getVersion(InputInterface $input)
@@ -1368,11 +1288,7 @@ class NewCommand extends Command
      * Run the given commands.
      *
      * @param  array  $commands
-     * @param  \Symfony\Component\Console\Input\InputInterface  $input
-     * @param  \Symfony\Component\Console\Output\OutputInterface  $output
-     * @param  string|null  $workingPath
-     * @param  array  $env
-     * @return \Symfony\Component\Process\Process
+     * @return Process
      */
     protected function runCommands(
         $commands,
@@ -1382,16 +1298,16 @@ class NewCommand extends Command
         array $env = [],
         ?string $taskLabel = null,
     ) {
-        $commands = array_map(fn($value) => (is_array($value)) ? $value : [$value], $commands);
+        $commands = array_map(fn ($value) => (is_array($value)) ? $value : [$value], $commands);
 
         if (! $output->isDecorated()) {
             $commands = array_map(
-                fn($values) => array_map(function ($value) {
-                    if (Str::startsWith($value, ['chmod', 'rm', 'git', $this->phpBinary() . ' ./vendor/bin/pest'])) {
+                fn ($values) => array_map(function ($value) {
+                    if (Str::startsWith($value, ['chmod', 'rm', 'git', $this->phpBinary().' ./vendor/bin/pest'])) {
                         return $value;
                     }
 
-                    return $value . ' --no-ansi';
+                    return $value.' --no-ansi';
                 }, $values),
                 $commands,
             );
@@ -1399,21 +1315,21 @@ class NewCommand extends Command
 
         if ($input->getOption('quiet')) {
             $commands = array_map(
-                fn($values) => array_map(function ($value) {
-                    if (Str::startsWith($value, ['chmod', 'rm', 'git', $this->phpBinary() . ' ./vendor/bin/pest'])) {
+                fn ($values) => array_map(function ($value) {
+                    if (Str::startsWith($value, ['chmod', 'rm', 'git', $this->phpBinary().' ./vendor/bin/pest'])) {
                         return $value;
                     }
 
-                    return $value . ' --quiet';
+                    return $value.' --quiet';
                 }, $values),
                 $commands,
             );
         }
 
-        $commands = array_map(fn($values) => implode(' && ', $values), $commands);
+        $commands = array_map(fn ($values) => implode(' && ', $values), $commands);
 
         if (
-            !array_is_list($commands)
+            ! array_is_list($commands)
             && ($output->getVerbosity() === OutputInterface::VERBOSITY_NORMAL || $output->isQuiet())
         ) {
             return $this->runCommandsAsTask($commands, $workingPath, $env, $taskLabel);
@@ -1431,12 +1347,12 @@ class NewCommand extends Command
             try {
                 $process->setTty(true);
             } catch (RuntimeException $e) {
-                $output->writeln('  <bg=yellow;fg=black> WARN </> ' . $e->getMessage() . PHP_EOL);
+                $output->writeln('  <bg=yellow;fg=black> WARN </> '.$e->getMessage().PHP_EOL);
             }
         }
 
         $process->run(function ($type, $line) use ($output) {
-            $output->write('    ' . $line);
+            $output->write('    '.$line);
         });
 
         return $process;
@@ -1447,11 +1363,8 @@ class NewCommand extends Command
      *
      * @param  string  $label
      * @param  string  $commandline
-     * @param  string|null  $workingPath
-     * @param  array  $env
      * @param  string|null  $success
      * @param  string|null  $error
-     * @return \Symfony\Component\Process\Process
      */
     protected function runCommandsAsTask(
         array $commands,
@@ -1496,11 +1409,6 @@ class NewCommand extends Command
 
     /**
      * Run the given command on Windows with inherited stdio for interactive support.
-     *
-     * @param  string  $commandline
-     * @param  string|null  $workingPath
-     * @param  array  $env
-     * @return \Symfony\Component\Process\Process
      */
     protected function runCommandsInteractivelyOnWindows(string $commandline, ?string $workingPath, array $env): Process
     {
@@ -1510,7 +1418,7 @@ class NewCommand extends Command
             2 => STDERR,
         ];
 
-        $envPairs = $env !== [] ? array_filter(array_merge($_SERVER, $_ENV, $env), fn($v) => ! is_array($v)) : null;
+        $envPairs = $env !== [] ? array_filter(array_merge($_SERVER, $_ENV, $env), fn ($v) => ! is_array($v)) : null;
 
         $proc = proc_open($commandline, $descriptors, $pipes, $workingPath, $envPairs);
 
@@ -1521,7 +1429,7 @@ class NewCommand extends Command
         }
 
         // Return a completed Process instance that reflects the actual exit code...
-        $sentinel = Process::fromShellCommandline('exit ' . $exitCode, $workingPath);
+        $sentinel = Process::fromShellCommandline('exit '.$exitCode, $workingPath);
 
         $sentinel->run();
 
@@ -1531,13 +1439,11 @@ class NewCommand extends Command
     /**
      * Replace the given file.
      *
-     * @param  string  $replace
-     * @param  string  $file
      * @return void
      */
     protected function replaceFile(string $replace, string $file)
     {
-        $stubs = dirname(__DIR__) . '/stubs';
+        $stubs = dirname(__DIR__).'/stubs';
 
         file_put_contents(
             $file,
@@ -1548,9 +1454,6 @@ class NewCommand extends Command
     /**
      * Replace the given string in the given file.
      *
-     * @param  string|array  $search
-     * @param  string|array  $replace
-     * @param  string  $file
      * @return void
      */
     protected function replaceInFile(string|array $search, string|array $replace, string $file)
@@ -1566,7 +1469,6 @@ class NewCommand extends Command
      *
      * @param  string|array  $search
      * @param  string|array  $replace
-     * @param  string  $file
      * @return void
      */
     protected function pregReplaceInFile(string $pattern, string $replace, string $file)
@@ -1580,7 +1482,6 @@ class NewCommand extends Command
     /**
      * Delete the given file.
      *
-     * @param  string  $file
      * @return void
      */
     protected function deleteFile(string $file)
