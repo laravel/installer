@@ -327,7 +327,7 @@ class NewCommand extends Command
                 ],
                 $input,
                 $output,
-                taskLabel: 'Updating Laravel installer...',
+                taskLabel: 'Updating Laravel installer',
             );
             $this->proxyLaravelNew($input, $output);
         }
@@ -529,7 +529,7 @@ class NewCommand extends Command
             $commands,
             $input,
             $output,
-            taskLabel: 'Creating Laravel application...',
+            taskLabel: 'Creating Laravel application',
         ))->isSuccessful()) {
             if ($name !== '.') {
                 $this->pregReplaceInFile(
@@ -559,7 +559,7 @@ class NewCommand extends Command
                         $input,
                         $output,
                         workingPath: $directory,
-                        taskLabel: 'Running database migrations...',
+                        taskLabel: 'Running database migrations',
                     );
                 }
             }
@@ -606,7 +606,7 @@ class NewCommand extends Command
                     $input,
                     $output,
                     workingPath: $directory,
-                    taskLabel: 'Setting up frontend dependencies with '.$packageManager->value.'...',
+                    taskLabel: 'Setting up frontend dependencies with '.$packageManager->value,
                 );
             }
 
@@ -954,7 +954,7 @@ class NewCommand extends Command
             $output,
             workingPath: $directory,
             env: ['PEST_NO_SUPPORT' => 'true'],
-            taskLabel: 'Setting up Pest...',
+            taskLabel: 'Setting up Pest',
         );
 
         if ($this->usingStarterKit($input)) {
@@ -1013,7 +1013,7 @@ class NewCommand extends Command
             $input,
             $output,
             workingPath: $directory,
-            taskLabel: 'Setting up Laravel Boost...',
+            taskLabel: 'Setting up Laravel Boost',
         );
 
         $this->commitChanges('Install Laravel Boost', $directory, $input, $output);
@@ -1368,7 +1368,7 @@ class NewCommand extends Command
         ?string $taskLabel = null,
     ): Process {
         return task(
-            label: $taskLabel ?? '',
+            label: $taskLabel ? str($taskLabel)->finish('...') : '',
             keepSummary: true,
             callback: function (Logger $logger) use ($commands, $workingPath, $env, $taskLabel) {
                 foreach ($commands as $label => $command) {
@@ -1391,7 +1391,7 @@ class NewCommand extends Command
                 }
 
                 if ($taskLabel) {
-                    $logger->label(rtrim($taskLabel, '.'));
+                    $logger->label($taskLabel);
                 }
 
                 return $process;
