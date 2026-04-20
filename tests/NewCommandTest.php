@@ -26,7 +26,11 @@ class NewCommandTest extends TestCase
         }
 
         $app = new Application('Laravel Installer');
-        $app->add(new NewCommand);
+        if (method_exists($app, 'addCommand')) {
+            $app->addCommand(new NewCommand);
+        } else {
+            $app->add(new NewCommand);
+        }
 
         $tester = new CommandTester($app->find('new'));
 
@@ -55,7 +59,11 @@ class NewCommandTest extends TestCase
         }
 
         $app = new Application('Laravel Installer');
-        $app->add(new NewCommand);
+        if (method_exists($app, 'addCommand')) {
+            $app->addCommand(new NewCommand);
+        } else {
+            $app->add(new NewCommand);
+        }
 
         $tester = new CommandTester($app->find('new'));
 
