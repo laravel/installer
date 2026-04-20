@@ -23,6 +23,7 @@ use Throwable;
 
 use function Illuminate\Filesystem\join_paths;
 use function Laravel\Prompts\confirm;
+use function Laravel\Prompts\info;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\task;
 use function Laravel\Prompts\text;
@@ -581,7 +582,7 @@ class NewCommand extends Command
 
             $this->configureComposerScripts($packageManager);
 
-            if ($input->getOption('pest')) {
+            if ($input->getOption('pest') && !$this->useConciseOutput($output)) {
                 $output->writeln('');
             }
 
@@ -619,26 +620,32 @@ class NewCommand extends Command
                 $this->commitChanges('Configure Boost post-update script', $directory, $input, $output);
             }
 
-            $output->writeln("  <bg=blue;fg=white> INFO </> Application ready in <options=bold>[{$name}]</>. You can start your local development using:".PHP_EOL);
-            $output->writeln('<fg=gray>➜</> <options=bold>cd '.$name.'</>');
+            info("Application ready in <options=bold>[{$name}]</>. You can start your local development using:");
+
+            $output->writeln($this->finalStep("cd {$name}"));
 
             if (! $runPackageManager) {
-                $output->writeln('<fg=gray>➜</> <options=bold>'.$packageManager->installCommand().' && '.$packageManager->buildCommand().'</>');
+                $output->writeln($this->finalStep($packageManager->installCommand().' && '.$packageManager->buildCommand()));
             }
 
             if ($this->isParkedOnHerdOrValet($directory)) {
                 $url = $this->generateAppUrl($name, $directory);
-                $output->writeln('<fg=gray>➜</> Open: <options=bold;href='.$url.'>'.$url.'</>');
+                $output->writeln($this->finalStep('Open: <options=bold;href='.$url.'>'.$url));
             } else {
-                $output->writeln('<fg=gray>➜</> <options=bold>composer run dev</>');
+                $output->writeln($this->finalStep('composer run dev'));
             }
 
             $output->writeln('');
-            $output->writeln('  New to Laravel? Check out our <href=https://laravel.com/docs/installation#next-steps>documentation</>. <options=bold>Build something amazing!</>');
+            $output->writeln(' <fg=cyan;options=bold>New to Laravel?</> Check out our <href=https://laravel.com/docs/installation#next-steps;options=underscore>documentation</>. <options=bold>Build something amazing!</>');
             $output->writeln('');
         }
 
         return $process->getExitCode();
+    }
+
+    protected function finalStep(string $command): string
+    {
+        return ' <fg=gray>➜</> ' . (str_contains($command, '<') ? $command : "<options=bold>{$command}</>");
     }
 
     /**
@@ -1326,10 +1333,7 @@ class NewCommand extends Command
 
         $commands = array_map(fn ($values) => implode(' && ', $values), $commands);
 
-        if (
-            ! array_is_list($commands)
-            && ($output->getVerbosity() === OutputInterface::VERBOSITY_NORMAL || $output->isQuiet())
-        ) {
+        if (! array_is_list($commands) && $this->useConciseOutput($output)) {
             return $this->runCommandsAsTask($commands, $workingPath, $env, $taskLabel);
         }
 
@@ -1479,5 +1483,13 @@ class NewCommand extends Command
     protected function deleteFile(string $file)
     {
         unlink($file);
+    }
+
+    /**
+     * Determine if concise output should be used.
+     */
+    protected function useConciseOutput(OutputInterface $output): bool
+    {
+        return $output->getVerbosity() === OutputInterface::VERBOSITY_NORMAL || $output->isQuiet();
     }
 }
