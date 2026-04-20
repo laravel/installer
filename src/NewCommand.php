@@ -549,7 +549,7 @@ class NewCommand extends Command
                     }
 
                     $commands = [
-                        'artisan migrate' => trim(sprintf(
+                        'Database migrated' => trim(sprintf(
                             $this->phpBinary().' artisan migrate %s',
                             ! $input->isInteractive() ? '--no-interaction' : '',
                         )),
