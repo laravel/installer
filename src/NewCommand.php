@@ -1039,10 +1039,12 @@ class NewCommand extends Command
         $branch = $input->getOption('branch') ?: $this->defaultBranch();
 
         $commands = [
-            'git init -q',
-            'git add .',
-            'git commit -q -m "Set up a fresh Laravel app"',
-            "git branch -M {$branch}",
+            'Repository initialized' => [
+                'git init -q',
+                'git add .',
+                'git commit -q -m "Set up a fresh Laravel app"',
+                "git branch -M {$branch}",
+            ],
         ];
 
         $this->runCommands(
@@ -1050,6 +1052,7 @@ class NewCommand extends Command
             $input,
             $output,
             workingPath: $directory,
+            taskLabel: 'Initializing Git repository',
         );
     }
 
@@ -1065,11 +1068,19 @@ class NewCommand extends Command
         }
 
         $commands = [
-            'git add .',
-            "git commit -q -m \"$message\"",
+            'Changes committed' => [
+                'git add .',
+                "git commit -q -m \"$message\"",
+            ],
         ];
 
-        $this->runCommands($commands, $input, $output, workingPath: $directory);
+        $this->runCommands(
+            $commands,
+            $input,
+            $output,
+            workingPath: $directory,
+            taskLabel: $message,
+        );
     }
 
     /**
@@ -1092,7 +1103,7 @@ class NewCommand extends Command
         $flags = $input->getOption('github') ?: '--private';
 
         $commands = [
-            "gh repo create {$name} --source=. --push {$flags}",
+            'Repository pushed' => "gh repo create {$name} --source=. --push {$flags}",
         ];
 
         $this->runCommands(
@@ -1101,6 +1112,7 @@ class NewCommand extends Command
             $output,
             workingPath: $directory,
             env: ['GIT_TERMINAL_PROMPT' => 0],
+            taskLabel: "Pushing to GitHub [{$name}]",
         );
     }
 
