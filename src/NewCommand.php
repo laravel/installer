@@ -1346,13 +1346,11 @@ class NewCommand extends Command
             );
         }
 
-        $commands = array_map(fn ($values) => implode(' && ', $values), $commands);
-
         if (function_exists('Laravel\Prompts\task') && ! array_is_list($commands) && $this->useConciseOutput($output)) {
             return $this->runCommandsAsTask($commands, $workingPath, $env, $taskLabel);
         }
 
-        $commandline = implode(' && ', $commands);
+        $commandline = implode(' && ', array_map(fn ($values) => implode(' && ', $values), $commands));
 
         if ('\\' === DIRECTORY_SEPARATOR && $input->isInteractive() && ! Process::isTtySupported()) {
             return $this->runCommandsInteractivelyOnWindows($commandline, $workingPath, $env);
@@ -1378,7 +1376,7 @@ class NewCommand extends Command
     /**
      * Run the given shell commands within a Laravel Prompts task.
      *
-     * @param  non-empty-array<string, string>  $commands
+     * @param  non-empty-array<string, non-empty-array<int, string>>  $commands
      */
     protected function runCommandsAsTask(
         array $commands,
@@ -1390,23 +1388,25 @@ class NewCommand extends Command
             label: $taskLabel ? str($taskLabel)->finish('...') : '',
             keepSummary: true,
             callback: function (Logger $logger) use ($commands, $workingPath, $env, $taskLabel) {
-                foreach ($commands as $label => $command) {
-                    $logger->subLabel($command);
+                foreach ($commands as $label => $subCommands) {
+                    foreach ($subCommands as $command) {
+                        $logger->subLabel($command);
 
-                    $process = Process::fromShellCommandline($command, $workingPath, $env, null, null);
-                    $process->run(function ($type, $line) use ($logger) {
-                        $logger->line($line);
-                    });
+                        $process = Process::fromShellCommandline($command, $workingPath, $env, null, null);
+                        $process->run(function ($type, $line) use ($logger) {
+                            $logger->line($line);
+                        });
 
-                    if ($process->isSuccessful()) {
-                        $logger->success($label);
-                    } else {
-                        $logger->error($label);
-                        $logger->error('Command failed: '.$command);
-                        $logger->error('Error output: '.$process->getErrorOutput());
+                        if (! $process->isSuccessful()) {
+                            $logger->error($label);
+                            $logger->error('Command failed: '.$command);
+                            $logger->error('Error output: '.trim($process->getErrorOutput()));
 
-                        return $process;
+                            return $process;
+                        }
                     }
+
+                    $logger->success($label);
                 }
 
                 if ($taskLabel) {
