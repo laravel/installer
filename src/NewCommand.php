@@ -512,7 +512,7 @@ class NewCommand extends Command
             }
         }
 
-        $commands['Application installed'] = [$createProjectCommand];
+        $commands['Application installed'] = $createProjectCommand;
 
         $appInitializedLabel = 'Application initialized';
 
