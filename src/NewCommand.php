@@ -324,7 +324,7 @@ class NewCommand extends Command
         if (confirm(label: 'Would you like to update now?')) {
             $this->runCommands(
                 [
-                    'Updating Laravel installer' => 'composer global update laravel/installer --with-all-dependencies',
+                    'Installer updated' => 'composer global update laravel/installer --with-all-dependencies',
                 ],
                 $input,
                 $output,
@@ -504,7 +504,7 @@ class NewCommand extends Command
         $commands = [];
 
         if ($directory != '.' && $input->getOption('force')) {
-            $forceLabel = "Removing existing directory [{$name}]";
+            $forceLabel = "Removed existing directory [{$name}]";
 
             if (PHP_OS_FAMILY == 'Windows') {
                 $commands[$forceLabel] = "(if exist \"$directory\" rd /s /q \"$directory\")";
@@ -1079,7 +1079,7 @@ class NewCommand extends Command
             $input,
             $output,
             workingPath: $directory,
-            taskLabel: $message,
+            taskLabel: 'Commiting changes',
         );
     }
 
