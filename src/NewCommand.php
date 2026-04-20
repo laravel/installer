@@ -1358,8 +1358,8 @@ class NewCommand extends Command
 
     /**
      * Run the given shell commands within a Laravel Prompts task.
-     * 
-     * @param non-empty-array<string, string> $commands
+     *
+     * @param  non-empty-array<string, string>  $commands
      */
     protected function runCommandsAsTask(
         array $commands,
