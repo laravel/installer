@@ -500,32 +500,30 @@ class NewCommand extends Command
             }
         }
 
-        $initializeApplicationCommands = [
+        $commands = [];
+
+        if ($directory != '.' && $input->getOption('force')) {
+            $forceLabel = "Removing existing directory [{$name}]";
+
+            if (PHP_OS_FAMILY == 'Windows') {
+                $commands[$forceLabel] = "(if exist \"$directory\" rd /s /q \"$directory\")";
+            } else {
+                $commands[$forceLabel] = "rm -rf \"$directory\"";
+            }
+        }
+
+        $commands['Application installed'] = [$createProjectCommand];
+
+        $appInitializedLabel = 'Aplication initialized';
+
+        $commands[$appInitializedLabel] = [
             $composer." run post-root-package-install -d \"$directory\"",
             $phpBinary." \"$directory/artisan\" key:generate --ansi",
         ];
 
-        $commands = [
-            ['Application installed', $createProjectCommand],
-        ];
-
-        if ($directory != '.' && $input->getOption('force')) {
-            $forceLabel = "Force creating application in [{$name}]";
-
-            if (PHP_OS_FAMILY == 'Windows') {
-                array_unshift($commands, [$forceLabel, "(if exist \"$directory\" rd /s /q \"$directory\")"]);
-            } else {
-                array_unshift($commands, [$forceLabel, "rm -rf \"$directory\""]);
-            }
-        }
-
         if (PHP_OS_FAMILY != 'Windows') {
-            $initializeApplicationCommands[] = "chmod 755 \"$directory/artisan\"";
+            $commands[$appInitializedLabel][] = "chmod 755 \"$directory/artisan\"";
         }
-
-        $commands[] = ['Application initialized', $initializeApplicationCommands];
-
-        $commands = collect($commands)->mapWithKeys(fn ($c) => [$c[0] => $c[1]])->all();
 
         if (($process = $this->runCommands(
             $commands,
