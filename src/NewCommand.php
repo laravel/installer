@@ -582,7 +582,7 @@ class NewCommand extends Command
 
             $this->configureComposerScripts($packageManager);
 
-            if ($input->getOption('pest') && !$this->useConciseOutput($output)) {
+            if ($input->getOption('pest') && ! $this->useConciseOutput($output)) {
                 $output->writeln('');
             }
 
@@ -648,7 +648,7 @@ class NewCommand extends Command
      */
     protected function finalStep(string $command): string
     {
-        return ' <fg=gray>➜</> ' . (str_contains($command, '<') ? $command : "<options=bold>{$command}</>");
+        return ' <fg=gray>➜</> '.(str_contains($command, '<') ? $command : "<options=bold>{$command}</>");
     }
 
     /**
@@ -1079,7 +1079,7 @@ class NewCommand extends Command
             $input,
             $output,
             workingPath: $directory,
-            taskLabel: 'Commiting changes',
+            taskLabel: 'Committing changes',
         );
     }
 
