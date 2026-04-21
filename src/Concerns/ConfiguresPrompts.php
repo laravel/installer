@@ -8,6 +8,7 @@ use Laravel\Prompts\PasswordPrompt;
 use Laravel\Prompts\Prompt;
 use Laravel\Prompts\SelectPrompt;
 use Laravel\Prompts\SuggestPrompt;
+use Laravel\Prompts\Task as TaskPrompt;
 use Laravel\Prompts\TextPrompt;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -94,6 +95,10 @@ trait ConfiguresPrompts
             $prompt->validate,
             $output
         ));
+
+        TaskPrompt::fallbackUsing(function (TaskPrompt $prompt) {
+            //
+        });
     }
 
     /**
