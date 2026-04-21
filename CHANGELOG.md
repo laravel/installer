@@ -1,6 +1,14 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.25.3...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.26.0...master)
+
+## [v5.26.0](https://github.com/laravel/installer/compare/v5.25.3...v5.26.0) - 2026-04-21
+
+* [5.x] Fix CI tests not running by [@jackbayliss](https://github.com/jackbayliss) in https://github.com/laravel/installer/pull/501
+* [5.x] Ensure update doesnt loop in Windows  by [@jackbayliss](https://github.com/jackbayliss) in https://github.com/laravel/installer/pull/500
+* Filter non-string env values in Windows interactive process runner by [@JoshSalway](https://github.com/JoshSalway) in https://github.com/laravel/installer/pull/499
+* Concise output with Prompt's task function by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/installer/pull/503
+* Fix laravel/prompts version constraint by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/505
 
 ## [v5.25.3](https://github.com/laravel/installer/compare/v5.25.2...v5.25.3) - 2026-04-07
 
