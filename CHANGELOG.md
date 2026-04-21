@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.26.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.26.1...master)
+
+## [v5.26.1](https://github.com/laravel/installer/compare/v5.26.0...v5.26.1) - 2026-04-21
+
+* Skip task prompt on Windows by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/installer/pull/507
 
 ## [v5.26.0](https://github.com/laravel/installer/compare/v5.25.3...v5.26.0) - 2026-04-21
 
