@@ -1346,7 +1346,7 @@ class NewCommand extends Command
             );
         }
 
-        if (function_exists('Laravel\Prompts\task') && ! array_is_list($commands) && $this->useConciseOutput($output)) {
+        if (function_exists('Laravel\Prompts\task') && function_exists('pcntl_fork') && ! array_is_list($commands) && $this->useConciseOutput($output)) {
             return $this->runCommandsAsTask($commands, $workingPath, $env, $taskLabel);
         }
 
