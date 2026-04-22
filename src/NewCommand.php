@@ -8,6 +8,7 @@ use Illuminate\Support\ProcessUtils;
 use Illuminate\Support\Str;
 use Laravel\Installer\Console\Enums\NodePackageManager;
 use Laravel\Prompts\Support\Logger;
+use Override;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
@@ -47,7 +48,8 @@ class NewCommand extends Command
      *
      * @return void
      */
-    protected function configure()
+    #[Override]
+    protected function configure(): void
     {
         $this
             ->setName('new')
@@ -84,7 +86,8 @@ class NewCommand extends Command
      *
      * @return void
      */
-    protected function interact(InputInterface $input, OutputInterface $output)
+    #[Override]
+    protected function interact(InputInterface $input, OutputInterface $output): void
     {
         parent::interact($input, $output);
 

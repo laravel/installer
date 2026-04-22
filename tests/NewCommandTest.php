@@ -25,8 +25,7 @@ class NewCommandTest extends TestCase
             }
         }
 
-        $app = new Application('Laravel Installer');
-        $app->add(new NewCommand);
+        $app = $this->createApplication();
 
         $tester = new CommandTester($app->find('new'));
 
@@ -54,8 +53,7 @@ class NewCommandTest extends TestCase
             }
         }
 
-        $app = new Application('Laravel Installer');
-        $app->add(new NewCommand);
+        $app = $this->createApplication();
 
         $tester = new CommandTester($app->find('new'));
 
@@ -107,5 +105,21 @@ class NewCommandTest extends TestCase
         $this->assertSame(getcwd().'/'.$relativePath, $command->getInstallationDirectoryPublic($relativePath));
 
         $this->assertSame('.', $command->getInstallationDirectoryPublic('.'));
+    }
+
+    /**
+     * @return \Symfony\Component\Console\Application
+     */
+    private function createApplication(): Application
+    {
+        $app = new Application('Laravel Installer');
+
+        if (method_exists($app, 'addCommand')) {
+            $app->addCommand(new NewCommand);
+        } else {
+            $app->add(new NewCommand);
+        }
+
+        return $app;
     }
 }
