@@ -2,6 +2,8 @@
 
 namespace Laravel\Installer\Console;
 
+use AgentDetector\AgentDetector;
+use AgentDetector\AgentResult;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Composer;
 use Illuminate\Support\ProcessUtils;
@@ -16,6 +18,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\ExecutableFinder;
 use Symfony\Component\Process\PhpExecutableFinder;
@@ -44,9 +47,79 @@ class NewCommand extends Command
     protected $composer;
 
     /**
+     * The detected agent, if any.
+     */
+    protected ?AgentResult $agentResult = null;
+
+    /**
+     * The resolved installation name, captured for agent JSON output.
+     */
+    protected ?string $resolvedName = null;
+
+    /**
+     * The resolved installation directory, captured for agent JSON output.
+     */
+    protected ?string $resolvedDirectory = null;
+
+    /**
+     * Detect agents, suppress interactive output, and emit a JSON result.
+     */
+    #[Override]
+    public function run(InputInterface $input, OutputInterface $output): int
+    {
+        $this->agentResult = AgentDetector::detect();
+
+        if (! $this->isAgent()) {
+            return parent::run($input, $output);
+        }
+
+        $input->setInteractive(false);
+
+        try {
+            $exitCode = parent::run($input, new NullOutput);
+        } catch (Throwable $e) {
+            $this->emitAgentResult(false, ['error' => $e->getMessage()]);
+
+            return 1;
+        }
+
+        $this->emitAgentResult($exitCode === 0);
+
+        return $exitCode;
+    }
+
+    /**
+     * Determine whether this command is running under a detected agent.
+     */
+    protected function isAgent(): bool
+    {
+        return $this->agentResult?->isAgent ?? false;
+    }
+
+    /**
+     * Write the minimal JSON result for agent invocations.
+     */
+    protected function emitAgentResult(bool $success, array $extra = []): void
+    {
+        $payload = ['success' => $success];
+
+        if ($this->resolvedName !== null) {
+            $payload['name'] = $this->resolvedName;
+        }
+
+        if ($this->resolvedDirectory !== null) {
+            $payload['directory'] = $this->resolvedDirectory;
+        }
+
+        foreach ($extra as $key => $value) {
+            $payload[$key] = $value;
+        }
+
+        fwrite(STDOUT, json_encode($payload, JSON_UNESCAPED_SLASHES).PHP_EOL);
+    }
+
+    /**
      * Configure the command options.
-     *
-     * @return void
      */
     #[Override]
     protected function configure(): void
@@ -83,8 +156,6 @@ class NewCommand extends Command
 
     /**
      * Interact with the user before validating the input.
-     *
-     * @return void
      */
     #[Override]
     protected function interact(InputInterface $input, OutputInterface $output): void
@@ -93,11 +164,15 @@ class NewCommand extends Command
 
         $this->configurePrompts($input, $output);
 
-        $this->displayHeader($output);
+        if (! $this->isAgent()) {
+            $this->displayHeader($output);
+        }
 
         $this->ensureExtensionsAreAvailable($input, $output);
 
-        $this->checkForUpdate($input, $output);
+        if (! $this->isAgent()) {
+            $this->checkForUpdate($input, $output);
+        }
 
         if (! $input->getArgument('name')) {
             $input->setArgument('name', text(
@@ -460,6 +535,9 @@ class NewCommand extends Command
 
         $directory = $this->getInstallationDirectory($name);
 
+        $this->resolvedName = $name;
+        $this->resolvedDirectory = $directory;
+
         $this->composer = new Composer(new Filesystem, $directory);
 
         $version = $this->getVersion($input);
@@ -623,24 +701,26 @@ class NewCommand extends Command
                 $this->commitChanges('Configure Boost post-update script', $directory, $input, $output);
             }
 
-            info("Application ready in <options=bold>[{$name}]</>. You can start your local development using:");
+            if (! $this->isAgent()) {
+                info("Application ready in <options=bold>[{$name}]</>. You can start your local development using:");
 
-            $output->writeln($this->finalStep("cd {$name}"));
+                $output->writeln($this->finalStep("cd {$name}"));
 
-            if (! $runPackageManager) {
-                $output->writeln($this->finalStep($packageManager->installCommand().' && '.$packageManager->buildCommand()));
+                if (! $runPackageManager) {
+                    $output->writeln($this->finalStep($packageManager->installCommand().' && '.$packageManager->buildCommand()));
+                }
+
+                if ($this->isParkedOnHerdOrValet($directory)) {
+                    $url = $this->generateAppUrl($name, $directory);
+                    $output->writeln($this->finalStep('Open: <options=bold;href='.$url.'>'.$url));
+                } else {
+                    $output->writeln($this->finalStep('composer run dev'));
+                }
+
+                $output->writeln('');
+                $output->writeln(' <fg=cyan;options=bold>New to Laravel?</> Check out our <href=https://laravel.com/docs/installation#next-steps;options=underscore>documentation</>. <options=bold>Build something amazing!</>');
+                $output->writeln('');
             }
-
-            if ($this->isParkedOnHerdOrValet($directory)) {
-                $url = $this->generateAppUrl($name, $directory);
-                $output->writeln($this->finalStep('Open: <options=bold;href='.$url.'>'.$url));
-            } else {
-                $output->writeln($this->finalStep('composer run dev'));
-            }
-
-            $output->writeln('');
-            $output->writeln(' <fg=cyan;options=bold>New to Laravel?</> Check out our <href=https://laravel.com/docs/installation#next-steps;options=underscore>documentation</>. <options=bold>Build something amazing!</>');
-            $output->writeln('');
         }
 
         return $process->getExitCode();
@@ -661,15 +741,11 @@ class NewCommand extends Command
     {
         $curl = curl_init();
 
-        $headers = array_values(array_filter([
-            'User-Agent: Laravel Installer',
-            match (true) {
-                isset($_SERVER['CLAUDECODE']) && $_SERVER['CLAUDECODE'] === '1' => 'X-Agent: Claude Code',
-                isset($_SERVER['OPENCODE']) && $_SERVER['OPENCODE'] === '1' => 'X-Agent: OpenCode',
-                isset($_SERVER['CURSOR_AGENT']) => 'X-Agent: Cursor',
-                default => null,
-            },
-        ]));
+        $headers = ['User-Agent: Laravel Installer'];
+
+        if ($this->isAgent() && $this->agentResult->name !== null) {
+            $headers[] = 'X-Agent: '.$this->agentResult->name;
+        }
 
         curl_setopt_array($curl, [
             CURLOPT_URL => 'https://laravel.com/new-install',
@@ -1349,7 +1425,7 @@ class NewCommand extends Command
             );
         }
 
-        if (function_exists('Laravel\Prompts\task') && function_exists('pcntl_fork') && ! array_is_list($commands) && $this->useConciseOutput($output)) {
+        if ($this->shouldRunAsTask($output, $commands)) {
             return $this->runCommandsAsTask($commands, $workingPath, $env, $taskLabel);
         }
 
@@ -1361,7 +1437,7 @@ class NewCommand extends Command
 
         $process = Process::fromShellCommandline($commandline, $workingPath, $env, null, null);
 
-        if (Process::isTtySupported()) {
+        if (Process::isTtySupported() && ! $this->isAgent()) {
             try {
                 $process->setTty(true);
             } catch (RuntimeException $e) {
@@ -1374,6 +1450,14 @@ class NewCommand extends Command
         });
 
         return $process;
+    }
+
+    protected function shouldRunAsTask(OutputInterface $output, array $commands): bool
+    {
+        return function_exists('Laravel\Prompts\task')
+            && function_exists('pcntl_fork')
+            && ! array_is_list($commands)
+            && ! $this->isAgent() && $this->useConciseOutput($output);
     }
 
     /**
