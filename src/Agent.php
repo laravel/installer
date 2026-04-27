@@ -101,6 +101,7 @@ class Agent
      */
     public function emitSuccess(array $extra = []): void
     {
+        $this->discardLog();
         $this->emit(true, $extra);
     }
 
@@ -173,7 +174,7 @@ class Agent
             $payload[$key] = $value;
         }
 
-        fwrite(STDOUT, json_encode($payload, JSON_UNESCAPED_SLASHES).PHP_EOL);
+        fwrite(STDOUT, json_encode($payload, JSON_UNESCAPED_SLASHES) . PHP_EOL);
     }
 
     /**

@@ -73,7 +73,6 @@ class NewCommand extends Command
         }
 
         if ($exitCode === 0) {
-            $this->agent->discardLog();
             $this->agent->emitSuccess();
         } else {
             $this->agent->emitFailure();
