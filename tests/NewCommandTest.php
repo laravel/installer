@@ -196,9 +196,6 @@ class NewCommandTest extends TestCase
         }
     }
 
-    /**
-     * @return \Symfony\Component\Console\Application
-     */
     private function createApplication(): Application
     {
         $app = new Application('Laravel Installer');
