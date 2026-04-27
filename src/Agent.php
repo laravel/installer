@@ -2,8 +2,8 @@
 
 namespace Laravel\Installer\Console;
 
-use AgentDetector\AgentDetector;
-use AgentDetector\AgentResult;
+use Laravel\AgentDetector\AgentDetector;
+use Laravel\AgentDetector\AgentResult;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\StreamOutput;
 
