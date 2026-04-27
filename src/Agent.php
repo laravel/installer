@@ -174,7 +174,7 @@ class Agent
             $payload[$key] = $value;
         }
 
-        fwrite(STDOUT, json_encode($payload, JSON_UNESCAPED_SLASHES) . PHP_EOL);
+        fwrite(STDOUT, json_encode($payload, JSON_UNESCAPED_SLASHES).PHP_EOL);
     }
 
     /**
