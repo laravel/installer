@@ -18,8 +18,8 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Output\StreamOutput;
 use Symfony\Component\Process\ExecutableFinder;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
@@ -75,15 +75,29 @@ class NewCommand extends Command
 
         $input->setInteractive(false);
 
+        $logPath = tempnam(sys_get_temp_dir(), 'laravel-installer-');
+        $logHandle = $logPath !== false ? @fopen($logPath, 'w+') : false;
+        $logOutput = $logHandle !== false
+            ? new StreamOutput($logHandle, OutputInterface::VERBOSITY_NORMAL, false)
+            : new StreamOutput(fopen('php://memory', 'w+'), OutputInterface::VERBOSITY_NORMAL, false);
+
         try {
-            $exitCode = parent::run($input, new NullOutput);
+            $exitCode = parent::run($input, $logOutput);
         } catch (Throwable $e) {
-            $this->emitAgentResult(false, ['error' => $e->getMessage()]);
+            $this->emitAgentResult(false, ['error' => $e->getMessage()] + $this->logDetails($logPath ?: null, $logHandle ?: null));
 
             return 1;
         }
 
-        $this->emitAgentResult($exitCode === 0);
+        if ($exitCode === 0) {
+            if ($logPath !== false) {
+                @unlink($logPath);
+            }
+
+            $this->emitAgentResult(true);
+        } else {
+            $this->emitAgentResult(false, $this->logDetails($logPath ?: null, $logHandle ?: null));
+        }
 
         return $exitCode;
     }
@@ -116,6 +130,44 @@ class NewCommand extends Command
         }
 
         fwrite(STDOUT, json_encode($payload, JSON_UNESCAPED_SLASHES).PHP_EOL);
+    }
+
+    /**
+     * Build the log + tail fields for the agent failure payload.
+     *
+     * @param  resource|null  $logHandle
+     */
+    protected function logDetails(?string $logPath, $logHandle = null): array
+    {
+        if ($logPath === null || ! file_exists($logPath)) {
+            return [];
+        }
+
+        if (is_resource($logHandle)) {
+            @fflush($logHandle);
+        }
+
+        return [
+            'log' => $logPath,
+            'tail' => $this->readLogTail($logPath),
+        ];
+    }
+
+    /**
+     * Read the last N lines of the agent log, with ANSI escapes stripped.
+     */
+    protected function readLogTail(string $path, int $lines = 50): string
+    {
+        $content = @file_get_contents($path);
+
+        if ($content === false || $content === '') {
+            return '';
+        }
+
+        $content = preg_replace('/\x1b\[[0-9;?]*[a-zA-Z]/', '', $content);
+        $allLines = preg_split("/\r\n|\n|\r/", rtrim($content));
+
+        return implode("\n", array_slice($allLines, -$lines));
     }
 
     /**
