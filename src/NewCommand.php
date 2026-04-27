@@ -92,16 +92,16 @@ class NewCommand extends Command
         try {
             $exitCode = parent::run($input, $logOutput);
         } catch (Throwable $e) {
-            $this->emitAgentResult(false, ['error' => $e->getMessage()] + $this->failureDetails());
+            $this->emitAgentFailure(['error' => $e->getMessage()] + $this->failureDetails());
 
             return 1;
         }
 
         if ($exitCode === 0) {
             $this->discardAgentLog();
-            $this->emitAgentResult(true);
+            $this->emitAgentSuccess();
         } else {
-            $this->emitAgentResult(false, $this->failureDetails());
+            $this->emitAgentFailure($this->failureDetails());
         }
 
         return $exitCode;
@@ -116,23 +116,35 @@ class NewCommand extends Command
      */
     protected function openAgentLog(): StreamOutput
     {
-        $path = tempnam(sys_get_temp_dir(), 'laravel-installer-');
-        $handle = $path !== false ? @fopen($path, 'w+') : false;
-
-        if ($handle === false) {
-            if ($path !== false) {
-                @unlink($path);
-            }
-
-            $this->agentLogHandle = fopen('php://temp', 'w+');
-
-            return new StreamOutput($this->agentLogHandle, OutputInterface::VERBOSITY_NORMAL, false);
-        }
+        [$path, $handle] = $this->resolveAgentLogPathAndHandle();
 
         $this->agentLogPath = $path;
         $this->agentLogHandle = $handle;
 
         return new StreamOutput($handle, OutputInterface::VERBOSITY_NORMAL, false);
+    }
+
+    /**
+     * Attempt to open a temporary file for logging, falling back to an in-memory stream on failure.
+     *
+     * @return array{string|null, resource}
+     */
+    protected function resolveAgentLogPathAndHandle(): array
+    {
+        $path = tempnam(sys_get_temp_dir(), 'laravel-installer-');
+        $handle = $path !== false ? @fopen($path, 'w+') : false;
+
+        if ($handle !== false) {
+            return [$path, $handle];
+        }
+
+        if ($path !== false) {
+            @unlink($path);
+        }
+
+        $handle = fopen('php://temp', 'w+');
+
+        return [$path, $handle];
     }
 
     /**
@@ -185,6 +197,22 @@ class NewCommand extends Command
     protected function isAgent(): bool
     {
         return $this->agentResult?->isAgent ?? false;
+    }
+
+    /**
+     * Emit a successful agent result with optional extra payload.
+     */
+    protected function emitAgentSuccess(array $extra = []): void
+    {
+        $this->emitAgentResult(true, $extra);
+    }
+
+    /**
+     * Emit a failed agent result with optional extra payload, merged with log details.
+     */
+    protected function emitAgentFailure(array $extra = []): void
+    {
+        $this->emitAgentResult(false, $extra + $this->failureDetails());
     }
 
     /**
