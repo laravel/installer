@@ -2,8 +2,6 @@
 
 namespace Laravel\Installer\Console;
 
-use AgentDetector\AgentDetector;
-use AgentDetector\AgentResult;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Composer;
 use Illuminate\Support\ProcessUtils;
@@ -19,7 +17,6 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Output\StreamOutput;
 use Symfony\Component\Process\ExecutableFinder;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
@@ -47,31 +44,9 @@ class NewCommand extends Command
     protected $composer;
 
     /**
-     * The detected agent, if any.
+     * The agent context, encapsulating detection and JSON output behavior.
      */
-    protected ?AgentResult $agentResult = null;
-
-    /**
-     * The resolved installation name, captured for agent JSON output.
-     */
-    protected ?string $resolvedName = null;
-
-    /**
-     * The resolved installation directory, captured for agent JSON output.
-     */
-    protected ?string $resolvedDirectory = null;
-
-    /**
-     * Path to the agent-mode subprocess log file, when one is open.
-     */
-    protected ?string $agentLogPath = null;
-
-    /**
-     * Open file handle for the agent-mode log, when one is open.
-     *
-     * @var resource|null
-     */
-    protected $agentLogHandle = null;
+    protected Agent $agent;
 
     /**
      * Detect agents, suppress interactive output, and emit a JSON result.
@@ -79,191 +54,32 @@ class NewCommand extends Command
     #[Override]
     public function run(InputInterface $input, OutputInterface $output): int
     {
-        $this->agentResult = AgentDetector::detect();
+        $this->agent = new Agent;
 
-        if (! $this->isAgent()) {
+        if (! $this->agent->isActive()) {
             return parent::run($input, $output);
         }
 
         $input->setInteractive(false);
 
-        $logOutput = $this->openAgentLog();
+        $logOutput = $this->agent->openLog();
 
         try {
             $exitCode = parent::run($input, $logOutput);
         } catch (Throwable $e) {
-            $this->emitAgentFailure(['error' => $e->getMessage()] + $this->failureDetails());
+            $this->agent->emitFailure(['error' => $e->getMessage()]);
 
             return 1;
         }
 
         if ($exitCode === 0) {
-            $this->discardAgentLog();
-            $this->emitAgentSuccess();
+            $this->agent->discardLog();
+            $this->agent->emitSuccess();
         } else {
-            $this->emitAgentFailure($this->failureDetails());
+            $this->agent->emitFailure();
         }
 
         return $exitCode;
-    }
-
-    /**
-     * Open a log destination to capture subprocess output during agent runs.
-     *
-     * Prefer a tempfile so the failure payload can include a stable path for
-     * the agent to re-read in full. Falls back to an in-memory buffer; the
-     * tail is still surfaced in the JSON payload, just without a `log` path.
-     */
-    protected function openAgentLog(): StreamOutput
-    {
-        [$path, $handle] = $this->resolveAgentLogPathAndHandle();
-
-        $this->agentLogPath = $path;
-        $this->agentLogHandle = $handle;
-
-        return new StreamOutput($handle, OutputInterface::VERBOSITY_NORMAL, false);
-    }
-
-    /**
-     * Attempt to open a temporary file for logging, falling back to an in-memory stream on failure.
-     *
-     * @return array{string|null, resource}
-     */
-    protected function resolveAgentLogPathAndHandle(): array
-    {
-        $path = tempnam(sys_get_temp_dir(), 'laravel-installer-');
-        $handle = $path !== false ? @fopen($path, 'w+') : false;
-
-        if ($handle !== false) {
-            return [$path, $handle];
-        }
-
-        if ($path !== false) {
-            @unlink($path);
-        }
-
-        $handle = fopen('php://temp', 'w+');
-
-        return [$path, $handle];
-    }
-
-    /**
-     * Close and remove the agent log file (used on the success path).
-     */
-    protected function discardAgentLog(): void
-    {
-        if (is_resource($this->agentLogHandle)) {
-            @fclose($this->agentLogHandle);
-            $this->agentLogHandle = null;
-        }
-
-        if ($this->agentLogPath !== null) {
-            @unlink($this->agentLogPath);
-            $this->agentLogPath = null;
-        }
-    }
-
-    /**
-     * Build the log + tail fields for the agent failure payload.
-     */
-    protected function failureDetails(): array
-    {
-        if (! is_resource($this->agentLogHandle)) {
-            return [];
-        }
-
-        @fflush($this->agentLogHandle);
-
-        $details = [];
-
-        if ($this->agentLogPath !== null && file_exists($this->agentLogPath)) {
-            $details['log'] = $this->agentLogPath;
-            $details['tail'] = $this->readLogTail($this->agentLogPath);
-        } else {
-            @rewind($this->agentLogHandle);
-            $content = stream_get_contents($this->agentLogHandle);
-            $details['tail'] = $this->formatTail($content === false ? '' : $content);
-        }
-
-        @fclose($this->agentLogHandle);
-        $this->agentLogHandle = null;
-
-        return $details;
-    }
-
-    /**
-     * Determine whether this command is running under a detected agent.
-     */
-    protected function isAgent(): bool
-    {
-        return $this->agentResult?->isAgent ?? false;
-    }
-
-    /**
-     * Emit a successful agent result with optional extra payload.
-     */
-    protected function emitAgentSuccess(array $extra = []): void
-    {
-        $this->emitAgentResult(true, $extra);
-    }
-
-    /**
-     * Emit a failed agent result with optional extra payload, merged with log details.
-     */
-    protected function emitAgentFailure(array $extra = []): void
-    {
-        $this->emitAgentResult(false, $extra + $this->failureDetails());
-    }
-
-    /**
-     * Write the minimal JSON result for agent invocations.
-     */
-    protected function emitAgentResult(bool $success, array $extra = []): void
-    {
-        $payload = ['success' => $success];
-
-        if ($this->resolvedName !== null) {
-            $payload['name'] = $this->resolvedName;
-        }
-
-        if ($this->resolvedDirectory !== null) {
-            $payload['directory'] = $this->resolvedDirectory;
-        }
-
-        foreach ($extra as $key => $value) {
-            $payload[$key] = $value;
-        }
-
-        fwrite(STDOUT, json_encode($payload, JSON_UNESCAPED_SLASHES).PHP_EOL);
-    }
-
-    /**
-     * Read the last N lines of the agent log, with ANSI escapes stripped.
-     */
-    protected function readLogTail(string $path, int $lines = 50): string
-    {
-        $content = @file_get_contents($path);
-
-        if ($content === false) {
-            return '';
-        }
-
-        return $this->formatTail($content, $lines);
-    }
-
-    /**
-     * Strip ANSI escapes and return the last N lines of the given content.
-     */
-    protected function formatTail(string $content, int $lines = 50): string
-    {
-        if ($content === '') {
-            return '';
-        }
-
-        $stripped = preg_replace('/\x1b\[[0-9;?]*[a-zA-Z]/', '', $content);
-        $allLines = preg_split("/\r\n|\n|\r/", rtrim($stripped ?? $content));
-
-        return implode("\n", array_slice($allLines, -$lines));
     }
 
     /**
@@ -312,13 +128,13 @@ class NewCommand extends Command
 
         $this->configurePrompts($input, $output);
 
-        if (! $this->isAgent()) {
+        if (! $this->agent->isActive()) {
             $this->displayHeader($output);
         }
 
         $this->ensureExtensionsAreAvailable($input, $output);
 
-        if (! $this->isAgent()) {
+        if (! $this->agent->isActive()) {
             $this->checkForUpdate($input, $output);
         }
 
@@ -683,8 +499,7 @@ class NewCommand extends Command
 
         $directory = $this->getInstallationDirectory($name);
 
-        $this->resolvedName = $name;
-        $this->resolvedDirectory = $directory;
+        $this->agent->rememberInstallation($name, $directory);
 
         $this->composer = new Composer(new Filesystem, $directory);
 
@@ -849,7 +664,7 @@ class NewCommand extends Command
                 $this->commitChanges('Configure Boost post-update script', $directory, $input, $output);
             }
 
-            if (! $this->isAgent()) {
+            if (! $this->agent->isActive()) {
                 info("Application ready in <options=bold>[{$name}]</>. You can start your local development using:");
 
                 $output->writeln($this->finalStep("cd {$name}"));
@@ -891,8 +706,8 @@ class NewCommand extends Command
 
         $headers = ['User-Agent: Laravel Installer'];
 
-        if ($this->isAgent() && $this->agentResult->name !== null) {
-            $headers[] = 'X-Agent: '.$this->agentResult->name;
+        if ($this->agent->isActive() && $this->agent->name() !== null) {
+            $headers[] = 'X-Agent: '.$this->agent->name();
         }
 
         curl_setopt_array($curl, [
@@ -1585,7 +1400,7 @@ class NewCommand extends Command
 
         $process = Process::fromShellCommandline($commandline, $workingPath, $env, null, null);
 
-        if (Process::isTtySupported() && ! $this->isAgent()) {
+        if (Process::isTtySupported() && ! $this->agent->isActive()) {
             try {
                 $process->setTty(true);
             } catch (RuntimeException $e) {
@@ -1605,7 +1420,7 @@ class NewCommand extends Command
         return function_exists('Laravel\Prompts\task')
             && function_exists('pcntl_fork')
             && ! array_is_list($commands)
-            && ! $this->isAgent() && $this->useConciseOutput($output);
+            && ! $this->agent->isActive() && $this->useConciseOutput($output);
     }
 
     /**

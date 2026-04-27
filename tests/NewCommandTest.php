@@ -2,6 +2,7 @@
 
 namespace Laravel\Installer\Console\Tests;
 
+use Laravel\Installer\Console\Agent;
 use Laravel\Installer\Console\Concerns\InteractsWithHerdOrValet;
 use Laravel\Installer\Console\NewCommand;
 use PHPUnit\Framework\TestCase;
@@ -109,21 +110,13 @@ class NewCommandTest extends TestCase
 
     public function test_read_log_tail_strips_ansi_and_returns_last_lines()
     {
-        $command = new class extends NewCommand
-        {
-            public function readLogTailPublic(string $path, int $lines = 50): string
-            {
-                return $this->readLogTail($path, $lines);
-            }
-        };
-
         $path = tempnam(sys_get_temp_dir(), 'installer-tail-test-');
         file_put_contents(
             $path,
             "line one\n\e[31mline two\e[0m\nline three\nline four\n"
         );
 
-        $tail = $command->readLogTailPublic($path, 2);
+        $tail = (new Agent)->readLogTail($path, 2);
 
         @unlink($path);
 
@@ -132,15 +125,7 @@ class NewCommandTest extends TestCase
 
     public function test_read_log_tail_returns_empty_string_for_missing_file()
     {
-        $command = new class extends NewCommand
-        {
-            public function readLogTailPublic(string $path): string
-            {
-                return $this->readLogTail($path);
-            }
-        };
-
-        $this->assertSame('', $command->readLogTailPublic('/nonexistent/path/'.uniqid()));
+        $this->assertSame('', (new Agent)->readLogTail('/nonexistent/path/'.uniqid()));
     }
 
     public function test_agent_mode_emits_single_json_line_with_failure_details()
