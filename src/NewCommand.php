@@ -7,6 +7,7 @@ use Illuminate\Support\Composer;
 use Illuminate\Support\ProcessUtils;
 use Illuminate\Support\Str;
 use Laravel\Installer\Console\Enums\NodePackageManager;
+use Laravel\Prompts\Prompt;
 use Laravel\Prompts\Support\Logger;
 use Override;
 use RecursiveDirectoryIterator;
@@ -63,6 +64,8 @@ class NewCommand extends Command
         $input->setInteractive(false);
 
         $logOutput = $this->agent->openLog();
+
+        Prompt::setOutput($logOutput);
 
         try {
             $exitCode = parent::run($input, $logOutput);
@@ -127,15 +130,11 @@ class NewCommand extends Command
 
         $this->configurePrompts($input, $output);
 
-        if (! $this->agent->isActive()) {
-            $this->displayHeader($output);
-        }
+        $this->displayHeader($output);
 
         $this->ensureExtensionsAreAvailable($input, $output);
 
-        if (! $this->agent->isActive()) {
-            $this->checkForUpdate($input, $output);
-        }
+        $this->checkForUpdate($input, $output);
 
         if (! $input->getArgument('name')) {
             $input->setArgument('name', text(
@@ -311,6 +310,10 @@ class NewCommand extends Command
      */
     protected function checkForUpdate(InputInterface $input, OutputInterface $output)
     {
+        if ($this->agent->isActive()) {
+            return;
+        }
+
         $package = 'laravel/installer';
         $version = $this->getApplication()->getVersion();
         $versionData = $this->getLatestVersionData($package);
@@ -663,26 +666,24 @@ class NewCommand extends Command
                 $this->commitChanges('Configure Boost post-update script', $directory, $input, $output);
             }
 
-            if (! $this->agent->isActive()) {
-                info("Application ready in <options=bold>[{$name}]</>. You can start your local development using:");
+            info("Application ready in <options=bold>[{$name}]</>. You can start your local development using:");
 
-                $output->writeln($this->finalStep("cd {$name}"));
+            $output->writeln($this->finalStep("cd {$name}"));
 
-                if (! $runPackageManager) {
-                    $output->writeln($this->finalStep($packageManager->installCommand().' && '.$packageManager->buildCommand()));
-                }
-
-                if ($this->isParkedOnHerdOrValet($directory)) {
-                    $url = $this->generateAppUrl($name, $directory);
-                    $output->writeln($this->finalStep('Open: <options=bold;href='.$url.'>'.$url));
-                } else {
-                    $output->writeln($this->finalStep('composer run dev'));
-                }
-
-                $output->writeln('');
-                $output->writeln(' <fg=cyan;options=bold>New to Laravel?</> Check out our <href=https://laravel.com/docs/installation#next-steps;options=underscore>documentation</>. <options=bold>Build something amazing!</>');
-                $output->writeln('');
+            if (! $runPackageManager) {
+                $output->writeln($this->finalStep($packageManager->installCommand().' && '.$packageManager->buildCommand()));
             }
+
+            if ($this->isParkedOnHerdOrValet($directory)) {
+                $url = $this->generateAppUrl($name, $directory);
+                $output->writeln($this->finalStep('Open: <options=bold;href='.$url.'>'.$url));
+            } else {
+                $output->writeln($this->finalStep('composer run dev'));
+            }
+
+            $output->writeln('');
+            $output->writeln(' <fg=cyan;options=bold>New to Laravel?</> Check out our <href=https://laravel.com/docs/installation#next-steps;options=underscore>documentation</>. <options=bold>Build something amazing!</>');
+            $output->writeln('');
         }
 
         return $process->getExitCode();
