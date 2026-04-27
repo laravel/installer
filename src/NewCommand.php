@@ -62,6 +62,18 @@ class NewCommand extends Command
     protected ?string $resolvedDirectory = null;
 
     /**
+     * Path to the agent-mode subprocess log file, when one is open.
+     */
+    protected ?string $agentLogPath = null;
+
+    /**
+     * Open file handle for the agent-mode log, when one is open.
+     *
+     * @var resource|null
+     */
+    protected $agentLogHandle = null;
+
+    /**
      * Detect agents, suppress interactive output, and emit a JSON result.
      */
     #[Override]
@@ -75,31 +87,84 @@ class NewCommand extends Command
 
         $input->setInteractive(false);
 
-        $logPath = tempnam(sys_get_temp_dir(), 'laravel-installer-');
-        $logHandle = $logPath !== false ? @fopen($logPath, 'w+') : false;
-        $logOutput = $logHandle !== false
-            ? new StreamOutput($logHandle, OutputInterface::VERBOSITY_NORMAL, false)
-            : new StreamOutput(fopen('php://memory', 'w+'), OutputInterface::VERBOSITY_NORMAL, false);
+        $logOutput = $this->openAgentLog();
 
         try {
             $exitCode = parent::run($input, $logOutput);
         } catch (Throwable $e) {
-            $this->emitAgentResult(false, ['error' => $e->getMessage()] + $this->logDetails($logPath ?: null, $logHandle ?: null));
+            $this->emitAgentResult(false, ['error' => $e->getMessage()] + $this->failureDetails());
 
             return 1;
         }
 
         if ($exitCode === 0) {
-            if ($logPath !== false) {
-                @unlink($logPath);
-            }
-
+            $this->discardAgentLog();
             $this->emitAgentResult(true);
         } else {
-            $this->emitAgentResult(false, $this->logDetails($logPath ?: null, $logHandle ?: null));
+            $this->emitAgentResult(false, $this->failureDetails());
         }
 
         return $exitCode;
+    }
+
+    /**
+     * Open a temporary log file to capture subprocess output during agent runs.
+     *
+     * Falls back to a spillable in-memory buffer if a tempfile cannot be opened,
+     * so the install can still proceed even when no diagnostics will be surfaced.
+     */
+    protected function openAgentLog(): StreamOutput
+    {
+        $path = tempnam(sys_get_temp_dir(), 'laravel-installer-');
+        $handle = $path !== false ? @fopen($path, 'w+') : false;
+
+        if ($handle === false) {
+            if ($path !== false) {
+                @unlink($path);
+            }
+
+            return new StreamOutput(fopen('php://temp', 'w+'), OutputInterface::VERBOSITY_NORMAL, false);
+        }
+
+        $this->agentLogPath = $path;
+        $this->agentLogHandle = $handle;
+
+        return new StreamOutput($handle, OutputInterface::VERBOSITY_NORMAL, false);
+    }
+
+    /**
+     * Close and remove the agent log file (used on the success path).
+     */
+    protected function discardAgentLog(): void
+    {
+        if (is_resource($this->agentLogHandle)) {
+            @fclose($this->agentLogHandle);
+            $this->agentLogHandle = null;
+        }
+
+        if ($this->agentLogPath !== null) {
+            @unlink($this->agentLogPath);
+            $this->agentLogPath = null;
+        }
+    }
+
+    /**
+     * Build the log + tail fields for the agent failure payload.
+     */
+    protected function failureDetails(): array
+    {
+        if ($this->agentLogPath === null || ! file_exists($this->agentLogPath)) {
+            return [];
+        }
+
+        if (is_resource($this->agentLogHandle)) {
+            @fflush($this->agentLogHandle);
+        }
+
+        return [
+            'log' => $this->agentLogPath,
+            'tail' => $this->readLogTail($this->agentLogPath),
+        ];
     }
 
     /**
@@ -133,27 +198,6 @@ class NewCommand extends Command
     }
 
     /**
-     * Build the log + tail fields for the agent failure payload.
-     *
-     * @param  resource|null  $logHandle
-     */
-    protected function logDetails(?string $logPath, $logHandle = null): array
-    {
-        if ($logPath === null || ! file_exists($logPath)) {
-            return [];
-        }
-
-        if (is_resource($logHandle)) {
-            @fflush($logHandle);
-        }
-
-        return [
-            'log' => $logPath,
-            'tail' => $this->readLogTail($logPath),
-        ];
-    }
-
-    /**
      * Read the last N lines of the agent log, with ANSI escapes stripped.
      */
     protected function readLogTail(string $path, int $lines = 50): string
@@ -164,8 +208,8 @@ class NewCommand extends Command
             return '';
         }
 
-        $content = preg_replace('/\x1b\[[0-9;?]*[a-zA-Z]/', '', $content);
-        $allLines = preg_split("/\r\n|\n|\r/", rtrim($content));
+        $stripped = preg_replace('/\x1b\[[0-9;?]*[a-zA-Z]/', '', $content);
+        $allLines = preg_split("/\r\n|\n|\r/", rtrim($stripped ?? $content));
 
         return implode("\n", array_slice($allLines, -$lines));
     }

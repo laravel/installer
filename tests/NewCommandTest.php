@@ -107,6 +107,95 @@ class NewCommandTest extends TestCase
         $this->assertSame('.', $command->getInstallationDirectoryPublic('.'));
     }
 
+    public function test_read_log_tail_strips_ansi_and_returns_last_lines()
+    {
+        $command = new class extends NewCommand
+        {
+            public function readLogTailPublic(string $path, int $lines = 50): string
+            {
+                return $this->readLogTail($path, $lines);
+            }
+        };
+
+        $path = tempnam(sys_get_temp_dir(), 'installer-tail-test-');
+        file_put_contents(
+            $path,
+            "line one\n\e[31mline two\e[0m\nline three\nline four\n"
+        );
+
+        $tail = $command->readLogTailPublic($path, 2);
+
+        @unlink($path);
+
+        $this->assertSame("line three\nline four", $tail);
+    }
+
+    public function test_read_log_tail_returns_empty_string_for_missing_file()
+    {
+        $command = new class extends NewCommand
+        {
+            public function readLogTailPublic(string $path): string
+            {
+                return $this->readLogTail($path);
+            }
+        };
+
+        $this->assertSame('', $command->readLogTailPublic('/nonexistent/path/'.uniqid()));
+    }
+
+    public function test_agent_mode_emits_single_json_line_with_failure_details()
+    {
+        if (PHP_OS_FAMILY === 'Windows') {
+            $this->markTestSkipped('Subprocess test is for Unix/Linux systems only.');
+        }
+
+        $bin = realpath(__DIR__.'/../bin/laravel');
+        $name = 'tests-output/agent-fail-'.bin2hex(random_bytes(4));
+        $dir = __DIR__.'/../'.$name;
+
+        $cmd = sprintf(
+            '%s new %s --no-boost --database=sqlite --using=does-not-exist/totally-bogus-package',
+            escapeshellarg($bin),
+            escapeshellarg($name)
+        );
+
+        $env = ['CLAUDECODE' => '1', 'PATH' => getenv('PATH'), 'HOME' => getenv('HOME')];
+
+        $process = proc_open(
+            $cmd,
+            [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+            $pipes,
+            __DIR__.'/..',
+            $env
+        );
+
+        $stdout = stream_get_contents($pipes[1]);
+        $stderr = stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        $exit = proc_close($process);
+
+        if (file_exists($dir)) {
+            exec('rm -rf '.escapeshellarg($dir));
+        }
+
+        $lines = preg_split('/\r?\n/', trim($stdout));
+        $this->assertCount(1, $lines, "Expected one JSON line on stdout, got:\n{$stdout}\n---stderr---\n{$stderr}");
+
+        $payload = json_decode($lines[0], true);
+        $this->assertIsArray($payload, "Stdout was not valid JSON: {$lines[0]}");
+        $this->assertFalse($payload['success']);
+        $this->assertSame($name, $payload['name']);
+        $this->assertArrayHasKey('log', $payload);
+        $this->assertArrayHasKey('tail', $payload);
+        $this->assertStringContainsString('totally-bogus-package', $payload['tail']);
+        $this->assertNotSame(0, $exit);
+
+        if (isset($payload['log']) && file_exists($payload['log'])) {
+            @unlink($payload['log']);
+        }
+    }
+
     /**
      * @return \Symfony\Component\Console\Application
      */
