@@ -108,10 +108,11 @@ class NewCommand extends Command
     }
 
     /**
-     * Open a temporary log file to capture subprocess output during agent runs.
+     * Open a log destination to capture subprocess output during agent runs.
      *
-     * Falls back to a spillable in-memory buffer if a tempfile cannot be opened,
-     * so the install can still proceed even when no diagnostics will be surfaced.
+     * Prefer a tempfile so the failure payload can include a stable path for
+     * the agent to re-read in full. Falls back to an in-memory buffer; the
+     * tail is still surfaced in the JSON payload, just without a `log` path.
      */
     protected function openAgentLog(): StreamOutput
     {
@@ -123,7 +124,9 @@ class NewCommand extends Command
                 @unlink($path);
             }
 
-            return new StreamOutput(fopen('php://temp', 'w+'), OutputInterface::VERBOSITY_NORMAL, false);
+            $this->agentLogHandle = fopen('php://temp', 'w+');
+
+            return new StreamOutput($this->agentLogHandle, OutputInterface::VERBOSITY_NORMAL, false);
         }
 
         $this->agentLogPath = $path;
@@ -153,18 +156,27 @@ class NewCommand extends Command
      */
     protected function failureDetails(): array
     {
-        if ($this->agentLogPath === null || ! file_exists($this->agentLogPath)) {
+        if (! is_resource($this->agentLogHandle)) {
             return [];
         }
 
-        if (is_resource($this->agentLogHandle)) {
-            @fflush($this->agentLogHandle);
+        @fflush($this->agentLogHandle);
+
+        $details = [];
+
+        if ($this->agentLogPath !== null && file_exists($this->agentLogPath)) {
+            $details['log'] = $this->agentLogPath;
+            $details['tail'] = $this->readLogTail($this->agentLogPath);
+        } else {
+            @rewind($this->agentLogHandle);
+            $content = stream_get_contents($this->agentLogHandle);
+            $details['tail'] = $this->formatTail($content === false ? '' : $content);
         }
 
-        return [
-            'log' => $this->agentLogPath,
-            'tail' => $this->readLogTail($this->agentLogPath),
-        ];
+        @fclose($this->agentLogHandle);
+        $this->agentLogHandle = null;
+
+        return $details;
     }
 
     /**
@@ -204,7 +216,19 @@ class NewCommand extends Command
     {
         $content = @file_get_contents($path);
 
-        if ($content === false || $content === '') {
+        if ($content === false) {
+            return '';
+        }
+
+        return $this->formatTail($content, $lines);
+    }
+
+    /**
+     * Strip ANSI escapes and return the last N lines of the given content.
+     */
+    protected function formatTail(string $content, int $lines = 50): string
+    {
+        if ($content === '') {
             return '';
         }
 
