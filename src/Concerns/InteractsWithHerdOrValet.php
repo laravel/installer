@@ -10,7 +10,6 @@ trait InteractsWithHerdOrValet
     /**
      * Determine if the given directory is parked using Herd or Valet.
      *
-     * @param  string  $directory
      * @return bool
      */
     public function isParkedOnHerdOrValet(string $directory)
@@ -27,7 +26,6 @@ trait InteractsWithHerdOrValet
     /**
      * Runs the given command on the "herd" or "valet" CLI.
      *
-     * @param  string  $command
      * @return string|false
      */
     protected function runOnValetOrHerd(string $command)
