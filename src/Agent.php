@@ -103,6 +103,20 @@ class Agent
     }
 
     /**
+     * Read the last N lines of the agent log, with ANSI escapes stripped.
+     */
+    public function readLogTail(string $path, int $lines = 50): string
+    {
+        $content = @file_get_contents($path);
+
+        if ($content === false) {
+            return '';
+        }
+
+        return $this->formatTail($content, $lines);
+    }
+
+    /**
      * Close and remove the agent log file (used on the success path).
      */
     protected function discardLog(): void
@@ -189,20 +203,6 @@ class Agent
         $handle = fopen('php://temp', 'w+');
 
         return [$path, $handle];
-    }
-
-    /**
-     * Read the last N lines of the agent log, with ANSI escapes stripped.
-     */
-    protected function readLogTail(string $path, int $lines = 50): string
-    {
-        $content = @file_get_contents($path);
-
-        if ($content === false) {
-            return '';
-        }
-
-        return $this->formatTail($content, $lines);
     }
 
     /**

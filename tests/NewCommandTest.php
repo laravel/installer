@@ -170,7 +170,7 @@ class NewCommandTest extends TestCase
         $payload = json_decode($lines[0], true);
         $this->assertIsArray($payload, "Stdout was not valid JSON: {$lines[0]}");
         $this->assertFalse($payload['success']);
-        $this->assertSame($name, $payload['name']);
+        $this->assertSame(basename($name), $payload['name']);
         $this->assertArrayHasKey('log', $payload);
         $this->assertArrayHasKey('tail', $payload);
         $this->assertStringContainsString('totally-bogus-package', $payload['tail']);
