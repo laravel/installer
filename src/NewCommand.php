@@ -72,10 +72,10 @@ class NewCommand extends Command
         } catch (Throwable $e) {
             $this->agent->emitFailure(['error' => $e->getMessage()]);
 
-            return 1;
+            return self::FAILURE;
         }
 
-        if ($exitCode === 0) {
+        if ($exitCode === self::SUCCESS) {
             $this->agent->emitSuccess();
         } else {
             $this->agent->emitFailure();
@@ -707,7 +707,10 @@ class NewCommand extends Command
         $headers = ['User-Agent: Laravel Installer'];
 
         if ($this->agent->isActive() && $this->agent->name() !== null) {
-            $headers[] = 'X-Agent: '.$this->agent->name();
+            $headers[] = 'X-Agent: '.match ($this->agent->name()) {
+                'Claude' => 'Claude Code', // For legacy purposes
+                default => $this->agent->name(),
+            };
         }
 
         curl_setopt_array($curl, [
