@@ -62,10 +62,10 @@ class Agent
     /**
      * Capture the resolved installation details for the JSON output.
      */
-    public function rememberInstallation(string $name, string $directory): void
+    public function rememberInstallation(string $directory): void
     {
-        $this->name = $name;
         $this->directory = $directory;
+        $this->name = basename($directory === '.' ? (string) getcwd() : $directory);
     }
 
     /**

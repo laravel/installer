@@ -501,7 +501,7 @@ class NewCommand extends Command
 
         $directory = $this->getInstallationDirectory($name);
 
-        $this->agent->rememberInstallation($name, $directory);
+        $this->agent->rememberInstallation($directory);
 
         $this->composer = new Composer(new Filesystem, $directory);
 
