@@ -107,9 +107,6 @@ class NewCommandTest extends TestCase
         $this->assertSame('.', $command->getInstallationDirectoryPublic('.'));
     }
 
-    /**
-     * @return \Symfony\Component\Console\Application
-     */
     private function createApplication(): Application
     {
         $app = new Application('Laravel Installer');

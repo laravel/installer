@@ -45,8 +45,6 @@ class NewCommand extends Command
 
     /**
      * Configure the command options.
-     *
-     * @return void
      */
     #[Override]
     protected function configure(): void
@@ -83,8 +81,6 @@ class NewCommand extends Command
 
     /**
      * Interact with the user before validating the input.
-     *
-     * @return void
      */
     #[Override]
     protected function interact(InputInterface $input, OutputInterface $output): void
