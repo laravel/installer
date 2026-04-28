@@ -34,7 +34,7 @@ class Agent
     protected $logHandle = null;
 
     /**
-     * Whether or not the command succeeded
+     * Whether or not the command succeeded.
      */
     protected bool $succeeded = false;
 
