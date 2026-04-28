@@ -33,6 +33,11 @@ class Agent
      */
     protected $logHandle = null;
 
+    /**
+     * Whether or not the command succeeded
+     */
+    protected bool $succeeded = false;
+
     public function __construct()
     {
         $this->result = AgentDetector::detect();
@@ -51,7 +56,7 @@ class Agent
      */
     public function name(): ?string
     {
-        return $this->result?->name;
+        return $this->result?->knownAgent()?->label();
     }
 
     /**
@@ -81,22 +86,6 @@ class Agent
     }
 
     /**
-     * Close and remove the agent log file (used on the success path).
-     */
-    public function discardLog(): void
-    {
-        if (is_resource($this->logHandle)) {
-            @fclose($this->logHandle);
-            $this->logHandle = null;
-        }
-
-        if ($this->logPath !== null) {
-            @unlink($this->logPath);
-            $this->logPath = null;
-        }
-    }
-
-    /**
      * Emit a successful agent result with optional extra payload.
      */
     public function emitSuccess(array $extra = []): void
@@ -114,17 +103,19 @@ class Agent
     }
 
     /**
-     * Read the last N lines of the agent log, with ANSI escapes stripped.
+     * Close and remove the agent log file (used on the success path).
      */
-    public function readLogTail(string $path, int $lines = 50): string
+    protected function discardLog(): void
     {
-        $content = @file_get_contents($path);
-
-        if ($content === false) {
-            return '';
+        if (is_resource($this->logHandle)) {
+            @fclose($this->logHandle);
+            $this->logHandle = null;
         }
 
-        return $this->formatTail($content, $lines);
+        if ($this->logPath !== null) {
+            @unlink($this->logPath);
+            $this->logPath = null;
+        }
     }
 
     /**
@@ -198,6 +189,20 @@ class Agent
         $handle = fopen('php://temp', 'w+');
 
         return [$path, $handle];
+    }
+
+    /**
+     * Read the last N lines of the agent log, with ANSI escapes stripped.
+     */
+    protected function readLogTail(string $path, int $lines = 50): string
+    {
+        $content = @file_get_contents($path);
+
+        if ($content === false) {
+            return '';
+        }
+
+        return $this->formatTail($content, $lines);
     }
 
     /**
