@@ -7,6 +7,7 @@ use Illuminate\Support\Composer;
 use Illuminate\Support\ProcessUtils;
 use Illuminate\Support\Str;
 use Laravel\Installer\Console\Enums\NodePackageManager;
+use Laravel\Prompts\Prompt;
 use Laravel\Prompts\Support\Logger;
 use Override;
 use RecursiveDirectoryIterator;
@@ -42,6 +43,46 @@ class NewCommand extends Command
      * @var Composer
      */
     protected $composer;
+
+    /**
+     * The agent context, encapsulating detection and JSON output behavior.
+     */
+    protected Agent $agent;
+
+    /**
+     * Detect agents, suppress interactive output, and emit a JSON result.
+     */
+    #[Override]
+    public function run(InputInterface $input, OutputInterface $output): int
+    {
+        $this->agent = new Agent;
+
+        if (! $this->agent->isActive()) {
+            return parent::run($input, $output);
+        }
+
+        $input->setInteractive(false);
+
+        $logOutput = $this->agent->openLog();
+
+        Prompt::setOutput($logOutput);
+
+        try {
+            $exitCode = parent::run($input, $logOutput);
+        } catch (Throwable $e) {
+            $this->agent->emitFailure(['error' => $e->getMessage()]);
+
+            return self::FAILURE;
+        }
+
+        if ($exitCode === self::SUCCESS) {
+            $this->agent->emitSuccess();
+        } else {
+            $this->agent->emitFailure();
+        }
+
+        return $exitCode;
+    }
 
     /**
      * Configure the command options.
@@ -269,6 +310,10 @@ class NewCommand extends Command
      */
     protected function checkForUpdate(InputInterface $input, OutputInterface $output)
     {
+        if ($this->agent->isActive()) {
+            return;
+        }
+
         $package = 'laravel/installer';
         $version = $this->getApplication()->getVersion();
         $versionData = $this->getLatestVersionData($package);
@@ -455,6 +500,8 @@ class NewCommand extends Command
         $name = rtrim($input->getArgument('name'), '/\\');
 
         $directory = $this->getInstallationDirectory($name);
+
+        $this->agent->rememberInstallation($directory);
 
         $this->composer = new Composer(new Filesystem, $directory);
 
@@ -657,15 +704,14 @@ class NewCommand extends Command
     {
         $curl = curl_init();
 
-        $headers = array_values(array_filter([
-            'User-Agent: Laravel Installer',
-            match (true) {
-                isset($_SERVER['CLAUDECODE']) && $_SERVER['CLAUDECODE'] === '1' => 'X-Agent: Claude Code',
-                isset($_SERVER['OPENCODE']) && $_SERVER['OPENCODE'] === '1' => 'X-Agent: OpenCode',
-                isset($_SERVER['CURSOR_AGENT']) => 'X-Agent: Cursor',
-                default => null,
-            },
-        ]));
+        $headers = ['User-Agent: Laravel Installer'];
+
+        if ($this->agent->isActive() && $this->agent->name() !== null) {
+            $headers[] = 'X-Agent: '.match ($this->agent->name()) {
+                'Claude' => 'Claude Code', // For legacy purposes
+                default => $this->agent->name(),
+            };
+        }
 
         curl_setopt_array($curl, [
             CURLOPT_URL => 'https://laravel.com/new-install',
@@ -1345,7 +1391,7 @@ class NewCommand extends Command
             );
         }
 
-        if (function_exists('Laravel\Prompts\task') && function_exists('pcntl_fork') && ! array_is_list($commands) && $this->useConciseOutput($output)) {
+        if ($this->shouldRunAsTask($output, $commands)) {
             return $this->runCommandsAsTask($commands, $workingPath, $env, $taskLabel);
         }
 
@@ -1357,7 +1403,7 @@ class NewCommand extends Command
 
         $process = Process::fromShellCommandline($commandline, $workingPath, $env, null, null);
 
-        if (Process::isTtySupported()) {
+        if (Process::isTtySupported() && ! $this->agent->isActive()) {
             try {
                 $process->setTty(true);
             } catch (RuntimeException $e) {
@@ -1370,6 +1416,14 @@ class NewCommand extends Command
         });
 
         return $process;
+    }
+
+    protected function shouldRunAsTask(OutputInterface $output, array $commands): bool
+    {
+        return function_exists('Laravel\Prompts\task')
+            && function_exists('pcntl_fork')
+            && ! array_is_list($commands)
+            && ! $this->agent->isActive() && $this->useConciseOutput($output);
     }
 
     /**
