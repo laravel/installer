@@ -634,7 +634,7 @@ class NewCommand extends Command
 
             if (! $runPackageManager && $input->isInteractive()) {
                 $runPackageManager = confirm(
-                    label: 'Would you like to run <options=bold>'.$packageManager->installCommand().'</> and <options=bold>'.$packageManager->buildCommand().'</>?'
+                    label: 'Would you like to run '.$packageManager->installCommand().' and '.$packageManager->buildCommand().'?'
                 );
             }
 
