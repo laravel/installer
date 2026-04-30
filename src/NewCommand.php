@@ -1418,6 +1418,9 @@ class NewCommand extends Command
         return $process;
     }
 
+    /**
+     * Determine if the commands should be run as tasks.
+     */
     protected function shouldRunAsTask(OutputInterface $output, array $commands): bool
     {
         return function_exists('Laravel\Prompts\task')

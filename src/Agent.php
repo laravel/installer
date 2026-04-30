@@ -70,10 +70,6 @@ class Agent
 
     /**
      * Open a log destination to capture subprocess output during agent runs.
-     *
-     * Prefer a tempfile so the failure payload can include a stable path for
-     * the agent to re-read in full. Falls back to an in-memory buffer; the
-     * tail is still surfaced in the JSON payload, just without a `log` path.
      */
     public function openLog(): StreamOutput
     {
