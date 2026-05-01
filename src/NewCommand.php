@@ -1022,8 +1022,8 @@ class NewCommand extends Command
             $contents = file_get_contents("$directory/tests/Pest.php");
 
             $contents = str_replace(
-                " // ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)",
-                "    ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)",
+                ' // ->use(RefreshDatabase::class)',
+                '    ->use(RefreshDatabase::class)',
                 $contents,
             );
 
