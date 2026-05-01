@@ -523,10 +523,12 @@ class NewCommand extends Command
         $starterKit = $this->getStarterKit($input);
 
         if ($starterKit) {
-            $createProjectCommand = $composer." create-project {$starterKit} \"{$directory}\" --stability=dev";
+            $escapedStarterKit = escapeshellarg($starterKit);
+
+            $createProjectCommand = $composer." create-project {$escapedStarterKit} \"{$directory}\" --stability=dev";
 
             if ($this->usingLaravelStarterKit($input) && $input->getOption('livewire-class-components')) {
-                $createProjectCommand = str_replace(" {$starterKit} ", " {$starterKit}:dev-components ", $createProjectCommand);
+                $createProjectCommand = str_replace(" {$escapedStarterKit} ", ' '.escapeshellarg($starterKit.':dev-components').' ', $createProjectCommand);
             }
 
             if ($this->usingLaravelStarterKit($input)) {
@@ -538,12 +540,12 @@ class NewCommand extends Command
                 };
 
                 if ($branch) {
-                    $createProjectCommand = str_replace(" {$starterKit} ", " {$starterKit}:{$branch} ", $createProjectCommand);
+                    $createProjectCommand = str_replace(" {$escapedStarterKit} ", ' '.escapeshellarg($starterKit.':'.$branch).' ', $createProjectCommand);
                 }
             }
 
             if (! $this->usingLaravelStarterKit($input) && str_contains($starterKit, '://')) {
-                $createProjectCommand = 'npx tiged@latest '.$starterKit.' "'.$directory.'" && cd "'.$directory.'" && composer install';
+                $createProjectCommand = 'npx tiged@latest '.escapeshellarg($starterKit).' "'.$directory.'" && cd "'.$directory.'" && composer install';
             }
         }
 
