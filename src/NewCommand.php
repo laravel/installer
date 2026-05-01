@@ -38,6 +38,11 @@ class NewCommand extends Command
     const DATABASE_DRIVERS = ['mysql', 'mariadb', 'pgsql', 'sqlite', 'sqlsrv'];
 
     /**
+     * Track if update check has been performed to prevent recursive execution.
+     */
+    private static bool $updateCheckPerformed = false;
+
+    /**
      * The Composer instance.
      *
      * @var Composer
@@ -309,7 +314,14 @@ class NewCommand extends Command
      * @return void
      */
     protected function checkForUpdate(InputInterface $input, OutputInterface $output)
-    {
+    {// Guard against recursive execution after update
+        if (self::$updateCheckPerformed) {
+            return;
+        }
+
+        self::$updateCheckPerformed = true;
+
+        
         if ($this->agent->isActive()) {
             return;
         }
@@ -365,6 +377,17 @@ class NewCommand extends Command
             return;
         }
 
+        // if (confirm(label: 'Would you like to update now?')) {
+        //     $this->runCommands(
+        //         [
+        //             'Installer updated' => 'composer global update laravel/installer --with-all-dependencies',
+        //         ],
+        //         $input,
+        //         $output,
+        //         taskLabel: 'Updating Laravel installer',
+        //     );
+        //     $this->proxyLaravelNew($input, $output);
+        // }
         if (confirm(label: 'Would you like to update now?')) {
             $this->runCommands(
                 [
@@ -374,7 +397,11 @@ class NewCommand extends Command
                 $output,
                 taskLabel: 'Updating Laravel installer',
             );
-            $this->proxyLaravelNew($input, $output);
+
+            $output->writeln('');
+            $output->writeln('  Installer updated. Please re-run the command.');
+
+            return self::SUCCESS; // ✅ stop loop
         }
     }
 
