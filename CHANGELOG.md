@@ -1,6 +1,13 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.26.1...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.27.0...master)
+
+## [v5.27.0](https://github.com/laravel/installer/compare/v5.26.1...v5.27.0) - 2026-05-05
+
+* Allow Symfony 8 in composer dependencies by [@ghostwriter](https://github.com/ghostwriter) in https://github.com/laravel/installer/pull/504
+* Formatting cleanup by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/installer/pull/509
+* Emit structured JSON output when invoked by AI agents by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/installer/pull/508
+* Fix uncommenting use RefreshDatabase in Pest.php by [@lancechentw](https://github.com/lancechentw) in https://github.com/laravel/installer/pull/516
 
 ## [v5.26.1](https://github.com/laravel/installer/compare/v5.26.0...v5.26.1) - 2026-04-21
 
