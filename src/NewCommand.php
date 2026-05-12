@@ -95,7 +95,7 @@ class NewCommand extends Command
             ->setDescription('Create a new Laravel application')
             ->addArgument('name', InputArgument::REQUIRED)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Install the latest "development" release')
-            ->addOption('git', null, InputOption::VALUE_NONE, 'Initialize a Git repository')
+            ->addOption('no-git', null, InputOption::VALUE_NONE, 'Skip initializing a Git repository')
             ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'The branch that should be created for a new repository', $this->defaultBranch())
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
@@ -611,7 +611,7 @@ class NewCommand extends Command
                 }
             }
 
-            if ($input->getOption('git') || $input->getOption('github') !== false) {
+            if (! $input->getOption('no-git') || $input->getOption('github') !== false) {
                 $this->createRepository($directory, $input, $output);
             }
 
@@ -1108,7 +1108,7 @@ class NewCommand extends Command
      */
     protected function commitChanges(string $message, string $directory, InputInterface $input, OutputInterface $output)
     {
-        if (! $input->getOption('git') && $input->getOption('github') === false) {
+        if ($input->getOption('no-git') && $input->getOption('github') === false) {
             return;
         }
 
