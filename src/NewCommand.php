@@ -95,6 +95,7 @@ class NewCommand extends Command
             ->setDescription('Create a new Laravel application')
             ->addArgument('name', InputArgument::REQUIRED)
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Install the latest "development" release')
+            ->addOption('git', null, InputOption::VALUE_NONE, 'Applied by default, use --no-git to skip initializing a Git repository')
             ->addOption('no-git', null, InputOption::VALUE_NONE, 'Skip initializing a Git repository')
             ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'The branch that should be created for a new repository', $this->defaultBranch())
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
