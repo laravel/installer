@@ -576,6 +576,7 @@ class NewCommand extends Command
             $commands,
             $input,
             $output,
+            env: ['LARAVEL_INSTALLER_DEFER_HOOKS' => '1'],
             taskLabel: 'Creating Laravel application',
         ))->isSuccessful()) {
             $hooksProcess = $this->runInstallerHooks($directory, $input, $output);
