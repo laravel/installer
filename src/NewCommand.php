@@ -1252,20 +1252,21 @@ class NewCommand extends Command
      */
     protected function normalizeInstallerHookCommand(string $command): string
     {
-        if (str_starts_with($command, '@php ')) {
-            return $this->phpBinary().' '.substr($command, 5);
-        }
+        $replace = [
+            'php' => fn () => $this->phpBinary(),
+            'composer' => fn () => $this->findComposer(),
+        ];
 
-        if ($command === '@php') {
-            return $this->phpBinary();
-        }
+        foreach ($replace as $find => $binary) {
+            $marker = "@{$find}";
 
-        if (str_starts_with($command, '@composer ')) {
-            return $this->findComposer().' '.substr($command, 10);
-        }
+            if (str_starts_with($command, "{$marker} ")) {
+                return $binary().' '.substr($command, strlen("{$marker} "));
+            }
 
-        if ($command === '@composer') {
-            return $this->findComposer();
+            if ($command === $marker) {
+                return $binary();
+            }
         }
 
         return $command;
