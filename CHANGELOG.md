@@ -1,6 +1,20 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.27.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.28.0...master)
+
+## [v5.28.0](https://github.com/laravel/installer/compare/v5.27.0...v5.28.0) - 2026-05-15
+
+### What's Changed
+
+* Remove Composer `github-oauth` credentials on Linux & Windows Actions by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/520
+* Revert "Remove Composer `github-oauth` credentials on Linux & Windows Actions" by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/installer/pull/521
+* Interactive starter kit installer hooks by [@benbjurstrom](https://github.com/benbjurstrom) in https://github.com/laravel/installer/pull/523
+
+### New Contributors
+
+* [@benbjurstrom](https://github.com/benbjurstrom) made their first contribution in https://github.com/laravel/installer/pull/523
+
+**Full Changelog**: https://github.com/laravel/installer/compare/v5.27.0...v5.28.0
 
 ## [v5.27.0](https://github.com/laravel/installer/compare/v5.26.1...v5.27.0) - 2026-05-05
 
