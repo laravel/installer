@@ -576,8 +576,16 @@ class NewCommand extends Command
             $commands,
             $input,
             $output,
+            // Starter kits need to defer execution of hooks until after create-project completes...
+            env: ['LARAVEL_INSTALLER_DEFER_HOOKS' => '1'],
             taskLabel: 'Creating Laravel application',
         ))->isSuccessful()) {
+            $hooksProcess = $this->runInstallerHooks($directory, $input, $output);
+
+            if ($hooksProcess && ! $hooksProcess->isSuccessful()) {
+                return $hooksProcess->getExitCode();
+            }
+
             if ($name !== '.') {
                 $this->pregReplaceInFile(
                     '/^APP_URL=http:\/\/localhost$/m',
@@ -1198,6 +1206,71 @@ class NewCommand extends Command
 
             return $content;
         });
+    }
+
+    /**
+     * Run any Laravel installer hooks defined by the installed application.
+     */
+    protected function runInstallerHooks(string $directory, InputInterface $input, OutputInterface $output): ?Process
+    {
+        $commands = $this->installerHooks($directory, 'post-create-project');
+
+        if ($commands === []) {
+            return null;
+        }
+
+        return $this->runCommands(
+            $commands,
+            $input,
+            $output,
+            workingPath: $directory,
+            taskLabel: 'Running starter kit hooks',
+        );
+    }
+
+    /**
+     * Get the commands for the given Laravel installer hook.
+     */
+    protected function installerHooks(string $directory, string $hook): array
+    {
+        $composerJson = $directory.'/composer.json';
+
+        if (! file_exists($composerJson)) {
+            return [];
+        }
+
+        $composer = json_decode(file_get_contents($composerJson), true) ?: [];
+
+        return collect($composer['extra']['laravel']['installer'][$hook] ?? [])
+            ->filter(fn ($command) => is_string($command) && $command !== '')
+            ->map(fn ($command) => $this->normalizeInstallerHookCommand($command))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Normalize Composer-style script commands for direct execution by the installer.
+     */
+    protected function normalizeInstallerHookCommand(string $command): string
+    {
+        $replace = [
+            'php' => fn () => $this->phpBinary(),
+            'composer' => fn () => $this->findComposer(),
+        ];
+
+        foreach ($replace as $find => $binary) {
+            $marker = "@{$find}";
+
+            if (str_starts_with($command, "{$marker} ")) {
+                return $binary().' '.substr($command, strlen("{$marker} "));
+            }
+
+            if ($command === $marker) {
+                return $binary();
+            }
+        }
+
+        return $command;
     }
 
     /**

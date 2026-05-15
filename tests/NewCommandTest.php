@@ -7,6 +7,8 @@ use Laravel\Installer\Console\Concerns\InteractsWithHerdOrValet;
 use Laravel\Installer\Console\NewCommand;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Tester\CommandTester;
 
 class NewCommandTest extends TestCase
@@ -106,6 +108,104 @@ class NewCommandTest extends TestCase
         $this->assertSame(getcwd().'/'.$relativePath, $command->getInstallationDirectoryPublic($relativePath));
 
         $this->assertSame('.', $command->getInstallationDirectoryPublic('.'));
+    }
+
+    public function test_it_can_read_laravel_installer_hooks()
+    {
+        $directory = __DIR__.'/../tests-output/installer-hooks';
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
+        file_put_contents($directory.'/composer.json', json_encode([
+            'extra' => [
+                'laravel' => [
+                    'installer' => [
+                        'post-create-project' => [
+                            '@php artisan install:features --ansi',
+                            '',
+                            ['not-a-command'],
+                            'php artisan custom:setup',
+                        ],
+                    ],
+                ],
+            ],
+        ]));
+
+        $command = new class extends NewCommand
+        {
+            public function installerHooksPublic(string $directory, string $hook): array
+            {
+                return $this->installerHooks($directory, $hook);
+            }
+        };
+
+        $commands = $command->installerHooksPublic($directory, 'post-create-project');
+
+        $this->assertCount(2, $commands);
+        $this->assertStringEndsWith(' artisan install:features --ansi', $commands[0]);
+        $this->assertSame('php artisan custom:setup', $commands[1]);
+    }
+
+    public function test_missing_laravel_installer_hooks_return_an_empty_array()
+    {
+        $directory = __DIR__.'/../tests-output/missing-installer-hooks';
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
+        file_put_contents($directory.'/composer.json', json_encode(['extra' => []]));
+
+        $command = new class extends NewCommand
+        {
+            public function installerHooksPublic(string $directory, string $hook): array
+            {
+                return $this->installerHooks($directory, $hook);
+            }
+        };
+
+        $this->assertSame([], $command->installerHooksPublic($directory, 'post-create-project'));
+    }
+
+    public function test_failing_laravel_installer_hooks_return_a_failed_process()
+    {
+        $directory = __DIR__.'/../tests-output/failing-installer-hooks';
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
+        file_put_contents($directory.'/composer.json', json_encode([
+            'extra' => [
+                'laravel' => [
+                    'installer' => [
+                        'post-create-project' => [
+                            '@php -r "exit(7);"',
+                        ],
+                    ],
+                ],
+            ],
+        ]));
+
+        $command = new class extends NewCommand
+        {
+            public function runInstallerHooksPublic(string $directory)
+            {
+                $this->agent = new Agent;
+
+                $input = new ArrayInput(['command' => 'new'], (new Application)->getDefinition());
+                $input->setInteractive(false);
+
+                return $this->runInstallerHooks($directory, $input, new BufferedOutput);
+            }
+        };
+
+        $process = $command->runInstallerHooksPublic($directory);
+
+        $this->assertFalse($process->isSuccessful());
+        $this->assertNotSame(0, $process->getExitCode());
     }
 
     public function test_read_log_tail_strips_ansi_and_returns_last_lines()
