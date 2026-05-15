@@ -576,7 +576,9 @@ class NewCommand extends Command
             $commands,
             $input,
             $output,
-            env: ['LARAVEL_INSTALLER_DEFER_HOOKS' => '1'],
+            // Starter kits need this env variable to defer execution of 
+            // installer hooks until after the create-project command completes
+            env: ['LARAVEL_INSTALLER_DEFER_HOOKS' => '1'], 
             taskLabel: 'Creating Laravel application',
         ))->isSuccessful()) {
             $hooksProcess = $this->runInstallerHooks($directory, $input, $output);
