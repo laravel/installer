@@ -1,6 +1,14 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.28.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.28.1...master)
+
+## [v5.28.1](https://github.com/laravel/installer/compare/v5.28.0...v5.28.1) - 2026-05-19
+
+### What's Changed
+
+* Release script by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/installer/pull/524
+
+**Full Changelog**: https://github.com/laravel/installer/compare/v5.28.0...v5.28.1
 
 ## [v5.28.0](https://github.com/laravel/installer/compare/v5.27.0...v5.28.0) - 2026-05-15
 
