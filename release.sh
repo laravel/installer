@@ -79,8 +79,7 @@ if [ -z "$PR_NUMBERS" ]; then
     echo "  No PRs found since last release."
 else
     for pr in $PR_NUMBERS; do
-        gh pr view "$pr" --json number,title,url --template '  #{{.number}} — {{.title}} ({{.url}})' 2>/dev/null || true
-        echo ""
+        gh pr view "$pr" --json number,title,url | jq -r '"  #\(.number) — \(.title) (\(.url))"' 2>/dev/null || true
     done
 fi
 
