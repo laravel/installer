@@ -652,7 +652,7 @@ class NewCommand extends Command
             $output->writeln($this->finalStep("cd {$name}"));
 
             if (! $runPackageManager && ! $input->getOption('no-node')) {
-                $output->writeln($this->finalStep($packageManager->installCommand() . ' && ' . $packageManager->buildCommand()));
+                $output->writeln($this->finalStep($packageManager->installCommand().' && '.$packageManager->buildCommand()));
             }
 
             if ($this->isParkedOnHerdOrValet($directory)) {
@@ -687,13 +687,13 @@ class NewCommand extends Command
 
         if (! $runPackageManager && $input->isInteractive()) {
             $runPackageManager = confirm(
-                label: 'Would you like to run <options=bold>' . $packageManager->installCommand() . '</> and <options=bold>' . $packageManager->buildCommand() . '</>?'
+                label: 'Would you like to run <options=bold>'.$packageManager->installCommand().'</> and <options=bold>'.$packageManager->buildCommand().'</>?'
             );
         }
 
         foreach (NodePackageManager::allLockFiles() as $lockFile) {
-            if (! in_array($lockFile, $packageManager->lockFiles()) && file_exists($directory . '/' . $lockFile)) {
-                (new Filesystem)->delete($directory . '/' . $lockFile);
+            if (! in_array($lockFile, $packageManager->lockFiles()) && file_exists($directory.'/'.$lockFile)) {
+                (new Filesystem)->delete($directory.'/'.$lockFile);
             }
         }
 
@@ -706,7 +706,7 @@ class NewCommand extends Command
                 $input,
                 $output,
                 workingPath: $directory,
-                taskLabel: 'Setting up frontend dependencies with ' . $packageManager->value,
+                taskLabel: 'Setting up frontend dependencies with '.$packageManager->value,
             );
         }
 
