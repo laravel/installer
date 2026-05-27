@@ -671,49 +671,6 @@ class NewCommand extends Command
     }
 
     /**
-     * Install Node dependencies and build assets.
-     *
-     * @return array{NodePackageManager, bool} The package manager used and whether it was run
-     */
-    protected function installNodeDependencies(string $directory, InputInterface $input, OutputInterface $output): array
-    {
-        [$packageManager, $runPackageManager] = $this->determinePackageManager($directory, $input);
-
-        $this->configureComposerScripts($packageManager);
-
-        if ($input->getOption('pest') && ! $this->useConciseOutput($output)) {
-            $output->writeln('');
-        }
-
-        if (! $runPackageManager && $input->isInteractive()) {
-            $runPackageManager = confirm(
-                label: 'Would you like to run <options=bold>'.$packageManager->installCommand().'</> and <options=bold>'.$packageManager->buildCommand().'</>?'
-            );
-        }
-
-        foreach (NodePackageManager::allLockFiles() as $lockFile) {
-            if (! in_array($lockFile, $packageManager->lockFiles()) && file_exists($directory.'/'.$lockFile)) {
-                (new Filesystem)->delete($directory.'/'.$lockFile);
-            }
-        }
-
-        if ($runPackageManager) {
-            $this->runCommands(
-                [
-                    'Packages installed' => $packageManager->installCommand(),
-                    'Assets built' => $packageManager->buildCommand(),
-                ],
-                $input,
-                $output,
-                workingPath: $directory,
-                taskLabel: 'Setting up frontend dependencies with '.$packageManager->value,
-            );
-        }
-
-        return [$packageManager, $runPackageManager];
-    }
-
-    /**
      * Format the final step command with an arrow and styling.
      */
     protected function finalStep(string $command): string
@@ -1070,6 +1027,49 @@ class NewCommand extends Command
         }
 
         $this->commitChanges('Install Pest', $directory, $input, $output);
+    }
+
+    /**
+     * Install Node dependencies and build assets.
+     *
+     * @return array{NodePackageManager, bool} The package manager used and whether it was run
+     */
+    protected function installNodeDependencies(string $directory, InputInterface $input, OutputInterface $output): array
+    {
+        [$packageManager, $runPackageManager] = $this->determinePackageManager($directory, $input);
+
+        $this->configureComposerScripts($packageManager);
+
+        if ($input->getOption('pest') && ! $this->useConciseOutput($output)) {
+            $output->writeln('');
+        }
+
+        if (! $runPackageManager && $input->isInteractive()) {
+            $runPackageManager = confirm(
+                label: 'Would you like to run <options=bold>'.$packageManager->installCommand().'</> and <options=bold>'.$packageManager->buildCommand().'</>?'
+            );
+        }
+
+        foreach (NodePackageManager::allLockFiles() as $lockFile) {
+            if (! in_array($lockFile, $packageManager->lockFiles()) && file_exists($directory.'/'.$lockFile)) {
+                (new Filesystem)->delete($directory.'/'.$lockFile);
+            }
+        }
+
+        if ($runPackageManager) {
+            $this->runCommands(
+                [
+                    'Packages installed' => $packageManager->installCommand(),
+                    'Assets built' => $packageManager->buildCommand(),
+                ],
+                $input,
+                $output,
+                workingPath: $directory,
+                taskLabel: 'Setting up frontend dependencies with '.$packageManager->value,
+            );
+        }
+
+        return [$packageManager, $runPackageManager];
     }
 
     /**
