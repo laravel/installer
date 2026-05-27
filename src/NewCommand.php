@@ -114,6 +114,7 @@ class NewCommand extends Command
             ->addOption('pnpm', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies via PNPM')
             ->addOption('bun', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies via Bun')
             ->addOption('yarn', null, InputOption::VALUE_NONE, 'Install and build NPM dependencies via Yarn')
+            ->addOption('no-node', null, InputOption::VALUE_NONE, 'Skip installing and building NPM dependencies')
             ->addOption('boost', null, InputOption::VALUE_NONE, 'Install Laravel Boost to improve AI assisted coding')
             ->addOption('no-boost', null, InputOption::VALUE_NONE, 'Skip Laravel Boost installation')
             ->addOption('using', null, InputOption::VALUE_OPTIONAL, 'Install a custom starter kit from a community maintained package')
@@ -632,38 +633,10 @@ class NewCommand extends Command
                 $output->writeln('');
             }
 
-            [$packageManager, $runPackageManager] = $this->determinePackageManager($directory, $input);
-
-            $this->configureComposerScripts($packageManager);
-
-            if ($input->getOption('pest') && ! $this->useConciseOutput($output)) {
-                $output->writeln('');
-            }
-
-            if (! $runPackageManager && $input->isInteractive()) {
-                $runPackageManager = confirm(
-                    label: 'Would you like to run <options=bold>'.$packageManager->installCommand().'</> and <options=bold>'.$packageManager->buildCommand().'</>?'
-                );
-            }
-
-            foreach (NodePackageManager::allLockFiles() as $lockFile) {
-                if (! in_array($lockFile, $packageManager->lockFiles()) && file_exists($directory.'/'.$lockFile)) {
-                    (new Filesystem)->delete($directory.'/'.$lockFile);
-                }
-            }
-
-            if ($runPackageManager) {
-                $this->runCommands(
-                    [
-                        'Packages installed' => $packageManager->installCommand(),
-                        'Assets built' => $packageManager->buildCommand(),
-                    ],
-                    $input,
-                    $output,
-                    workingPath: $directory,
-                    taskLabel: 'Setting up frontend dependencies with '.$packageManager->value,
-                );
-            }
+            [$packageManager, $runPackageManager] = match (true) {
+                $input->getOption('no-node') => [NodePackageManager::NPM, false],
+                default => $this->installNodeDependencies($directory, $input, $output),
+            };
 
             if ($input->getOption('boost') && ! $input->getOption('no-boost')) {
                 $this->installBoost($directory, $input, $output);
@@ -678,7 +651,7 @@ class NewCommand extends Command
 
             $output->writeln($this->finalStep("cd {$name}"));
 
-            if (! $runPackageManager) {
+            if (! $runPackageManager && ! $input->getOption('no-node')) {
                 $output->writeln($this->finalStep($packageManager->installCommand().' && '.$packageManager->buildCommand()));
             }
 
@@ -1054,6 +1027,49 @@ class NewCommand extends Command
         }
 
         $this->commitChanges('Install Pest', $directory, $input, $output);
+    }
+
+    /**
+     * Install Node dependencies and build assets.
+     *
+     * @return array{NodePackageManager, bool} The package manager used and whether it was run
+     */
+    protected function installNodeDependencies(string $directory, InputInterface $input, OutputInterface $output): array
+    {
+        [$packageManager, $runPackageManager] = $this->determinePackageManager($directory, $input);
+
+        $this->configureComposerScripts($packageManager);
+
+        if ($input->getOption('pest') && ! $this->useConciseOutput($output)) {
+            $output->writeln('');
+        }
+
+        if (! $runPackageManager && $input->isInteractive()) {
+            $runPackageManager = confirm(
+                label: 'Would you like to run <options=bold>'.$packageManager->installCommand().'</> and <options=bold>'.$packageManager->buildCommand().'</>?'
+            );
+        }
+
+        foreach (NodePackageManager::allLockFiles() as $lockFile) {
+            if (! in_array($lockFile, $packageManager->lockFiles()) && file_exists($directory.'/'.$lockFile)) {
+                (new Filesystem)->delete($directory.'/'.$lockFile);
+            }
+        }
+
+        if ($runPackageManager) {
+            $this->runCommands(
+                [
+                    'Packages installed' => $packageManager->installCommand(),
+                    'Assets built' => $packageManager->buildCommand(),
+                ],
+                $input,
+                $output,
+                workingPath: $directory,
+                taskLabel: 'Setting up frontend dependencies with '.$packageManager->value,
+            );
+        }
+
+        return [$packageManager, $runPackageManager];
     }
 
     /**
