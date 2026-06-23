@@ -107,6 +107,7 @@ class NewCommand extends Command
             ->addOption('livewire-class-components', null, InputOption::VALUE_NONE, 'Generate stand-alone Livewire class components')
             ->addOption('workos', null, InputOption::VALUE_NONE, 'Use WorkOS for authentication')
             ->addOption('teams', null, InputOption::VALUE_NONE, 'Install team support')
+            ->addOption('all-features', null, InputOption::VALUE_NONE, 'Install all starter kit features')
             ->addOption('no-authentication', null, InputOption::VALUE_NONE, 'Do not generate authentication scaffolding')
             ->addOption('pest', null, InputOption::VALUE_NONE, 'Install the Pest testing framework')
             ->addOption('phpunit', null, InputOption::VALUE_NONE, 'Install the PHPUnit testing framework')
@@ -581,6 +582,8 @@ class NewCommand extends Command
             env: ['LARAVEL_INSTALLER_DEFER_HOOKS' => '1'],
             taskLabel: 'Creating Laravel application',
         ))->isSuccessful()) {
+            $this->configureStarterKitFeatureHooks($directory, $input);
+
             $hooksProcess = $this->runInstallerHooks($directory, $input, $output);
 
             if ($hooksProcess && ! $hooksProcess->isSuccessful()) {
@@ -1222,6 +1225,93 @@ class NewCommand extends Command
 
             return $content;
         });
+    }
+
+    /**
+     * Configure starter kit feature hooks for non-interactive installer runs.
+     */
+    protected function configureStarterKitFeatureHooks(string $directory, InputInterface $input): void
+    {
+        $composerJson = $directory.'/composer.json';
+
+        if (! file_exists($composerJson)) {
+            return;
+        }
+
+        if ($input->isInteractive() && ! $input->getOption('all-features')) {
+            return;
+        }
+
+        $composer = json_decode(file_get_contents($composerJson), true) ?: [];
+
+        if (! $this->hasStarterKitFeatureHooks($composer)) {
+            return;
+        }
+
+        $this->composer->modify(function (array $content) use ($input) {
+            $allFeatures = $input->getOption('all-features');
+
+            if (isset($content['scripts']['post-update-cmd']) && is_array($content['scripts']['post-update-cmd'])) {
+                $content['scripts']['post-update-cmd'] = $this->configureStarterKitFeatureHookCommands(
+                    $content['scripts']['post-update-cmd'],
+                    $allFeatures,
+                );
+            }
+
+            if (isset($content['extra']['laravel']['installer']['post-create-project']) && is_array($content['extra']['laravel']['installer']['post-create-project'])) {
+                $content['extra']['laravel']['installer']['post-create-project'] = $this->configureStarterKitFeatureHookCommands(
+                    $content['extra']['laravel']['installer']['post-create-project'],
+                    $allFeatures,
+                );
+            }
+
+            return $content;
+        });
+    }
+
+    /**
+     * @param  array<int, mixed>  $commands
+     * @return array<int, mixed>
+     */
+    protected function configureStarterKitFeatureHookCommands(array $commands, bool $allFeatures): array
+    {
+        $configured = [];
+
+        foreach ($commands as $command) {
+            if (! $this->isStarterKitFeatureHook($command)) {
+                $configured[] = $command;
+
+                continue;
+            }
+
+            if ($allFeatures) {
+                $configured[] = $this->withAllStarterKitFeatures($command);
+            }
+        }
+
+        return $configured;
+    }
+
+    protected function hasStarterKitFeatureHooks(array $composer): bool
+    {
+        return collect([
+            $composer['scripts']['post-update-cmd'] ?? [],
+            $composer['extra']['laravel']['installer']['post-create-project'] ?? [],
+        ])->flatten()->contains(fn ($command) => $this->isStarterKitFeatureHook($command));
+    }
+
+    protected function isStarterKitFeatureHook(mixed $command): bool
+    {
+        return is_string($command) && str_contains($command, 'artisan install:features');
+    }
+
+    protected function withAllStarterKitFeatures(string $command): string
+    {
+        if (preg_match('/(?:^|\s)--all(?:\s|$)/', $command)) {
+            return $command;
+        }
+
+        return $command.' --all';
     }
 
     /**

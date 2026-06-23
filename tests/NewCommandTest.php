@@ -2,6 +2,8 @@
 
 namespace Laravel\Installer\Console\Tests;
 
+use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Composer;
 use Laravel\Installer\Console\Agent;
 use Laravel\Installer\Console\Concerns\InteractsWithHerdOrValet;
 use Laravel\Installer\Console\NewCommand;
@@ -14,6 +16,115 @@ use Symfony\Component\Console\Tester\CommandTester;
 class NewCommandTest extends TestCase
 {
     use InteractsWithHerdOrValet;
+
+    public function test_all_features_updates_starter_kit_feature_hooks()
+    {
+        $directory = __DIR__.'/../tests-output/all-features-hooks';
+
+        $this->writeComposerJson($directory, [
+            'scripts' => [
+                'post-update-cmd' => [
+                    '@php artisan install:features --ansi',
+                    '@php artisan vendor:publish --tag=laravel-assets --ansi --force',
+                ],
+            ],
+            'extra' => [
+                'laravel' => [
+                    'installer' => [
+                        'post-create-project' => [
+                            '@php artisan install:features --ansi',
+                            'php artisan custom:setup',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $command = $this->newFeatureHooksCommand();
+
+        $command->configureStarterKitFeatureHooksPublic($directory, ['--all-features' => true]);
+
+        $composer = $this->readComposerJson($directory);
+
+        $this->assertSame([
+            '@php artisan install:features --ansi --all',
+            '@php artisan vendor:publish --tag=laravel-assets --ansi --force',
+        ], $composer['scripts']['post-update-cmd']);
+
+        $this->assertSame([
+            '@php artisan install:features --ansi --all',
+            'php artisan custom:setup',
+        ], $composer['extra']['laravel']['installer']['post-create-project']);
+    }
+
+    public function test_non_interactive_runs_without_all_features_remove_starter_kit_feature_hooks()
+    {
+        $directory = __DIR__.'/../tests-output/non-interactive-feature-hooks';
+
+        $this->writeComposerJson($directory, [
+            'scripts' => [
+                'post-update-cmd' => [
+                    '@php artisan install:features --ansi',
+                    '@php artisan vendor:publish --tag=laravel-assets --ansi --force',
+                ],
+            ],
+            'extra' => [
+                'laravel' => [
+                    'installer' => [
+                        'post-create-project' => [
+                            '@php artisan install:features --ansi',
+                            'php artisan custom:setup',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $command = $this->newFeatureHooksCommand();
+
+        $command->configureStarterKitFeatureHooksPublic($directory);
+
+        $composer = $this->readComposerJson($directory);
+
+        $this->assertSame([
+            '@php artisan vendor:publish --tag=laravel-assets --ansi --force',
+        ], $composer['scripts']['post-update-cmd']);
+
+        $this->assertSame([
+            'php artisan custom:setup',
+        ], $composer['extra']['laravel']['installer']['post-create-project']);
+    }
+
+    public function test_interactive_runs_without_all_features_keep_starter_kit_feature_hooks()
+    {
+        $directory = __DIR__.'/../tests-output/interactive-feature-hooks';
+
+        $this->writeComposerJson($directory, [
+            'scripts' => [
+                'post-update-cmd' => [
+                    '@php artisan install:features --ansi',
+                ],
+            ],
+            'extra' => [
+                'laravel' => [
+                    'installer' => [
+                        'post-create-project' => [
+                            '@php artisan install:features --ansi',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $command = $this->newFeatureHooksCommand();
+
+        $command->configureStarterKitFeatureHooksPublic($directory, interactive: true);
+
+        $composer = $this->readComposerJson($directory);
+
+        $this->assertSame(['@php artisan install:features --ansi'], $composer['scripts']['post-update-cmd']);
+        $this->assertSame(['@php artisan install:features --ansi'], $composer['extra']['laravel']['installer']['post-create-project']);
+    }
 
     public function test_it_can_scaffold_a_new_laravel_app()
     {
@@ -292,5 +403,40 @@ class NewCommandTest extends TestCase
         }
 
         return $app;
+    }
+
+    private function newFeatureHooksCommand(): NewCommand
+    {
+        return new class extends NewCommand
+        {
+            public function configureStarterKitFeatureHooksPublic(string $directory, array $options = [], bool $interactive = false): void
+            {
+                $this->composer = new Composer(new Filesystem, $directory);
+
+                $input = new ArrayInput(['name' => 'example-app', ...$options], $this->getDefinition());
+                $input->setInteractive($interactive);
+
+                $this->configureStarterKitFeatureHooks($directory, $input);
+            }
+
+            public function installerHooksPublic(string $directory, string $hook): array
+            {
+                return $this->installerHooks($directory, $hook);
+            }
+        };
+    }
+
+    private function writeComposerJson(string $directory, array $composer): void
+    {
+        if (! is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
+        file_put_contents($directory.'/composer.json', json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+    }
+
+    private function readComposerJson(string $directory): array
+    {
+        return json_decode(file_get_contents($directory.'/composer.json'), true, 512, JSON_THROW_ON_ERROR);
     }
 }
