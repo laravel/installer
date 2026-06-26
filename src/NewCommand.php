@@ -7,6 +7,7 @@ use Illuminate\Support\Composer;
 use Illuminate\Support\ProcessUtils;
 use Illuminate\Support\Str;
 use Laravel\Installer\Console\Enums\NodePackageManager;
+use Laravel\Prompts\Elements\Element;
 use Laravel\Prompts\Prompt;
 use Laravel\Prompts\Support\Logger;
 use Override;
@@ -24,8 +25,8 @@ use Symfony\Component\Process\Process;
 use Throwable;
 
 use function Illuminate\Filesystem\join_paths;
+use function Laravel\Prompts\callout;
 use function Laravel\Prompts\confirm;
-use function Laravel\Prompts\info;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\task;
 use function Laravel\Prompts\text;
@@ -647,35 +648,35 @@ class NewCommand extends Command
                 $this->commitChanges('Configure Boost post-update script', $directory, $input, $output);
             }
 
-            info("Application ready in <options=bold>[{$name}]</>. You can start your local development using:");
-
-            $output->writeln($this->finalStep("cd {$name}"));
+            $getStartedSteps = ["cd {$name}"];
 
             if (! $runPackageManager && ! $input->getOption('no-node')) {
-                $output->writeln($this->finalStep($packageManager->installCommand().' && '.$packageManager->buildCommand()));
+                $getStartedSteps[] = $packageManager->installCommand().' && '.$packageManager->buildCommand();
             }
 
             if ($this->isParkedOnHerdOrValet($directory)) {
                 $url = $this->generateAppUrl($name, $directory);
-                $output->writeln($this->finalStep('Open: <options=bold;href='.$url.'>'.$url));
+                $getStartedSteps[] = 'Open: '.Element::link($url);
             } else {
-                $output->writeln($this->finalStep('composer run dev'));
+                $getStartedSteps[] = 'composer run dev';
             }
 
-            $output->writeln('');
-            $output->writeln(' <fg=cyan;options=bold>New to Laravel?</> Check out our <href=https://laravel.com/docs/installation#next-steps;options=underscore>documentation</>. <options=bold>Build something amazing!</>');
-            $output->writeln('');
+            callout(
+                label: 'Application ready',
+                content: [
+                    'You can start your local development using:',
+                    Element::numberedList($getStartedSteps),
+                    $output->getFormatter()->format('<options=bold>New to Laravel?</>')
+                        .' Check out our '.Element::link(
+                            'https://laravel.com/docs/installation#next-steps',
+                            'documentation'
+                        ).'.',
+                    Element::heading('Build something amazing!'),
+                ],
+            );
         }
 
         return $process->getExitCode();
-    }
-
-    /**
-     * Format the final step command with an arrow and styling.
-     */
-    protected function finalStep(string $command): string
-    {
-        return ' <fg=gray>➜</> '.(str_contains($command, '<') ? $command : "<options=bold>{$command}</>");
     }
 
     /**
