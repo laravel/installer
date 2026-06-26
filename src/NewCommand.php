@@ -1492,7 +1492,7 @@ class NewCommand extends Command
 
         $process = Process::fromShellCommandline($commandline, $workingPath, $env, null, null);
 
-        if (Process::isTtySupported() && ! $this->agent->isActive()) {
+        if (Process::isTtySupported() && $input->isInteractive() && ! $this->agent->isActive()) {
             try {
                 $process->setTty(true);
             } catch (RuntimeException $e) {
