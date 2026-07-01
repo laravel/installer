@@ -166,22 +166,58 @@ class NewCommand extends Command
         }
 
         if (! $this->usingStarterKit($input)) {
-            match (select(
-                label: 'Which starter kit would you like to install?',
+            $stack = select(
+                label: 'Which frontend stack do you want to build on?',
                 options: [
                     'none' => 'None',
                     'react' => 'React',
                     'svelte' => 'Svelte',
                     'vue' => 'Vue',
                     'livewire' => 'Livewire',
+                    'custom' => 'Customize a starter kit',
                 ],
+                info: fn ($value) => match ($value) {
+                    'react' => 'Laravel, Inertia, React, Tailwind',
+                    'svelte' => 'Laravel, Inertia, Svelte, Tailwind',
+                    'vue' => 'Laravel, Inertia, Vue, Tailwind',
+                    'livewire' => 'Laravel, Livewire, Tailwind',
+                    default => '',
+                },
                 default: 'none',
-            )) {
+                scroll: 10,
+            );
+
+            match ($stack) {
                 'react' => $input->setOption('react', true),
                 'svelte' => $input->setOption('svelte', true),
                 'vue' => $input->setOption('vue', true),
                 'livewire' => $input->setOption('livewire', true),
                 default => null,
+            };
+
+            $input->setOption('pest', true);
+            $input->setOption('boost', true);
+            $input->setOption('no-authentication', true);
+            $input->setOption('npm', true);
+        }
+
+        if (! $this->usingStarterKit($input)) {
+            match (select(
+                label: 'Which frontend stack should your starter kit use?',
+                options: [
+                    // 'none' => 'None',
+                    'react' => 'React',
+                    'svelte' => 'Svelte',
+                    'vue' => 'Vue',
+                    'livewire' => 'Livewire',
+                ],
+                default: null,
+            )) {
+                'react' => $input->setOption('react', true),
+                'svelte' => $input->setOption('svelte', true),
+                'vue' => $input->setOption('vue', true),
+                'livewire' => $input->setOption('livewire', true),
+                default => 'react',
             };
 
             if ($this->usingLaravelStarterKit($input)) {
@@ -1093,7 +1129,7 @@ class NewCommand extends Command
             $input,
             $output,
             workingPath: $directory,
-            taskLabel: 'Setting up Laravel Boost',
+            taskLabel: 'Setting up Laravel Boost for AI assisted coding',
         );
 
         $this->commitChanges('Install Laravel Boost', $directory, $input, $output);
