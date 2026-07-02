@@ -228,7 +228,7 @@ class NewCommand extends Command
                     'vue' => 'Vue',
                     'livewire' => 'Livewire',
                 ],
-                default: null,
+                default: 'react',
             )) {
                 'react' => $input->setOption('react', true),
                 'svelte' => $input->setOption('svelte', true),
