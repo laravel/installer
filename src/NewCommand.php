@@ -162,26 +162,6 @@ class NewCommand extends Command
             );
         }
 
-        // Set some quick options...
-        if (! $input->getOption('database')) {
-            $input->setOption('database', 'sqlite');
-        }
-
-        if (! $input->getOption('phpunit')) {
-            $input->setOption('pest', true);
-        }
-
-        if (! $input->getOption('no-boost')) {
-            $input->setOption('boost', true);
-        }
-
-        if (! $input->getOption('no-node') &&
-            ! $input->getOption('pnpm') &&
-            ! $input->getOption('bun') &&
-            ! $input->getOption('yarn')) {
-            $input->setOption('npm', true);
-        }
-
         // Starter kit questions...
         if (! $this->usingStarterKit($input)) {
             $useStarterKit = confirm('Do you want to use a starter kit?', default: false);
@@ -290,9 +270,28 @@ class NewCommand extends Command
 
         // Boost...
         if (! $input->getOption('boost') && ! $input->getOption('no-boost')) {
-            $input->setOption('boost', confirm(
+            $installBoost = confirm(
                 label: 'Do you want to install Laravel Boost to improve AI assisted coding?',
-            ));
+            );
+
+            if ($installBoost) {
+                $input->setOption('boost', true);
+            } else {
+                $input->setOption('no-boost', true);
+            }
+        }
+
+        // Set some quick options...
+        if (! $input->getOption('database')) {
+            $input->setOption('database', 'sqlite');
+        }
+
+        if (! $input->getOption('no-node') &&
+            ! $input->getOption('npm') &&
+            ! $input->getOption('pnpm') &&
+            ! $input->getOption('bun') &&
+            ! $input->getOption('yarn')) {
+            $input->setOption('npm', true);
         }
     }
 
