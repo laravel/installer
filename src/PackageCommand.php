@@ -19,7 +19,6 @@ use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 use Throwable;
 
-use function Laravel\Prompts\callout;
 use function Laravel\Prompts\task;
 use function Laravel\Prompts\text;
 
@@ -106,7 +105,7 @@ class PackageCommand extends Command
                     }
 
                     if ($input->getOption('force') !== true) {
-                        $directory = getcwd() . '/' . $value;
+                        $directory = getcwd().'/'.$value;
 
                         if ((is_dir($directory) || is_file($directory)) && $directory !== getcwd()) {
                             return 'Directory already exists.';
@@ -149,21 +148,43 @@ class PackageCommand extends Command
 
         $commands['Package cloned'] = "git clone https://github.com/laravel/package-skeleton.git \"$directory\" --quiet";
         $commands['Git history cleaned'] = "rm -rf \"$directory/.git\"";
-        $commands['Dependencies installed'] = $composer . " install --working-dir=\"$directory\"";
+        $commands['Dependencies installed'] = $composer." install --working-dir=\"$directory\" --no-scripts";
 
-        if (($process = $this->runCommands(
+        $process = $this->runCommands(
             $commands,
             $input,
             $output,
             taskLabel: 'Creating Laravel package',
-        ))->isSuccessful()) {
-            callout(
-                label: 'Package ready',
-                content: "Your new package is ready in [{$name}].",
-            );
+        );
+
+        if (! $process->isSuccessful()) {
+            return $process->getExitCode();
         }
 
-        return $process->getExitCode();
+        $configureProcess = $this->runCommands(
+            [$this->phpBinary().' configure.php'],
+            $input,
+            $output,
+            $directory,
+        );
+
+        return $configureProcess->getExitCode();
+    }
+
+    /**
+     * Get the path to the appropriate PHP binary.
+     *
+     * @return string
+     */
+    protected function phpBinary()
+    {
+        $phpBinary = function_exists('Illuminate\Support\php_binary')
+            ? \Illuminate\Support\php_binary()
+            : (new PhpExecutableFinder)->find(false);
+
+        return $phpBinary !== false
+            ? ProcessUtils::escapeArgument($phpBinary)
+            : 'php';
     }
 
     /**
@@ -180,7 +201,7 @@ class PackageCommand extends Command
             return '.';
         }
 
-        return str_starts_with($name, DIRECTORY_SEPARATOR) ? $name : getcwd() . '/' . $name;
+        return str_starts_with($name, DIRECTORY_SEPARATOR) ? $name : getcwd().'/'.$name;
     }
 
     /**
@@ -204,16 +225,16 @@ class PackageCommand extends Command
         array $env = [],
         ?string $taskLabel = null,
     ): Process {
-        $commands = array_map(fn($value) => (is_array($value)) ? $value : [$value], $commands);
+        $commands = array_map(fn ($value) => (is_array($value)) ? $value : [$value], $commands);
 
         if (! $output->isDecorated()) {
             $commands = array_map(
-                fn($values) => array_map(function ($value) {
+                fn ($values) => array_map(function ($value) {
                     if (Str::startsWith($value, ['chmod', 'rm', 'git'])) {
                         return $value;
                     }
 
-                    return $value . ' --no-ansi';
+                    return $value.' --no-ansi';
                 }, $values),
                 $commands,
             );
@@ -221,12 +242,12 @@ class PackageCommand extends Command
 
         if ($input->getOption('quiet')) {
             $commands = array_map(
-                fn($values) => array_map(function ($value) {
+                fn ($values) => array_map(function ($value) {
                     if (Str::startsWith($value, ['chmod', 'rm', 'git'])) {
                         return $value;
                     }
 
-                    return $value . ' --quiet';
+                    return $value.' --quiet';
                 }, $values),
                 $commands,
             );
@@ -236,7 +257,7 @@ class PackageCommand extends Command
             return $this->runCommandsAsTask($commands, $workingPath, $env, $taskLabel);
         }
 
-        $commandline = implode(' && ', array_map(fn($values) => implode(' && ', $values), $commands));
+        $commandline = implode(' && ', array_map(fn ($values) => implode(' && ', $values), $commands));
 
         $process = Process::fromShellCommandline($commandline, $workingPath, $env, null, null);
 
@@ -244,12 +265,12 @@ class PackageCommand extends Command
             try {
                 $process->setTty(true);
             } catch (RuntimeException $e) {
-                $output->writeln('  <bg=yellow;fg=black> WARN </> ' . $e->getMessage() . PHP_EOL);
+                $output->writeln('  <bg=yellow;fg=black> WARN </> '.$e->getMessage().PHP_EOL);
             }
         }
 
         $process->run(function ($type, $line) use ($output) {
-            $output->write('    ' . $line);
+            $output->write('    '.$line);
         });
 
         return $process;
@@ -291,8 +312,8 @@ class PackageCommand extends Command
 
                         if (! $process->isSuccessful()) {
                             $logger->error($label);
-                            $logger->error('Command failed: ' . $command);
-                            $logger->error('Error output: ' . trim($process->getErrorOutput()));
+                            $logger->error('Command failed: '.$command);
+                            $logger->error('Error output: '.trim($process->getErrorOutput()));
 
                             return $process;
                         }
