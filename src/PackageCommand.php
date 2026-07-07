@@ -213,28 +213,14 @@ class PackageCommand extends Command
             }
         }
 
+        $configureCommand .= ' --installer-dir='.$directory;
+
         $configureProcess = $this->runCommands(
             [$configureCommand],
             $input,
             $output,
             $directory,
         );
-
-        if ($configureProcess->isSuccessful()) {
-            callout(
-                label: 'Package ready',
-                content: [
-                    'You can start your local development using:',
-                    "`cd {$name}`",
-                    $output->getFormatter()->format('<options=bold>New to Laravel?</>')
-                        .' Check out our '.Element::link(
-                            'https://laravel.com/docs/packages',
-                            'package documentation'
-                        ).'.',
-                    Element::heading('Build something amazing!'),
-                ],
-            );
-        }
 
         return $configureProcess->getExitCode();
     }
