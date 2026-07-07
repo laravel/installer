@@ -139,9 +139,21 @@ class PackageCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $name = rtrim($input->getArgument('name'), '/\\');
+        $name = $input->getArgument('name');
+
+        if (! $name) {
+            throw new RuntimeException('Please provide the package name as an argument (e.g. laravel package my-package).');
+        }
+
+        $name = rtrim($name, '/\\');
+
+        if (preg_match('/[^\pL\pN\-_.]/', $name) !== 0) {
+            throw new RuntimeException('The name may only contain letters, numbers, dashes, underscores, and periods.');
+        }
 
         $directory = $this->getInstallationDirectory($name);
+
+        $this->agent->rememberInstallation($directory);
 
         $this->composer = new Composer(new Filesystem, $directory);
 
@@ -165,7 +177,12 @@ class PackageCommand extends Command
         }
 
         $commands['Package cloned'] = "git clone https://github.com/laravel/package-skeleton.git \"$directory\" --quiet";
-        $commands['Git history cleaned'] = "rm -rf \"$directory/.git\"";
+
+        if (PHP_OS_FAMILY === 'Windows') {
+            $commands['Git history cleaned'] = "(if exist \"$directory/.git\" rd /s /q \"$directory/.git\")";
+        } else {
+            $commands['Git history cleaned'] = "rm -rf \"$directory/.git\"";
+        }
         $commands['Dependencies installed'] = $composer." install --working-dir=\"$directory\" --no-scripts";
 
         $process = $this->runCommands(
@@ -347,6 +364,8 @@ class PackageCommand extends Command
             label: $taskLabel ? str($taskLabel)->finish('...') : '',
             keepSummary: true,
             callback: function (Logger $logger) use ($commands, $workingPath, $env, $taskLabel) {
+                $process = null;
+
                 foreach ($commands as $label => $subCommands) {
                     foreach ($subCommands as $command) {
                         $logger->subLabel($command);
