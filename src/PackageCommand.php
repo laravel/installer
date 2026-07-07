@@ -273,7 +273,7 @@ class PackageCommand extends Command
     protected function verifyDirectoryDoesntExist(string $directory): void
     {
         if ((is_dir($directory) || is_file($directory)) && $directory !== getcwd()) {
-            throw new RuntimeException('Application already exists!');
+            throw new RuntimeException('Package already exists!');
         }
     }
 
