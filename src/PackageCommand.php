@@ -6,6 +6,7 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Composer;
 use Illuminate\Support\ProcessUtils;
 use Illuminate\Support\Str;
+use Laravel\Prompts\Elements\Element;
 use Laravel\Prompts\Prompt;
 use Laravel\Prompts\Support\Logger;
 use Override;
@@ -19,6 +20,7 @@ use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 use Throwable;
 
+use function Laravel\Prompts\callout;
 use function Laravel\Prompts\task;
 use function Laravel\Prompts\text;
 
@@ -168,6 +170,22 @@ class PackageCommand extends Command
             $directory,
         );
 
+        if ($configureProcess->isSuccessful()) {
+            callout(
+                label: 'Package ready',
+                content: [
+                    'You can start your local development using:',
+                    "`cd {$name}`",
+                    $output->getFormatter()->format('<options=bold>New to Laravel?</>')
+                        .' Check out our '.Element::link(
+                            'https://laravel.com/docs/packages',
+                            'package documentation'
+                        ).'.',
+                    Element::heading('Build something amazing!'),
+                ],
+            );
+        }
+
         return $configureProcess->getExitCode();
     }
 
@@ -187,11 +205,6 @@ class PackageCommand extends Command
             : 'php';
     }
 
-    /**
-     * Get the installation directory.
-     *
-     * @return string
-     */
     /**
      * Get the installation directory.
      */
