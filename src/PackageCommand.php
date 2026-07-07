@@ -83,7 +83,23 @@ class PackageCommand extends Command
             ->setName('package')
             ->setDescription('Create a new Laravel package')
             ->addArgument('name', InputArgument::OPTIONAL)
-            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Force install even if the directory already exists');
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Force install even if the directory already exists')
+            ->addOption('config', null, InputOption::VALUE_NONE, 'Include Config file')
+            ->addOption('routes', null, InputOption::VALUE_NONE, 'Include Routes')
+            ->addOption('views', null, InputOption::VALUE_NONE, 'Include Views')
+            ->addOption('translations', null, InputOption::VALUE_NONE, 'Include Translations')
+            ->addOption('migrations', null, InputOption::VALUE_NONE, 'Include Migrations')
+            ->addOption('assets', null, InputOption::VALUE_NONE, 'Include Assets')
+            ->addOption('commands', null, InputOption::VALUE_NONE, 'Include Commands')
+            ->addOption('facade', null, InputOption::VALUE_NONE, 'Include Facade')
+            ->addOption('boost-skill', null, InputOption::VALUE_NONE, 'Include Boost Skill')
+            ->addOption('author-name', null, InputOption::VALUE_REQUIRED, 'Author name')
+            ->addOption('author-email', null, InputOption::VALUE_REQUIRED, 'Author email')
+            ->addOption('package-name', null, InputOption::VALUE_REQUIRED, 'Package name')
+            ->addOption('package-name-human', null, InputOption::VALUE_REQUIRED, 'Package display name')
+            ->addOption('package-description', null, InputOption::VALUE_REQUIRED, 'Package description')
+            ->addOption('vendor-namespace', null, InputOption::VALUE_REQUIRED, 'Vendor namespace')
+            ->addOption('class-name', null, InputOption::VALUE_REQUIRED, 'Main class name');
     }
 
     /**
@@ -163,8 +179,25 @@ class PackageCommand extends Command
             return $process->getExitCode();
         }
 
+        $configureCommand = $this->phpBinary().' configure.php';
+
+        $booleanOptions = ['config', 'routes', 'views', 'translations', 'migrations', 'assets', 'commands', 'facade', 'boost-skill'];
+        $valueOptions = ['author-name', 'author-email', 'package-name', 'package-name-human', 'package-description', 'vendor-namespace', 'class-name'];
+
+        foreach ($booleanOptions as $option) {
+            if ($input->getOption($option)) {
+                $configureCommand .= ' --'.$option;
+            }
+        }
+
+        foreach ($valueOptions as $option) {
+            if ($value = $input->getOption($option)) {
+                $configureCommand .= ' --'.$option.'='.escapeshellarg($value);
+            }
+        }
+
         $configureProcess = $this->runCommands(
-            [$this->phpBinary().' configure.php'],
+            [$configureCommand],
             $input,
             $output,
             $directory,
