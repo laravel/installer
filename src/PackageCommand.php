@@ -198,6 +198,10 @@ class PackageCommand extends Command
 
         $configureCommand = $this->phpBinary().' configure.php';
 
+        if (!$input->isInteractive()) {
+            $configureCommand .= ' --no-interaction';
+        }
+
         $booleanOptions = ['config', 'routes', 'views', 'translations', 'migrations', 'assets', 'commands', 'facade', 'boost-skill'];
         $valueOptions = ['author-name', 'author-email', 'package-name', 'package-name-human', 'package-description', 'vendor-namespace', 'class-name'];
 
