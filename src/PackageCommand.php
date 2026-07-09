@@ -6,7 +6,6 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Composer;
 use Illuminate\Support\ProcessUtils;
 use Illuminate\Support\Str;
-use Laravel\Prompts\Elements\Element;
 use Laravel\Prompts\Prompt;
 use Laravel\Prompts\Support\Logger;
 use Override;
@@ -20,7 +19,6 @@ use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 use Throwable;
 
-use function Laravel\Prompts\callout;
 use function Laravel\Prompts\task;
 use function Laravel\Prompts\text;
 
@@ -198,7 +196,7 @@ class PackageCommand extends Command
 
         $configureCommand = $this->phpBinary().' configure.php';
 
-        if (!$input->isInteractive()) {
+        if (! $input->isInteractive()) {
             $configureCommand .= ' --no-interaction';
         }
 
