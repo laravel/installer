@@ -230,6 +230,7 @@ class NewCommand extends Command
                     'svelte' => 'Svelte',
                     'vue' => 'Vue',
                     'livewire' => 'Livewire',
+                    'community' => 'Community maintained',
                 ],
                 default: 'react',
             )) {
@@ -237,6 +238,13 @@ class NewCommand extends Command
                 'svelte' => $input->setOption('svelte', true),
                 'vue' => $input->setOption('vue', true),
                 'livewire' => $input->setOption('livewire', true),
+                'community' => $input->setOption('using', text(
+                    label: 'Which community starter kit would you like to use?',
+                    placeholder: 'vendor/package',
+                    required: 'A community starter kit package or repository URL is required.',
+                    validate: fn ($value) => $this->validateCommunityStarterKit($value),
+                    hint: 'A Packagist package (vendor/package) or a Git repository URL.',
+                )),
                 default => 'react',
             };
 
@@ -1399,6 +1407,24 @@ class NewCommand extends Command
             $input->getOption('livewire') => 'laravel/livewire-starter-kit',
             default => $input->getOption('using'),
         };
+    }
+
+    /**
+     * Validate a community starter kit package name or repository URL.
+     */
+    protected function validateCommunityStarterKit(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        if (str_contains($value, '://')) {
+            return null;
+        }
+
+        if (preg_match('/^[a-z0-9]([_.-]?[a-z0-9]+)*\/[a-z0-9]([_.-]?[a-z0-9]+)*$/i', $value) !== 1) {
+            return 'Enter a Packagist package (vendor/package) or a Git repository URL.';
+        }
+
+        return null;
     }
 
     /**

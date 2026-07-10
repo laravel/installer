@@ -74,6 +74,26 @@ class NewCommandTest extends TestCase
         }
     }
 
+    public function test_it_validates_community_starter_kit_input()
+    {
+        $command = new NewCommand;
+
+        $method = new \ReflectionMethod($command, 'validateCommunityStarterKit');
+
+        $validate = fn ($value) => $method->invoke($command, $value);
+
+        $this->assertNull($validate('vendor/package'));
+        $this->assertNull($validate('some-vendor/kit-name'));
+        $this->assertNull($validate('https://github.com/foo/bar'));
+        $this->assertNull($validate('git@github.com:foo/bar.git://'));
+
+        $error = 'Enter a Packagist package (vendor/package) or a Git repository URL.';
+        $this->assertSame($error, $validate('does-not-exist'));
+        $this->assertSame($error, $validate(''));
+        $this->assertSame($error, $validate('foo/'));
+        $this->assertSame($error, $validate('/bar'));
+    }
+
     public function test_on_at_least_laravel_11()
     {
         $command = new NewCommand;
