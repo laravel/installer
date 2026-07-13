@@ -717,19 +717,25 @@ class NewCommand extends Command
                 $getStartedSteps[] = 'composer run dev';
             }
 
-            callout(
-                label: 'Application ready',
-                content: [
-                    'You can start your local development using:',
-                    Element::numberedList($getStartedSteps),
-                    $output->getFormatter()->format('<options=bold>New to Laravel?</>')
-                        .' Check out our '.Element::link(
-                            'https://laravel.com/docs/installation#next-steps',
-                            'documentation'
-                        ).'.',
-                    Element::heading('Build something amazing!'),
-                ],
-            );
+            if (function_exists('Laravel\Prompts\callout')) {
+                callout(
+                    label: 'Application ready',
+                    content: [
+                        'You can start your local development using:',
+                        Element::numberedList($getStartedSteps),
+                        $output->getFormatter()->format('<options=bold>New to Laravel?</>')
+                            .' Check out our '.Element::link(
+                                'https://laravel.com/docs/installation#next-steps',
+                                'documentation'
+                            ).'.',
+                        Element::heading('Build something amazing!'),
+                    ],
+                );
+            } else {
+                $output->writeln('');
+                $output->writeln(' <fg=cyan;options=bold>New to Laravel?</> Check out our <href=https://laravel.com/docs/installation#next-steps;options=underscore>documentation</>. <options=bold>Build something amazing!</>');
+                $output->writeln('');
+            }
         }
 
         return $process->getExitCode();
