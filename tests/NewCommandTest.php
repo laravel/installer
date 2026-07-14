@@ -208,6 +208,156 @@ class NewCommandTest extends TestCase
         $this->assertNotSame(0, $process->getExitCode());
     }
 
+    public function test_it_can_configure_github_workflows_for_pnpm()
+    {
+        $directory = __DIR__.'/../tests-output/github-workflows-pnpm';
+
+        if (! is_dir($directory.'/.github/workflows')) {
+            mkdir($directory.'/.github/workflows', 0777, true);
+        }
+
+        file_put_contents($directory.'/.github/workflows/tests.yml', 'npm i
+npm run build');
+
+        file_put_contents($directory.'/.github/workflows/lint.yml', 'npm install
+npm run format
+npm run lint');
+
+        $command = new class extends NewCommand
+        {
+            public function configureGitHubWorkflowsPublic($packageManager, $directory)
+            {
+                return $this->configureGitHubWorkflows($packageManager, $directory);
+            }
+        };
+
+        $command->configureGitHubWorkflowsPublic(\Laravel\Installer\Console\Enums\NodePackageManager::PNPM, $directory);
+
+        $testsContents = file_get_contents($directory.'/.github/workflows/tests.yml');
+        $lintContents = file_get_contents($directory.'/.github/workflows/lint.yml');
+
+        $this->assertStringContainsString('pnpm install --ignore-scripts', $testsContents);
+        $this->assertStringContainsString('pnpm build', $testsContents);
+        $this->assertStringNotContainsString('run: npm', $testsContents);
+
+        $this->assertStringContainsString('pnpm install --ignore-scripts', $lintContents);
+        $this->assertStringContainsString('pnpm format', $lintContents);
+        $this->assertStringContainsString('pnpm lint', $lintContents);
+        $this->assertStringNotContainsString('run: npm', $lintContents);
+    }
+
+    public function test_it_can_configure_github_workflows_for_yarn()
+    {
+        $directory = __DIR__.'/../tests-output/github-workflows-yarn';
+
+        if (! is_dir($directory.'/.github/workflows')) {
+            mkdir($directory.'/.github/workflows', 0777, true);
+        }
+
+        file_put_contents($directory.'/.github/workflows/tests.yml', 'npm i
+npm run build');
+
+        file_put_contents($directory.'/.github/workflows/lint.yml', 'npm install
+npm run format
+npm run lint');
+
+        $command = new class extends NewCommand
+        {
+            public function configureGitHubWorkflowsPublic($packageManager, $directory)
+            {
+                return $this->configureGitHubWorkflows($packageManager, $directory);
+            }
+        };
+
+        $command->configureGitHubWorkflowsPublic(\Laravel\Installer\Console\Enums\NodePackageManager::YARN, $directory);
+
+        $testsContents = file_get_contents($directory.'/.github/workflows/tests.yml');
+        $lintContents = file_get_contents($directory.'/.github/workflows/lint.yml');
+
+        $this->assertStringContainsString('yarn install --ignore-scripts', $testsContents);
+        $this->assertStringContainsString('yarn build', $testsContents);
+        $this->assertStringNotContainsString('run: npm', $testsContents);
+
+        $this->assertStringContainsString('yarn install --ignore-scripts', $lintContents);
+        $this->assertStringContainsString('yarn format', $lintContents);
+        $this->assertStringContainsString('yarn lint', $lintContents);
+        $this->assertStringNotContainsString('run: npm', $lintContents);
+    }
+
+    public function test_it_can_configure_github_workflows_for_bun()
+    {
+        $directory = __DIR__.'/../tests-output/github-workflows-bun';
+
+        if (! is_dir($directory.'/.github/workflows')) {
+            mkdir($directory.'/.github/workflows', 0777, true);
+        }
+
+        file_put_contents($directory.'/.github/workflows/tests.yml', 'npm i
+npm run build');
+
+        file_put_contents($directory.'/.github/workflows/lint.yml', 'npm install
+npm run format
+npm run lint');
+
+        $command = new class extends NewCommand
+        {
+            public function configureGitHubWorkflowsPublic($packageManager, $directory)
+            {
+                return $this->configureGitHubWorkflows($packageManager, $directory);
+            }
+        };
+
+        $command->configureGitHubWorkflowsPublic(\Laravel\Installer\Console\Enums\NodePackageManager::BUN, $directory);
+
+        $testsContents = file_get_contents($directory.'/.github/workflows/tests.yml');
+        $lintContents = file_get_contents($directory.'/.github/workflows/lint.yml');
+
+        $this->assertStringContainsString('bun install --ignore-scripts', $testsContents);
+        $this->assertStringContainsString('bun run build', $testsContents);
+        $this->assertStringNotContainsString('run: npm', $testsContents);
+
+        $this->assertStringContainsString('bun install --ignore-scripts', $lintContents);
+        $this->assertStringContainsString('bun run format', $lintContents);
+        $this->assertStringContainsString('bun run lint', $lintContents);
+        $this->assertStringNotContainsString('run: npm', $lintContents);
+    }
+
+    public function test_it_leaves_github_workflows_unchanged_for_npm()
+    {
+        $directory = __DIR__.'/../tests-output/github-workflows-npm';
+
+        if (! is_dir($directory.'/.github/workflows')) {
+            mkdir($directory.'/.github/workflows', 0777, true);
+        }
+
+        file_put_contents($directory.'/.github/workflows/tests.yml', 'npm i
+npm run build');
+
+        file_put_contents($directory.'/.github/workflows/lint.yml', 'npm install
+npm run format
+npm run lint');
+
+        $command = new class extends NewCommand
+        {
+            public function configureGitHubWorkflowsPublic($packageManager, $directory)
+            {
+                return $this->configureGitHubWorkflows($packageManager, $directory);
+            }
+        };
+
+        $command->configureGitHubWorkflowsPublic(\Laravel\Installer\Console\Enums\NodePackageManager::NPM, $directory);
+
+        $testsContents = file_get_contents($directory.'/.github/workflows/tests.yml');
+        $lintContents = file_get_contents($directory.'/.github/workflows/lint.yml');
+
+        $this->assertStringContainsString('npm install --ignore-scripts', $testsContents);
+        $this->assertStringContainsString('npm run build', $testsContents);
+
+        $this->assertStringContainsString('npm install --ignore-scripts', $lintContents);
+        $this->assertStringContainsString('npm run format', $lintContents);
+        $this->assertStringContainsString('npm run lint', $lintContents);
+    }
+
     public function test_read_log_tail_strips_ansi_and_returns_last_lines()
     {
         $path = tempnam(sys_get_temp_dir(), 'installer-tail-test-');

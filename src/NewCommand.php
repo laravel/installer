@@ -1102,6 +1102,7 @@ class NewCommand extends Command
         [$packageManager, $runPackageManager] = $this->determinePackageManager($directory, $input);
 
         $this->configureComposerScripts($packageManager);
+        $this->configureGitHubWorkflows($packageManager, $directory);
 
         if ($input->getOption('pest') && ! $this->useConciseOutput($output)) {
             $output->writeln('');
@@ -1273,6 +1274,29 @@ class NewCommand extends Command
 
             return $content;
         });
+    }
+
+    /**
+     * Configure GitHub workflow files to use the selected package manager.
+     */
+    protected function configureGitHubWorkflows(NodePackageManager $packageManager, string $directory): void
+    {
+        $workflowFiles = [
+            $directory.'/.github/workflows/tests.yml',
+            $directory.'/.github/workflows/lint.yml',
+        ];
+
+        foreach ($workflowFiles as $file) {
+            if (! file_exists($file)) {
+                continue;
+            }
+
+            $this->replaceInFile('npm install', $packageManager->installCommand(), $file);
+            $this->replaceInFile('npm i', $packageManager->installCommand(), $file);
+            $this->replaceInFile('npm run build', $packageManager->buildCommand(), $file);
+            $this->replaceInFile('npm run format', $packageManager->runCommand().' format', $file);
+            $this->replaceInFile('npm run lint', $packageManager->runCommand().' lint', $file);
+        }
     }
 
     /**
