@@ -101,6 +101,7 @@ class NewCommand extends Command
             ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
             ->addOption('database', null, InputOption::VALUE_REQUIRED, 'The database driver your application will use. Possible values are: '.implode(', ', self::DATABASE_DRIVERS))
+            ->addOption('api', null, InputOption::VALUE_NONE, 'Install the API Starter Kit')
             ->addOption('react', null, InputOption::VALUE_NONE, 'Install the React Starter Kit')
             ->addOption('svelte', null, InputOption::VALUE_NONE, 'Install the Svelte Starter Kit')
             ->addOption('vue', null, InputOption::VALUE_NONE, 'Install the Vue Starter Kit')
@@ -223,13 +224,14 @@ class NewCommand extends Command
         // Starter kit frontend stack...
         if (($useStarterKit ?? null) !== false && ! $this->usingStarterKit($input)) {
             match (select(
-                label: 'Which frontend stack should your starter kit use?',
+                label: 'Which stack should your starter kit use?',
                 options: [
                     // 'none' => 'None',
                     'react' => 'React',
                     'svelte' => 'Svelte',
                     'vue' => 'Vue',
                     'livewire' => 'Livewire',
+                    'api' => 'API',
                 ],
                 default: 'react',
             )) {
@@ -237,10 +239,11 @@ class NewCommand extends Command
                 'svelte' => $input->setOption('svelte', true),
                 'vue' => $input->setOption('vue', true),
                 'livewire' => $input->setOption('livewire', true),
+                'api' => $input->setOption('api', true),
                 default => 'react',
             };
 
-            if ($this->usingLaravelStarterKit($input)) {
+            if ($this->usingLaravelStarterKit($input) && ! $input->getOption('api')) {
                 match (select(
                     label: 'Which authentication provider do you prefer?',
                     options: [
@@ -691,7 +694,7 @@ class NewCommand extends Command
             }
 
             [$packageManager, $runPackageManager] = match (true) {
-                $input->getOption('no-node') => [NodePackageManager::NPM, false],
+                $this->shouldSkipNodeDependencies($input) => [NodePackageManager::NPM, false],
                 default => $this->installNodeDependencies($directory, $input, $output),
             };
 
@@ -706,7 +709,7 @@ class NewCommand extends Command
 
             $getStartedSteps = ["cd {$name}"];
 
-            if (! $runPackageManager && ! $input->getOption('no-node')) {
+            if (! $runPackageManager && ! $this->shouldSkipNodeDependencies($input)) {
                 $getStartedSteps[] = $packageManager->installCommand().' && '.$packageManager->buildCommand();
             }
 
@@ -1022,6 +1025,14 @@ class NewCommand extends Command
         if ($input->getOption('database') && ! in_array($input->getOption('database'), self::DATABASE_DRIVERS)) {
             throw new \InvalidArgumentException("Invalid database driver [{$input->getOption('database')}]. Possible values are: ".implode(', ', self::DATABASE_DRIVERS).'.');
         }
+    }
+
+    /**
+     * Determine if installing Node dependencies should be skipped.
+     */
+    protected function shouldSkipNodeDependencies(InputInterface $input): bool
+    {
+        return $input->getOption('no-node') || $input->getOption('api');
     }
 
     /**
@@ -1399,6 +1410,7 @@ class NewCommand extends Command
         }
 
         return match (true) {
+            $input->getOption('api') => 'laravel/api-starter-kit',
             $input->getOption('react') => 'laravel/react-starter-kit',
             $input->getOption('svelte') => 'laravel/svelte-starter-kit',
             $input->getOption('vue') => 'laravel/vue-starter-kit',
@@ -1423,7 +1435,7 @@ class NewCommand extends Command
      */
     protected function usingStarterKit(InputInterface $input)
     {
-        return $input->getOption('react') || $input->getOption('svelte') || $input->getOption('vue') || $input->getOption('livewire') || $input->getOption('using');
+        return $input->getOption('api') || $input->getOption('react') || $input->getOption('svelte') || $input->getOption('vue') || $input->getOption('livewire') || $input->getOption('using');
     }
 
     /**
