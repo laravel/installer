@@ -8,6 +8,7 @@ use Laravel\Installer\Console\NewCommand;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -279,6 +280,59 @@ class NewCommandTest extends TestCase
         if (isset($payload['log']) && file_exists($payload['log'])) {
             @unlink($payload['log']);
         }
+    }
+
+    public function test_api_flag_resolves_the_api_starter_kit()
+    {
+        $command = $this->commandWithPublicAccessors();
+
+        $starterKit = $command->getStarterKitPublic($this->newCommandInput(['--api' => true]));
+
+        $this->assertSame('laravel/api-starter-kit', $starterKit);
+    }
+
+    public function test_using_starter_kit_recognizes_the_api_flag()
+    {
+        $command = $this->commandWithPublicAccessors();
+
+        $this->assertTrue($command->usingStarterKitPublic($this->newCommandInput(['--api' => true])));
+        $this->assertFalse($command->usingStarterKitPublic($this->newCommandInput()));
+    }
+
+    public function test_node_dependencies_are_skipped_for_the_api_kit()
+    {
+        $command = $this->commandWithPublicAccessors();
+
+        $this->assertTrue($command->shouldSkipNodeDependenciesPublic($this->newCommandInput(['--api' => true])));
+        $this->assertTrue($command->shouldSkipNodeDependenciesPublic($this->newCommandInput(['--no-node' => true])));
+        $this->assertFalse($command->shouldSkipNodeDependenciesPublic($this->newCommandInput(['--react' => true])));
+        $this->assertFalse($command->shouldSkipNodeDependenciesPublic($this->newCommandInput()));
+    }
+
+    private function newCommandInput(array $options = []): ArrayInput
+    {
+        return new ArrayInput(['name' => 'example-app', ...$options], (new NewCommand)->getDefinition());
+    }
+
+    private function commandWithPublicAccessors(): NewCommand
+    {
+        return new class extends NewCommand
+        {
+            public function getStarterKitPublic(InputInterface $input): ?string
+            {
+                return $this->getStarterKit($input);
+            }
+
+            public function usingStarterKitPublic(InputInterface $input): bool
+            {
+                return $this->usingStarterKit($input);
+            }
+
+            public function shouldSkipNodeDependenciesPublic(InputInterface $input): bool
+            {
+                return $this->shouldSkipNodeDependencies($input);
+            }
+        };
     }
 
     private function createApplication(): Application
