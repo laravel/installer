@@ -1303,6 +1303,7 @@ class NewCommand extends Command
             $input,
             $output,
             workingPath: $directory,
+            env: ($input->hasOption('no-node') && $input->getOption('no-node')) ? ['LARAVEL_INSTALLER_NO_NODE' => '1'] : [],
             taskLabel: 'Running starter kit hooks',
         );
     }

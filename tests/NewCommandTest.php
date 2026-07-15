@@ -8,7 +8,9 @@ use Laravel\Installer\Console\NewCommand;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 
 class NewCommandTest extends TestCase
@@ -206,6 +208,53 @@ class NewCommandTest extends TestCase
 
         $this->assertFalse($process->isSuccessful());
         $this->assertNotSame(0, $process->getExitCode());
+    }
+
+    public function test_no_node_option_is_passed_to_laravel_installer_hooks()
+    {
+        $directory = __DIR__.'/../tests-output/no-node-installer-hooks';
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
+        file_put_contents($directory.'/composer.json', json_encode([
+            'extra' => [
+                'laravel' => [
+                    'installer' => [
+                        'post-create-project' => [
+                            '@php -r "echo getenv(\'LARAVEL_INSTALLER_NO_NODE\');"',
+                        ],
+                    ],
+                ],
+            ],
+        ]));
+
+        $command = new class extends NewCommand
+        {
+            public function runInstallerHooksPublic(string $directory, bool $noNode)
+            {
+                $this->agent = new Agent;
+
+                $definition = (new Application)->getDefinition();
+                $definition->addOption(new InputOption('no-node', null, InputOption::VALUE_NONE));
+
+                $input = new ArrayInput(
+                    $noNode ? ['command' => 'new', '--no-node' => true] : ['command' => 'new'],
+                    $definition,
+                );
+                $input->setInteractive(false);
+
+                return $this->runInstallerHooks(
+                    $directory,
+                    $input,
+                    new BufferedOutput(OutputInterface::VERBOSITY_NORMAL, true),
+                );
+            }
+        };
+
+        $this->assertSame('1', $command->runInstallerHooksPublic($directory, true)->getOutput());
+        $this->assertSame('', $command->runInstallerHooksPublic($directory, false)->getOutput());
     }
 
     public function test_read_log_tail_strips_ansi_and_returns_last_lines()
