@@ -644,6 +644,10 @@ class NewCommand extends Command
                 return $hooksProcess->getExitCode();
             }
 
+            if ($this->usingStarterKit($input)) {
+                $this->configureWorkflowPhpVersion($directory);
+            }
+
             if ($name !== '.') {
                 $this->pregReplaceInFile(
                     '/^APP_URL=http:\/\/localhost$/m',
@@ -1285,6 +1289,24 @@ class NewCommand extends Command
 
             return $content;
         });
+    }
+
+    /**
+     * Update the GitHub Actions workflow to use the local machine's PHP version.
+     */
+    protected function configureWorkflowPhpVersion(string $directory): void
+    {
+        $workflow = $directory.'/.github/workflows/tests.yml';
+
+        if (! file_exists($workflow)) {
+            return;
+        }
+
+        $this->pregReplaceInFile(
+            "/php-version: '\d+\.\d+'/",
+            sprintf("php-version: '%d.%d'", PHP_MAJOR_VERSION, PHP_MINOR_VERSION),
+            $workflow,
+        );
     }
 
     /**

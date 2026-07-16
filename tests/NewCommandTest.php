@@ -257,6 +257,56 @@ class NewCommandTest extends TestCase
         $this->assertSame('', $command->runInstallerHooksPublic($directory, false)->getOutput());
     }
 
+    public function test_it_updates_the_workflow_php_version_to_the_local_php_version()
+    {
+        $directory = __DIR__.'/../tests-output/workflow-php-version';
+
+        if (! is_dir($directory.'/.github/workflows')) {
+            mkdir($directory.'/.github/workflows', 0777, true);
+        }
+
+        file_put_contents(
+            $directory.'/.github/workflows/tests.yml',
+            "      - name: Setup PHP\n        uses: shivammathur/setup-php@v2\n        with:\n          php-version: '8.3'\n          tools: composer:v2\n",
+        );
+
+        $command = new class extends NewCommand
+        {
+            public function configureWorkflowPhpVersionPublic(string $directory): void
+            {
+                $this->configureWorkflowPhpVersion($directory);
+            }
+        };
+
+        $command->configureWorkflowPhpVersionPublic($directory);
+
+        $this->assertStringContainsString(
+            sprintf("php-version: '%d.%d'", PHP_MAJOR_VERSION, PHP_MINOR_VERSION),
+            file_get_contents($directory.'/.github/workflows/tests.yml'),
+        );
+    }
+
+    public function test_it_ignores_applications_without_a_tests_workflow()
+    {
+        $directory = __DIR__.'/../tests-output/workflow-php-version-missing';
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
+        $command = new class extends NewCommand
+        {
+            public function configureWorkflowPhpVersionPublic(string $directory): void
+            {
+                $this->configureWorkflowPhpVersion($directory);
+            }
+        };
+
+        $command->configureWorkflowPhpVersionPublic($directory);
+
+        $this->assertFileDoesNotExist($directory.'/.github/workflows/tests.yml');
+    }
+
     public function test_read_log_tail_strips_ansi_and_returns_last_lines()
     {
         $path = tempnam(sys_get_temp_dir(), 'installer-tail-test-');
