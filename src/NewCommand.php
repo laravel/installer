@@ -1093,7 +1093,27 @@ class NewCommand extends Command
             }
         }
 
+        $this->fixTestCodeStyle($directory, $input, $output);
+
         $this->commitChanges('Install Pest', $directory, $input, $output);
+    }
+
+    /**
+     * Fix the code style of the application's tests using Pint.
+     */
+    protected function fixTestCodeStyle(string $directory, InputInterface $input, OutputInterface $output): ?Process
+    {
+        if (! file_exists($directory.'/vendor/bin/pint')) {
+            return null;
+        }
+
+        return $this->runCommands(
+            ['Test code style fixed' => $this->phpBinary().' ./vendor/bin/pint tests'],
+            $input,
+            $output,
+            workingPath: $directory,
+            taskLabel: 'Fixing test code style',
+        );
     }
 
     /**

@@ -307,6 +307,65 @@ class NewCommandTest extends TestCase
         $this->assertFileDoesNotExist($directory.'/.github/workflows/tests.yml');
     }
 
+    public function test_it_fixes_the_test_code_style_when_pint_is_available()
+    {
+        $directory = __DIR__.'/../tests-output/pest-code-style';
+
+        if (! is_dir($directory.'/vendor/bin')) {
+            mkdir($directory.'/vendor/bin', 0777, true);
+        }
+
+        file_put_contents(
+            $directory.'/vendor/bin/pint',
+            '<?php file_put_contents(__DIR__.\'/pint-args.txt\', implode(\' \', array_slice($argv, 1)));',
+        );
+
+        @unlink($directory.'/vendor/bin/pint-args.txt');
+
+        $command = new class extends NewCommand
+        {
+            public function fixTestCodeStylePublic(string $directory)
+            {
+                $this->agent = new Agent;
+
+                $input = new ArrayInput(['command' => 'new'], (new Application)->getDefinition());
+                $input->setInteractive(false);
+
+                return $this->fixTestCodeStyle($directory, $input, new BufferedOutput);
+            }
+        };
+
+        $process = $command->fixTestCodeStylePublic($directory);
+
+        $this->assertTrue($process->isSuccessful());
+        $this->assertFileExists($directory.'/vendor/bin/pint-args.txt');
+        $this->assertStringContainsString('tests', file_get_contents($directory.'/vendor/bin/pint-args.txt'));
+    }
+
+    public function test_it_skips_the_test_code_style_fix_when_pint_is_missing()
+    {
+        $directory = __DIR__.'/../tests-output/pest-code-style-missing-pint';
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
+        $command = new class extends NewCommand
+        {
+            public function fixTestCodeStylePublic(string $directory)
+            {
+                $this->agent = new Agent;
+
+                $input = new ArrayInput(['command' => 'new'], (new Application)->getDefinition());
+                $input->setInteractive(false);
+
+                return $this->fixTestCodeStyle($directory, $input, new BufferedOutput);
+            }
+        };
+
+        $this->assertNull($command->fixTestCodeStylePublic($directory));
+    }
+
     public function test_read_log_tail_strips_ansi_and_returns_last_lines()
     {
         $path = tempnam(sys_get_temp_dir(), 'installer-tail-test-');
