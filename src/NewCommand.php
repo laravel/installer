@@ -27,9 +27,10 @@ use Throwable;
 use function Illuminate\Filesystem\join_paths;
 use function Laravel\Prompts\callout;
 use function Laravel\Prompts\confirm;
+use function Laravel\Prompts\info;
+use function Laravel\Prompts\form;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\task;
-use function Laravel\Prompts\text;
 
 class NewCommand extends Command
 {
@@ -135,28 +136,7 @@ class NewCommand extends Command
         $this->ensureExtensionsAreAvailable($input, $output);
         $this->checkForUpdate($input, $output);
 
-        if (! $input->getArgument('name')) {
-            $input->setArgument('name', text(
-                label: 'What is the name of your project?',
-                placeholder: 'E.g. example-app',
-                required: 'The project name is required.',
-                validate: function ($value) use ($input) {
-                    if (preg_match('/[^\pL\pN\-_.]/', $value) !== 0) {
-                        return 'The name may only contain letters, numbers, dashes, underscores, and periods.';
-                    }
-
-                    if ($input->getOption('force') !== true) {
-                        try {
-                            $this->verifyApplicationDoesntExist($this->getInstallationDirectory($value));
-                        } catch (RuntimeException $e) {
-                            return 'Application already exists.';
-                        }
-                    }
-                },
-            ));
-        }
-
-        if ($input->getOption('force') !== true) {
+        if ($input->getArgument('name') && $input->getOption('force') !== true) {
             $this->verifyApplicationDoesntExist(
                 $this->getInstallationDirectory($input->getArgument('name'))
             );
@@ -182,12 +162,41 @@ class NewCommand extends Command
             $input->setOption('npm', true);
         }
 
+        $form = form();
+
+        if (! $input->getArgument('name')) {
+            $form->text(
+                label: 'What is the name of your project?',
+                placeholder: 'E.g. example-app',
+                required: 'The project name is required.',
+                validate: function ($value) use ($input) {
+                    if (preg_match('/[^\pL\pN\-_.]/', $value) !== 0) {
+                        return 'The name may only contain letters, numbers, dashes, underscores, and periods.';
+                    }
+
+                    if ($input->getOption('force') !== true) {
+                        try {
+                            $this->verifyApplicationDoesntExist($this->getInstallationDirectory($value));
+                        } catch (RuntimeException $e) {
+                            return 'Application already exists.';
+                        }
+                    }
+                },
+                name: 'name',
+            );
+        }
+
         // Starter kit questions...
         if (! $this->usingStarterKit($input)) {
-            $useStarterKit = confirm('Do you want to use a starter kit?', default: false);
+            $form->confirm(
+                label: 'Do you want to use a starter kit?',
+                default: false,
+                name: 'useStarterKit',
+            );
 
-            if (! $useStarterKit) {
-                $stack = select(
+            $form->addIf(
+                fn ($responses) => $responses['useStarterKit'] === false,
+                fn ($responses, $previousResponse) => select(
                     label: 'Which frontend stack do you want to build on?',
                     options: [
                         'blade' => 'Blade',
@@ -204,78 +213,106 @@ class NewCommand extends Command
                         'livewire' => 'Laravel, Livewire, Tailwind',
                         default => '',
                     },
-                    default: 'blade',
+                    default: $previousResponse ?? 'blade',
                     scroll: 10,
-                );
+                ),
+                name: 'frontendStack',
+            );
 
-                match ($stack) {
-                    'react' => $input->setOption('react', true),
-                    'svelte' => $input->setOption('svelte', true),
-                    'vue' => $input->setOption('vue', true),
-                    'livewire' => $input->setOption('livewire', true),
-                    default => null,
-                };
+            $form->addIf(
+                fn ($responses) => $responses['useStarterKit'] === true,
+                fn ($responses, $previousResponse) => select(
+                    label: 'Which frontend stack should your starter kit use?',
+                    options: [
+                        'react' => 'React',
+                        'svelte' => 'Svelte',
+                        'vue' => 'Vue',
+                        'livewire' => 'Livewire',
+                    ],
+                    default: $previousResponse ?? 'react',
+                ),
+                name: 'starterKitStack',
+            );
 
-                $input->setOption('no-authentication', true);
-            }
-        }
-
-        // Starter kit frontend stack...
-        if (($useStarterKit ?? null) !== false && ! $this->usingStarterKit($input)) {
-            match (select(
-                label: 'Which frontend stack should your starter kit use?',
-                options: [
-                    // 'none' => 'None',
-                    'react' => 'React',
-                    'svelte' => 'Svelte',
-                    'vue' => 'Vue',
-                    'livewire' => 'Livewire',
-                ],
-                default: 'react',
-            )) {
-                'react' => $input->setOption('react', true),
-                'svelte' => $input->setOption('svelte', true),
-                'vue' => $input->setOption('vue', true),
-                'livewire' => $input->setOption('livewire', true),
-                default => 'react',
-            };
-
-            if ($this->usingLaravelStarterKit($input)) {
-                match (select(
+            $form->addIf(
+                fn ($responses) => $responses['useStarterKit'] === true,
+                fn ($responses, $previousResponse) => select(
                     label: 'Which authentication provider do you prefer?',
                     options: [
                         'laravel' => "Laravel's built-in authentication",
                         'workos' => 'WorkOS (Requires WorkOS account)',
                     ],
-                    default: 'laravel',
-                )) {
-                    'laravel' => $input->setOption('workos', false),
-                    'workos' => $input->setOption('workos', true),
-                    default => null,
-                };
-            }
+                    default: $previousResponse ?? 'laravel',
+                ),
+                name: 'authProvider',
+            );
 
-            if (
-                $input->getOption('livewire') &&
-                ! $input->getOption('workos') &&
-                ! $input->getOption('no-authentication')
-            ) {
-                $input->setOption('livewire-class-components', ! confirm(
+            $form->addIf(
+                fn ($responses) => $responses['useStarterKit'] === true &&
+                    $responses['starterKitStack'] === 'livewire' &&
+                    $responses['authProvider'] === 'laravel' &&
+                    ! $input->getOption('no-authentication'),
+                fn ($responses, $previousResponse) => confirm(
                     label: 'Would you like to use single-file Livewire components?',
-                    default: true,
-                ));
+                    default: $previousResponse ?? true,
+                ),
+                name: 'livewireSingleFile',
+            );
+
+            $form->addIf(
+                fn ($responses) => $responses['useStarterKit'] === true &&
+                    $responses['authProvider'] === 'laravel' &&
+                    ($responses['livewireSingleFile'] ?? true) &&
+                    ! $input->getOption('no-authentication') &&
+                    ! $input->getOption('teams'),
+                fn ($responses, $previousResponse) => confirm(
+                    label: 'Would you like to add teams support to your application?',
+                    default: $previousResponse ?? false,
+                ),
+                name: 'teams',
+            );
+        }
+
+        $responses = $form->submit();
+
+        if (isset($responses['name'])) {
+            $input->setArgument('name', $responses['name']);
+        }
+
+        if ($input->getOption('force') !== true) {
+            $this->verifyApplicationDoesntExist(
+                $this->getInstallationDirectory($input->getArgument('name'))
+            );
+        }
+
+        if (($responses['useStarterKit'] ?? null) === false) {
+            match ($responses['frontendStack']) {
+                'react' => $input->setOption('react', true),
+                'svelte' => $input->setOption('svelte', true),
+                'vue' => $input->setOption('vue', true),
+                'livewire' => $input->setOption('livewire', true),
+                default => null,
+            };
+
+            $input->setOption('no-authentication', true);
+        }
+
+        if (($responses['useStarterKit'] ?? null) === true) {
+            match ($responses['starterKitStack']) {
+                'react' => $input->setOption('react', true),
+                'svelte' => $input->setOption('svelte', true),
+                'vue' => $input->setOption('vue', true),
+                'livewire' => $input->setOption('livewire', true),
+            };
+
+            $input->setOption('workos', $responses['authProvider'] === 'workos');
+
+            if (isset($responses['livewireSingleFile'])) {
+                $input->setOption('livewire-class-components', ! $responses['livewireSingleFile']);
             }
 
-            if (
-                $this->usingLaravelStarterKit($input) &&
-                ! $input->getOption('no-authentication') &&
-                ! $input->getOption('livewire-class-components') &&
-                ! $input->getOption('teams')
-            ) {
-                $input->setOption('teams', confirm(
-                    label: 'Would you like to add teams support to your application?',
-                    default: false,
-                ));
+            if (isset($responses['teams'])) {
+                $input->setOption('teams', $responses['teams']);
             }
         }
 
