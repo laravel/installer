@@ -1314,13 +1314,6 @@ class NewCommand extends Command
     protected function configureComposerScripts(NodePackageManager $packageManager): void
     {
         $this->composer->modify(function (array $content) use ($packageManager) {
-            if (windows_os()) {
-                $content['scripts']['dev'] = [
-                    'Composer\\Config::disableProcessTimeout',
-                    "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1 --timeout=0\" \"npm run dev\" --names='server,queue,vite'",
-                ];
-            }
-
             foreach (['dev', 'dev:ssr', 'setup'] as $scriptKey) {
                 if (array_key_exists($scriptKey, $content['scripts'])) {
                     $content['scripts'][$scriptKey] = str_replace(
