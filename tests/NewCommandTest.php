@@ -8,6 +8,7 @@ use Laravel\Installer\Console\NewCommand;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -305,6 +306,45 @@ class NewCommandTest extends TestCase
         $command->configureWorkflowPhpVersionPublic($directory);
 
         $this->assertFileDoesNotExist($directory.'/.github/workflows/tests.yml');
+    }
+
+    public function test_it_does_not_prompt_to_update_again_once_an_update_was_already_attempted()
+    {
+        $command = new class extends NewCommand
+        {
+            public function checkForUpdatePublic(InputInterface $input, OutputInterface $output): void
+            {
+                $this->agent = new Agent;
+                $this->checkForUpdate($input, $output);
+            }
+
+            protected function getLatestVersionData(string $package): string|false
+            {
+                return json_encode(['packages' => ['laravel/installer' => [['version' => '99.0.0']]]]);
+            }
+        };
+
+        $app = new Application('Laravel Installer', '1.0.0');
+
+        if (method_exists($app, 'addCommand')) {
+            $app->addCommand($command);
+        } else {
+            $app->add($command);
+        }
+
+        $input = new ArrayInput([]);
+        $input->setInteractive(false);
+        $output = new BufferedOutput();
+
+        putenv('LARAVEL_INSTALLER_UPDATE_ATTEMPTED=1');
+
+        try {
+            $command->checkForUpdatePublic($input, $output);
+        } finally {
+            putenv('LARAVEL_INSTALLER_UPDATE_ATTEMPTED');
+        }
+
+        $this->assertStringContainsString('could not be updated', $output->fetch());
     }
 
     public function test_it_fixes_the_test_code_style_when_pint_is_available()

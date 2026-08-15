@@ -423,6 +423,16 @@ class NewCommand extends Command
             return;
         }
 
+        // If we already proxied into this installer once after prompting the
+        // user to update, avoid prompting (and proxying) again indefinitely
+        // when the update did not actually change the installed version.
+        if (getenv('LARAVEL_INSTALLER_UPDATE_ATTEMPTED') !== false) {
+            $output->writeln('');
+            $output->writeln("  <bg=yellow;fg=black> WARN </> The installer could not be updated to version {$latestVersion}. Continuing with the current version...");
+
+            return;
+        }
+
         $output->writeln('');
         $output->writeln("  <bg=yellow;fg=black> WARN </> A new version of the Laravel installer is available. You have version {$version} installed, the latest version is {$latestVersion}.");
 
@@ -499,7 +509,13 @@ class NewCommand extends Command
     protected function proxyLaravelNew(InputInterface $input, OutputInterface $output): void
     {
         $output->writeln('');
-        $this->runCommands(['laravel '.$input], $input, $output, workingPath: getcwd());
+        $this->runCommands(
+            ['laravel '.$input],
+            $input,
+            $output,
+            workingPath: getcwd(),
+            env: ['LARAVEL_INSTALLER_UPDATE_ATTEMPTED' => '1'],
+        );
         exit;
     }
 
