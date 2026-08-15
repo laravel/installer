@@ -5,6 +5,8 @@ namespace Laravel\Installer\Console\Tests;
 use Laravel\Installer\Console\Agent;
 use Laravel\Installer\Console\Concerns\InteractsWithHerdOrValet;
 use Laravel\Installer\Console\NewCommand;
+use Laravel\Prompts\ConfirmPrompt;
+use Laravel\Prompts\Prompt;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -13,6 +15,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\Process\Process;
 
 class NewCommandTest extends TestCase
 {
@@ -314,7 +317,14 @@ class NewCommandTest extends TestCase
         {
             public function checkForUpdatePublic(InputInterface $input, OutputInterface $output): void
             {
-                $this->agent = new Agent;
+                $this->agent = new class extends Agent
+                {
+                    public function isActive(): bool
+                    {
+                        return false;
+                    }
+                };
+
                 $this->checkForUpdate($input, $output);
             }
 
@@ -345,6 +355,154 @@ class NewCommandTest extends TestCase
         }
 
         $this->assertStringContainsString('could not be updated', $output->fetch());
+    }
+
+    public function test_it_still_prompts_to_update_when_no_update_was_previously_attempted()
+    {
+        $command = new class extends NewCommand
+        {
+            public function checkForUpdatePublic(InputInterface $input, OutputInterface $output): void
+            {
+                $this->agent = new class extends Agent
+                {
+                    public function isActive(): bool
+                    {
+                        return false;
+                    }
+                };
+
+                $this->checkForUpdate($input, $output);
+            }
+
+            protected function getLatestVersionData(string $package): string|false
+            {
+                return json_encode(['packages' => ['laravel/installer' => [['version' => '99.0.0']]]]);
+            }
+        };
+
+        $app = new Application('Laravel Installer', '1.0.0');
+
+        if (method_exists($app, 'addCommand')) {
+            $app->addCommand($command);
+        } else {
+            $app->add($command);
+        }
+
+        $input = new ArrayInput(['command' => 'new'], (new Application)->getDefinition());
+        $input->setInteractive(false);
+        $output = new BufferedOutput();
+
+        putenv('LARAVEL_INSTALLER_UPDATE_ATTEMPTED');
+
+        // Force the "Would you like to update now?" confirmation to decline,
+        // so the test does not fall through to a real `composer` invocation.
+        Prompt::fallbackWhen(true);
+        ConfirmPrompt::fallbackUsing(fn (ConfirmPrompt $prompt) => false);
+
+        $command->checkForUpdatePublic($input, $output);
+
+        $rendered = $output->fetch();
+
+        $this->assertStringContainsString('A new version of the Laravel installer is available', $rendered);
+        $this->assertStringNotContainsString('could not be updated', $rendered);
+    }
+
+    public function test_update_attempted_marker_is_consumed_and_not_leaked_to_grandchild_processes()
+    {
+        $command = new class extends NewCommand
+        {
+            public function checkForUpdatePublic(InputInterface $input, OutputInterface $output): void
+            {
+                $this->agent = new class extends Agent
+                {
+                    public function isActive(): bool
+                    {
+                        return false;
+                    }
+                };
+
+                $this->checkForUpdate($input, $output);
+            }
+
+            protected function getLatestVersionData(string $package): string|false
+            {
+                return json_encode(['packages' => ['laravel/installer' => [['version' => '99.0.0']]]]);
+            }
+        };
+
+        $app = new Application('Laravel Installer', '1.0.0');
+
+        if (method_exists($app, 'addCommand')) {
+            $app->addCommand($command);
+        } else {
+            $app->add($command);
+        }
+
+        $input = new ArrayInput([]);
+        $input->setInteractive(false);
+        $output = new BufferedOutput();
+
+        putenv('LARAVEL_INSTALLER_UPDATE_ATTEMPTED=1');
+
+        try {
+            $command->checkForUpdatePublic($input, $output);
+        } finally {
+            $this->assertFalse(getenv('LARAVEL_INSTALLER_UPDATE_ATTEMPTED'));
+
+            putenv('LARAVEL_INSTALLER_UPDATE_ATTEMPTED');
+        }
+    }
+
+    public function test_proxy_laravel_new_passes_the_update_attempted_marker_to_the_child_process()
+    {
+        $directory = __DIR__.'/../tests-output/proxy-laravel-new-marker';
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
+        $command = new class extends NewCommand
+        {
+            public function runWithEnvPublic(InputInterface $input, OutputInterface $output, string $workingPath, array $env): Process
+            {
+                $this->agent = new class extends Agent
+                {
+                    public function isActive(): bool
+                    {
+                        return false;
+                    }
+                };
+
+                return $this->runCommands(
+                    [$this->phpBinary().' -r "echo getenv(\'LARAVEL_INSTALLER_UPDATE_ATTEMPTED\');"'],
+                    $input,
+                    $output,
+                    workingPath: $workingPath,
+                    env: $env,
+                );
+            }
+        };
+
+        $input = new ArrayInput(['command' => 'new'], (new Application)->getDefinition());
+        $input->setInteractive(false);
+
+        $withMarker = $command->runWithEnvPublic(
+            $input,
+            new BufferedOutput(OutputInterface::VERBOSITY_NORMAL, true),
+            $directory,
+            ['LARAVEL_INSTALLER_UPDATE_ATTEMPTED' => '1'],
+        );
+
+        $this->assertSame('1', $withMarker->getOutput());
+
+        $withoutMarker = $command->runWithEnvPublic(
+            $input,
+            new BufferedOutput(OutputInterface::VERBOSITY_NORMAL, true),
+            $directory,
+            [],
+        );
+
+        $this->assertSame('', $withoutMarker->getOutput());
     }
 
     public function test_it_fixes_the_test_code_style_when_pint_is_available()

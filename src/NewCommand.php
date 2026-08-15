@@ -426,9 +426,11 @@ class NewCommand extends Command
         // If we already proxied into this installer once after prompting the
         // user to update, avoid prompting (and proxying) again indefinitely
         // when the update did not actually change the installed version.
-        if (getenv('LARAVEL_INSTALLER_UPDATE_ATTEMPTED') !== false) {
+        if (getenv('LARAVEL_INSTALLER_UPDATE_ATTEMPTED') === '1') {
+            putenv('LARAVEL_INSTALLER_UPDATE_ATTEMPTED');
+
             $output->writeln('');
-            $output->writeln("  <bg=yellow;fg=black> WARN </> The installer could not be updated to version {$latestVersion}. Continuing with the current version...");
+            $output->writeln("  <bg=yellow;fg=black> WARN </> The installer could not be updated to version {$latestVersion}. You may need to update manually. Continuing with the current version...");
 
             return;
         }
