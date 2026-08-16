@@ -674,6 +674,12 @@ class NewCommand extends Command
             env: ['LARAVEL_INSTALLER_DEFER_HOOKS' => '1'],
             taskLabel: 'Creating Laravel application',
         ))->isSuccessful()) {
+            if (! $input->getOption('no-node')) {
+                [$packageManager] = $this->determinePackageManager($directory, $input);
+
+                $this->configureComposerScripts($packageManager);
+            }
+
             $hooksProcess = $this->runInstallerHooks($directory, $input, $output);
 
             if ($hooksProcess && ! $hooksProcess->isSuccessful()) {
