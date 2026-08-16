@@ -2,8 +2,11 @@
 
 namespace Laravel\Installer\Console\Tests;
 
+use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Composer;
 use Laravel\Installer\Console\Agent;
 use Laravel\Installer\Console\Concerns\InteractsWithHerdOrValet;
+use Laravel\Installer\Console\Enums\NodePackageManager;
 use Laravel\Installer\Console\NewCommand;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
@@ -255,6 +258,42 @@ class NewCommandTest extends TestCase
 
         $this->assertSame('1', $command->runInstallerHooksPublic($directory, true)->getOutput());
         $this->assertSame('', $command->runInstallerHooksPublic($directory, false)->getOutput());
+    }
+
+    public function test_it_configures_composer_scripts_for_the_selected_package_manager()
+    {
+        $directory = __DIR__.'/../tests-output/composer-scripts';
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
+        file_put_contents($directory.'/composer.json', json_encode([
+            'scripts' => [
+                'dev' => ['npm run dev'],
+                'setup' => ['npm install', 'npm run build'],
+                'ci:check' => ['npm run lint:check', '@test'],
+                'lint' => ['@php vendor/bin/pint'],
+            ],
+        ]));
+
+        $command = new class extends NewCommand
+        {
+            public function configureComposerScriptsPublic(string $directory, NodePackageManager $packageManager): void
+            {
+                $this->composer = new Composer(new Filesystem, $directory);
+
+                $this->configureComposerScripts($packageManager);
+            }
+        };
+
+        $command->configureComposerScriptsPublic($directory, NodePackageManager::BUN);
+
+        $scripts = json_decode(file_get_contents($directory.'/composer.json'), true)['scripts'];
+
+        $this->assertSame(['bun run dev'], $scripts['dev']);
+        $this->assertSame(['bun install', 'bun run build'], $scripts['setup']);
+        $this->assertSame(['bun run lint:check', '@test'], $scripts['ci:check']);
     }
 
     public function test_it_updates_the_workflow_php_version_to_the_local_php_version()
