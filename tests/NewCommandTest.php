@@ -15,6 +15,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 
 class NewCommandTest extends TestCase
@@ -503,6 +504,73 @@ class NewCommandTest extends TestCase
         );
 
         $this->assertSame('', $withoutMarker->getOutput());
+    }
+
+    public function test_boost_install_always_receives_the_no_interaction_flag()
+    {
+        $directory = __DIR__.'/../tests-output/boost-install-no-interaction';
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
+        $logFile = $directory.'/boost-install-args.txt';
+
+        if (file_exists($logFile)) {
+            unlink($logFile);
+        }
+
+        $command = new class extends NewCommand
+        {
+            public string $logFile = '';
+
+            public function installBoostPublic(string $directory, InputInterface $input, OutputInterface $output): void
+            {
+                $this->agent = new class extends Agent
+                {
+                    public function isActive(): bool
+                    {
+                        return false;
+                    }
+                };
+
+                $this->installBoost($directory, $input, $output);
+            }
+
+            protected function findComposer()
+            {
+                $realPhp = (new PhpExecutableFinder)->find(false) ?: 'php';
+
+                return escapeshellarg($realPhp).' -r "exit(0);"';
+            }
+
+            protected function phpBinary()
+            {
+                $realPhp = (new PhpExecutableFinder)->find(false) ?: 'php';
+
+                $script = 'file_put_contents('.var_export($this->logFile, true).', implode(" ", array_slice($argv, 1)));';
+
+                return escapeshellarg($realPhp).' -r '.escapeshellarg($script).' --';
+            }
+        };
+
+        $command->logFile = $logFile;
+
+        // Simulate the exact scenario from the bug report: the parent `laravel new`
+        // session is interactive, yet the boost:install sub-step must never rely on
+        // an inherited TTY (it may run through the task runner or a piped process).
+        $newCommand = $this->createApplication()->find('new');
+        $newCommand->mergeApplicationDefinition(false);
+
+        $input = new ArrayInput(['name' => 'example-app'], $newCommand->getDefinition());
+        $input->setInteractive(true);
+
+        $output = new BufferedOutput(OutputInterface::VERBOSITY_VERBOSE);
+
+        $command->installBoostPublic($directory, $input, $output);
+
+        $this->assertFileExists($logFile);
+        $this->assertStringContainsString('--no-interaction', file_get_contents($logFile));
     }
 
     public function test_it_fixes_the_test_code_style_when_pint_is_available()
