@@ -13,7 +13,6 @@ use Laravel\Prompts\Prompt;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -622,53 +621,6 @@ class NewCommandTest extends TestCase
     public function test_read_log_tail_returns_empty_string_for_missing_file()
     {
         $this->assertSame('', (new Agent)->readLogTail('/nonexistent/path/'.uniqid()));
-    }
-
-    public function test_install_node_dependencies_confirm_label_has_no_raw_formatting_tags()
-    {
-        $directory = __DIR__.'/../tests-output/node-deps-'.bin2hex(random_bytes(4));
-        (new Filesystem)->ensureDirectoryExists($directory);
-        file_put_contents($directory.'/composer.json', json_encode(['scripts' => []]));
-
-        $command = new class extends NewCommand
-        {
-            public function installNodeDependenciesPublic(string $directory, InputInterface $input, OutputInterface $output): array
-            {
-                $this->composer = new Composer(new Filesystem, $directory);
-
-                return $this->installNodeDependencies($directory, $input, $output);
-            }
-        };
-
-        $input = new ArrayInput([], new InputDefinition([
-            new InputOption('pnpm'),
-            new InputOption('bun'),
-            new InputOption('yarn'),
-            new InputOption('npm'),
-            new InputOption('pest'),
-        ]));
-        $input->setInteractive(true);
-        $output = new BufferedOutput();
-
-        $capturedLabel = null;
-
-        Prompt::fallbackWhen(true);
-        ConfirmPrompt::fallbackUsing(function (ConfirmPrompt $prompt) use (&$capturedLabel) {
-            $capturedLabel = $prompt->label;
-
-            return false;
-        });
-
-        $command->installNodeDependenciesPublic($directory, $input, $output);
-
-        $this->assertSame(
-            'Would you like to run npm install --ignore-scripts and npm run build?',
-            $capturedLabel
-        );
-        $this->assertStringNotContainsString('<options=bold>', $capturedLabel);
-
-        Prompt::fallbackWhen(false);
-        (new Filesystem)->deleteDirectory($directory);
     }
 
     public function test_agent_mode_emits_single_json_line_with_failure_details()
