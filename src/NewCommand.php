@@ -1219,10 +1219,7 @@ class NewCommand extends Command
 
         $commands = [
             'Boost installed' => $composerBinary.' require "laravel/boost:^2.2" --dev -W',
-            'Boost initialized' => trim(sprintf(
-                $this->phpBinary().' artisan boost:install %s',
-                ! $input->isInteractive() ? '--no-interaction' : '',
-            )),
+            'Boost initialized' => $this->phpBinary().' artisan boost:install --no-interaction',
         ];
 
         $this->runCommands(

@@ -13,11 +13,13 @@ use Laravel\Prompts\Prompt;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 
 class NewCommandTest extends TestCase
@@ -215,6 +217,65 @@ class NewCommandTest extends TestCase
 
         $this->assertFalse($process->isSuccessful());
         $this->assertNotSame(0, $process->getExitCode());
+    }
+
+    public function test_boost_install_always_receives_the_no_interaction_flag()
+    {
+        $directory = __DIR__.'/../tests-output/boost-install-no-interaction';
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
+        $logFile = $directory.'/boost-install-command.txt';
+
+        if (file_exists($logFile)) {
+            unlink($logFile);
+        }
+
+        $command = new class extends NewCommand
+        {
+            public string $logFile = '';
+
+            public function installBoostPublic(string $directory, InputDefinition $definition, bool $interactive): void
+            {
+                $this->agent = new Agent;
+
+                $input = new ArrayInput(['name' => 'example-app'], $definition);
+                $input->setInteractive($interactive);
+
+                $this->installBoost($directory, $input, new BufferedOutput(OutputInterface::VERBOSITY_VERBOSE));
+            }
+
+            protected function findComposer()
+            {
+                $php = (new PhpExecutableFinder)->find(false) ?: 'php';
+
+                return escapeshellarg($php).' -r "exit(0);"';
+            }
+
+            protected function phpBinary()
+            {
+                $php = (new PhpExecutableFinder)->find(false) ?: 'php';
+
+                $script = 'file_put_contents('.var_export($this->logFile, true).', implode(" ", array_slice($argv, 1)));';
+
+                return escapeshellarg($php).' -r '.escapeshellarg($script).' --';
+            }
+        };
+
+        $command->logFile = $logFile;
+
+        $newCommand = $this->createApplication()->find('new');
+        $newCommand->mergeApplicationDefinition(false);
+        $definition = $newCommand->getDefinition();
+
+        // The parent `laravel new` run can be interactive, but boost:install
+        // always runs through a piped, non-TTY process, so it needs the flag
+        // regardless of the parent's interactivity.
+        $command->installBoostPublic($directory, $definition, true);
+
+        $this->assertStringContainsString('--no-interaction', file_get_contents($logFile));
     }
 
     public function test_no_node_option_is_passed_to_laravel_installer_hooks()
