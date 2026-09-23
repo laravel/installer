@@ -329,6 +329,92 @@ class NewCommandTest extends TestCase
         );
     }
 
+    public function test_it_adds_a_corepack_step_to_the_workflow_for_pnpm()
+    {
+        $directory = __DIR__.'/../tests-output/workflow-package-manager-pnpm';
+
+        if (! is_dir($directory.'/.github/workflows')) {
+            mkdir($directory.'/.github/workflows', 0777, true);
+        }
+
+        file_put_contents(
+            $directory.'/.github/workflows/tests.yml',
+            "      - name: Setup Node\n        uses: actions/setup-node@v7\n        with:\n          node-version: '22'\n",
+        );
+
+        $command = new class extends NewCommand
+        {
+            public function configureWorkflowPackageManagerPublic(string $directory, NodePackageManager $packageManager): void
+            {
+                $this->configureWorkflowPackageManager($directory, $packageManager);
+            }
+        };
+
+        $command->configureWorkflowPackageManagerPublic($directory, NodePackageManager::PNPM);
+
+        $workflow = file_get_contents($directory.'/.github/workflows/tests.yml');
+
+        $this->assertStringContainsString("- name: Enable Corepack\n        run: corepack enable", $workflow);
+        $this->assertLessThan(
+            strpos($workflow, '- name: Setup Node'),
+            strpos($workflow, '- name: Enable Corepack'),
+        );
+    }
+
+    public function test_it_adds_a_bun_setup_step_to_the_workflow_for_bun()
+    {
+        $directory = __DIR__.'/../tests-output/workflow-package-manager-bun';
+
+        if (! is_dir($directory.'/.github/workflows')) {
+            mkdir($directory.'/.github/workflows', 0777, true);
+        }
+
+        file_put_contents(
+            $directory.'/.github/workflows/tests.yml',
+            "      - name: Setup Node\n        uses: actions/setup-node@v7\n        with:\n          node-version: '22'\n",
+        );
+
+        $command = new class extends NewCommand
+        {
+            public function configureWorkflowPackageManagerPublic(string $directory, NodePackageManager $packageManager): void
+            {
+                $this->configureWorkflowPackageManager($directory, $packageManager);
+            }
+        };
+
+        $command->configureWorkflowPackageManagerPublic($directory, NodePackageManager::BUN);
+
+        $this->assertStringContainsString(
+            'oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0',
+            file_get_contents($directory.'/.github/workflows/tests.yml'),
+        );
+    }
+
+    public function test_it_does_not_modify_the_workflow_for_npm()
+    {
+        $directory = __DIR__.'/../tests-output/workflow-package-manager-npm';
+
+        if (! is_dir($directory.'/.github/workflows')) {
+            mkdir($directory.'/.github/workflows', 0777, true);
+        }
+
+        $original = "      - name: Setup Node\n        uses: actions/setup-node@v7\n        with:\n          node-version: '22'\n";
+
+        file_put_contents($directory.'/.github/workflows/tests.yml', $original);
+
+        $command = new class extends NewCommand
+        {
+            public function configureWorkflowPackageManagerPublic(string $directory, NodePackageManager $packageManager): void
+            {
+                $this->configureWorkflowPackageManager($directory, $packageManager);
+            }
+        };
+
+        $command->configureWorkflowPackageManagerPublic($directory, NodePackageManager::NPM);
+
+        $this->assertSame($original, file_get_contents($directory.'/.github/workflows/tests.yml'));
+    }
+
     public function test_it_ignores_applications_without_a_tests_workflow()
     {
         $directory = __DIR__.'/../tests-output/workflow-php-version-missing';

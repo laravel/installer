@@ -1177,6 +1177,7 @@ class NewCommand extends Command
         [$packageManager, $runPackageManager] = $this->determinePackageManager($directory, $input);
 
         $this->configureComposerScripts($packageManager);
+        $this->configureWorkflowPackageManager($directory, $packageManager);
 
         if ($input->getOption('pest') && ! $this->useConciseOutput($output)) {
             $output->writeln('');
@@ -1369,6 +1370,29 @@ class NewCommand extends Command
         $this->pregReplaceInFile(
             "/php-version: '\d+\.\d+'/",
             sprintf("php-version: '%d.%d'", PHP_MAJOR_VERSION, PHP_MINOR_VERSION),
+            $workflow,
+        );
+    }
+
+    /**
+     * Update the GitHub Actions workflow to install the selected Node package manager.
+     */
+    protected function configureWorkflowPackageManager(string $directory, NodePackageManager $packageManager): void
+    {
+        $workflow = $directory.'/.github/workflows/tests.yml';
+
+        if (! file_exists($workflow) || $packageManager === NodePackageManager::NPM) {
+            return;
+        }
+
+        $setupStep = match ($packageManager) {
+            NodePackageManager::PNPM, NodePackageManager::YARN => "      - name: Enable Corepack\n        run: corepack enable\n\n",
+            NodePackageManager::BUN => "      - name: Setup Bun\n        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0\n\n",
+        };
+
+        $this->replaceInFile(
+            '      - name: Setup Node',
+            $setupStep.'      - name: Setup Node',
             $workflow,
         );
     }
