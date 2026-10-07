@@ -264,6 +264,42 @@ class NewCommandTest extends TestCase
         $this->assertSame('', $command->runInstallerHooksPublic($directory, false)->getOutput());
     }
 
+    public function test_console_flags_are_not_passed_to_node_package_managers()
+    {
+        if (PHP_OS_FAMILY === 'Windows') {
+            $this->markTestSkipped('This test is for Unix/Linux systems only.');
+        }
+
+        $directory = __DIR__.'/../tests-output/node-package-manager-flags';
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
+        file_put_contents($directory.'/npm', "#!/bin/sh\necho \"$@\"\n");
+        chmod($directory.'/npm', 0755);
+
+        $command = new class extends NewCommand
+        {
+            public function runCommandsPublic(string $directory)
+            {
+                $this->agent = new Agent;
+
+                $input = new ArrayInput(['command' => 'new', '--quiet' => true], (new Application)->getDefinition());
+                $input->setInteractive(false);
+
+                return $this->runCommands(
+                    ['npm install --ignore-scripts'],
+                    $input,
+                    new BufferedOutput,
+                    env: ['PATH' => $directory.PATH_SEPARATOR.getenv('PATH')],
+                );
+            }
+        };
+
+        $this->assertSame('install --ignore-scripts', trim($command->runCommandsPublic($directory)->getOutput()));
+    }
+
     public function test_it_configures_composer_scripts_for_the_selected_package_manager()
     {
         $directory = __DIR__.'/../tests-output/composer-scripts';
