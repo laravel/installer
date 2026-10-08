@@ -297,6 +297,30 @@ class NewCommandTest extends TestCase
         $this->assertSame('?? pending.txt', trim($status->getOutput()));
     }
 
+    public function test_it_removes_a_temporary_git_repository_without_removing_application_files()
+    {
+        $directory = __DIR__.'/../tests-output/temporary-git-initialization';
+        $filesystem = new Filesystem;
+
+        $filesystem->deleteDirectory($directory);
+        $filesystem->makeDirectory($directory, 0777, true);
+        $filesystem->makeDirectory($directory.'/.git');
+        file_put_contents($directory.'/pending.txt', 'pending');
+
+        $command = new class extends NewCommand
+        {
+            public function removeRepositoryPublic(string $directory): void
+            {
+                $this->removeRepository($directory);
+            }
+        };
+
+        $command->removeRepositoryPublic($directory);
+
+        $this->assertDirectoryDoesNotExist($directory.'/.git');
+        $this->assertFileExists($directory.'/pending.txt');
+    }
+
     public function test_it_configures_composer_scripts_for_the_selected_package_manager()
     {
         $directory = __DIR__.'/../tests-output/composer-scripts';

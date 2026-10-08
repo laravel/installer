@@ -689,11 +689,16 @@ class NewCommand extends Command
             env: ['LARAVEL_INSTALLER_DEFER_HOOKS' => '1'],
             taskLabel: 'Creating Laravel application',
         ))->isSuccessful()) {
-            if ($input->getOption('git') || $input->getOption('github') !== false) {
-                $this->initializeRepository($directory, $input, $output);
-            }
+            $repositoryRequested = $input->getOption('git') || $input->getOption('github') !== false;
+            $temporaryRepository = ! $repositoryRequested && ! file_exists($directory.'/.git');
+
+            $this->initializeRepository($directory, $input, $output);
 
             $hooksProcess = $this->runInstallerHooks($directory, $input, $output);
+
+            if ($temporaryRepository) {
+                $this->removeRepository($directory);
+            }
 
             if ($hooksProcess && ! $hooksProcess->isSuccessful()) {
                 return $hooksProcess->getExitCode();
@@ -1251,6 +1256,14 @@ class NewCommand extends Command
             $output,
             workingPath: $directory,
         );
+    }
+
+    /**
+     * Remove a temporary Git repository from the application.
+     */
+    protected function removeRepository(string $directory): void
+    {
+        (new Filesystem)->deleteDirectory($directory.'/.git');
     }
 
     /**
