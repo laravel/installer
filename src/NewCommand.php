@@ -689,6 +689,10 @@ class NewCommand extends Command
             env: ['LARAVEL_INSTALLER_DEFER_HOOKS' => '1'],
             taskLabel: 'Creating Laravel application',
         ))->isSuccessful()) {
+            if ($input->getOption('git') || $input->getOption('github') !== false) {
+                $this->initializeRepository($directory, $input, $output);
+            }
+
             $hooksProcess = $this->runInstallerHooks($directory, $input, $output);
 
             if ($hooksProcess && ! $hooksProcess->isSuccessful()) {
@@ -1237,7 +1241,20 @@ class NewCommand extends Command
     }
 
     /**
-     * Create a Git repository and commit the base Laravel skeleton.
+     * Initialize a Git repository for the application.
+     */
+    protected function initializeRepository(string $directory, InputInterface $input, OutputInterface $output): void
+    {
+        $this->runCommands(
+            ['git init -q'],
+            $input,
+            $output,
+            workingPath: $directory,
+        );
+    }
+
+    /**
+     * Commit the base Laravel skeleton to its Git repository.
      *
      * @return void
      */
@@ -1247,7 +1264,6 @@ class NewCommand extends Command
 
         $commands = [
             'Repository initialized' => [
-                'git init -q',
                 'git add .',
                 'git commit -q -m "Set up a fresh Laravel app"',
                 "git branch -M {$branch}",

@@ -264,6 +264,39 @@ class NewCommandTest extends TestCase
         $this->assertSame('', $command->runInstallerHooksPublic($directory, false)->getOutput());
     }
 
+    public function test_it_initializes_the_git_repository_without_committing_changes()
+    {
+        $directory = __DIR__.'/../tests-output/git-initialization';
+        $filesystem = new Filesystem;
+
+        $filesystem->deleteDirectory($directory);
+        $filesystem->makeDirectory($directory, 0777, true);
+        file_put_contents($directory.'/pending.txt', 'pending');
+
+        $command = new class extends NewCommand
+        {
+            public function initializeRepositoryPublic(string $directory): void
+            {
+                $this->agent = new Agent;
+
+                $input = new ArrayInput(['command' => 'new'], (new Application)->getDefinition());
+                $input->setInteractive(false);
+
+                $this->initializeRepository($directory, $input, new BufferedOutput);
+            }
+        };
+
+        $command->initializeRepositoryPublic($directory);
+
+        $this->assertDirectoryExists($directory.'/.git');
+
+        $status = new Process(['git', 'status', '--short'], $directory);
+        $status->run();
+
+        $this->assertTrue($status->isSuccessful());
+        $this->assertSame('?? pending.txt', trim($status->getOutput()));
+    }
+
     public function test_it_configures_composer_scripts_for_the_selected_package_manager()
     {
         $directory = __DIR__.'/../tests-output/composer-scripts';
