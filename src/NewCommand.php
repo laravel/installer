@@ -98,7 +98,7 @@ class NewCommand extends Command
             ->addOption('dev', null, InputOption::VALUE_NONE, 'Install the latest "development" release')
             ->addOption('git', null, InputOption::VALUE_NONE, 'Initialize a Git repository')
             ->addOption('branch', null, InputOption::VALUE_REQUIRED, 'The branch that should be created for a new repository', $this->defaultBranch())
-            ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub', false)
+            ->addOption('github', null, InputOption::VALUE_OPTIONAL, 'Create a new repository on GitHub, optionally for the given owner or with the given "gh repo create" flags', false)
             ->addOption('organization', null, InputOption::VALUE_REQUIRED, 'The GitHub organization to create the new repository for')
             ->addOption('database', null, InputOption::VALUE_REQUIRED, 'The database driver your application will use. Possible values are: '.implode(', ', self::DATABASE_DRIVERS))
             ->addOption('react', null, InputOption::VALUE_NONE, 'Install the React Starter Kit')
@@ -1306,8 +1306,15 @@ class NewCommand extends Command
             return;
         }
 
-        $name = $input->getOption('organization') ? $input->getOption('organization')."/$name" : $name;
-        $flags = $input->getOption('github') ?: '--private';
+        $github = trim((string) $input->getOption('github'));
+        $githubIsOwner = $github !== '' && ! str_starts_with($github, '-');
+
+        $owner = $input->getOption('organization') ?: ($githubIsOwner ? $github : null);
+        $flags = ($githubIsOwner || $github === '') ? '--private' : $github;
+
+        if ($owner) {
+            $name = "{$owner}/{$name}";
+        }
 
         $commands = [
             'Repository pushed' => "gh repo create {$name} --source=. --push {$flags}",
