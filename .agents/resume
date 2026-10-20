@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Nothing to reconnect: the installer has no backing services.
+set -euo pipefail
+
+command -v php >/dev/null && command -v composer >/dev/null

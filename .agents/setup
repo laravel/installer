@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Prepares an Amp orb to develop and test the Laravel installer.
+set -euo pipefail
+
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+step() {
+  local label="$1"
+  shift
+  echo "==> ${label}"
+  local start=$SECONDS
+  "$@"
+  echo "    ${label} took $((SECONDS - start))s"
+}
+
+# PHP with the extensions CI uses, plus those a scaffolded Laravel app needs
+# (the scaffolding test runs `composer create-project` and migrates SQLite).
+apt_packages=(
+  php-cli php-xml php-curl php-mbstring php-zip php-sqlite3 php-bcmath php-intl
+  unzip
+)
+
+install_apt_packages() {
+  local missing=()
+  for pkg in "${apt_packages[@]}"; do
+    dpkg-query -W -f='${Status}' "$pkg" 2>/dev/null | grep -q 'install ok installed' || missing+=("$pkg")
+  done
+  if ((${#missing[@]} == 0)); then
+    echo "    all packages already installed"
+    return
+  fi
+  sudo apt-get update -qq
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends "${missing[@]}"
+}
+
+install_composer() {
+  if command -v composer >/dev/null 2>&1; then
+    echo "    composer already installed"
+    return
+  fi
+  local tmp
+  tmp="$(mktemp -d)"
+  local expected actual
+  expected="$(curl -fsSL https://composer.github.io/installer.sig)"
+  curl -fsSL https://getcomposer.org/installer -o "$tmp/composer-setup.php"
+  actual="$(php -r "echo hash_file('sha384', '$tmp/composer-setup.php');")"
+  if [[ "$expected" != "$actual" ]]; then
+    echo "Composer installer checksum mismatch" >&2
+    rm -rf "$tmp"
+    exit 1
+  fi
+  php "$tmp/composer-setup.php" --quiet --install-dir="$tmp" --filename=composer
+  sudo install -m 0755 "$tmp/composer" /usr/local/bin/composer
+  rm -rf "$tmp"
+}
+
+# composer.lock is gitignored, so it only exists when restored from a snapshot.
+install_dependencies() {
+  if [[ -f composer.lock && composer.lock -nt composer.json ]]; then
+    composer install --prefer-dist --no-interaction --no-progress
+  else
+    composer update --prefer-dist --no-interaction --no-progress
+  fi
+}
+
+step "apt packages" install_apt_packages
+step "composer" install_composer
+step "composer dependencies" install_dependencies
