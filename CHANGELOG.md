@@ -1,6 +1,22 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/installer/compare/v5.32.0...master)
+## [Unreleased](https://github.com/laravel/installer/compare/v5.33.0...master)
+
+## [v5.33.0](https://github.com/laravel/installer/compare/v5.32.0...v5.33.0) - 2026-11-10
+
+### What's Changed
+
+* Don't pass --no-ansi and --quiet to Node package managers by [@imsvidskiy](https://github.com/imsvidskiy) in https://github.com/laravel/installer/pull/575
+* Remove security policy in favor of the org-wide default by [@pushpak1300](https://github.com/pushpak1300) in https://github.com/laravel/installer/pull/576
+* Bump shivammathur/setup-php from 2.37.2 to 2.40.0 in the github-actions group by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/installer/pull/577
+* Treat non-flag --github values as the repository owner by [@pushpak1300](https://github.com/pushpak1300) in https://github.com/laravel/installer/pull/579
+* Add Amp orb setup and resume scripts by [@pushpak1300](https://github.com/pushpak1300) in https://github.com/laravel/installer/pull/578
+
+### New Contributors
+
+* [@imsvidskiy](https://github.com/imsvidskiy) made their first contribution in https://github.com/laravel/installer/pull/575
+
+**Full Changelog**: https://github.com/laravel/installer/compare/v5.32.0...v5.33.0
 
 ## [v5.32.0](https://github.com/laravel/installer/compare/v5.31.1...v5.32.0) - 2026-08-25
 
