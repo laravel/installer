@@ -15,7 +15,6 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 use Throwable;
 
@@ -234,13 +233,7 @@ class PackageCommand extends Command
      */
     protected function phpBinary()
     {
-        $phpBinary = function_exists('Illuminate\Support\php_binary')
-            ? \Illuminate\Support\php_binary()
-            : (new PhpExecutableFinder)->find(false);
-
-        return $phpBinary !== false
-            ? ProcessUtils::escapeArgument($phpBinary)
-            : 'php';
+        return ProcessUtils::escapeArgument(\Illuminate\Support\php_binary());
     }
 
     /**
