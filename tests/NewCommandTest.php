@@ -386,6 +386,63 @@ class NewCommandTest extends TestCase
         $this->assertFileDoesNotExist($directory.'/.github/workflows/tests.yml');
     }
 
+    public function test_it_installs_pest_for_starter_kits_without_a_tests_workflow()
+    {
+        $directory = __DIR__.'/../tests-output/pest-missing-workflow';
+
+        (new Filesystem)->deleteDirectory($directory);
+
+        mkdir($directory.'/tests/Feature', 0777, true);
+
+        file_put_contents(
+            $directory.'/tests/Pest.php',
+            "<?php\n\npest()->extend(Tests\TestCase::class)\n // ->use(RefreshDatabase::class)\n    ->in('Feature');\n",
+        );
+
+        $command = new class extends NewCommand
+        {
+            public function installPestPublic(string $directory, InputInterface $input): void
+            {
+                $this->installPest($directory, $input, new BufferedOutput);
+            }
+
+            protected function findComposer()
+            {
+                return 'composer';
+            }
+
+            protected function runCommands($commands, InputInterface $input, OutputInterface $output, ?string $workingPath = null, array $env = [], ?string $taskLabel = null)
+            {
+                return new Process(['true']);
+            }
+
+            protected function fixTestCodeStyle(string $directory, InputInterface $input, OutputInterface $output): ?Process
+            {
+                return null;
+            }
+
+            protected function commitChanges(string $message, string $directory, InputInterface $input, OutputInterface $output)
+            {
+                //
+            }
+        };
+
+        $input = new ArrayInput(['name' => 'app', '--using' => 'vendor/starter-kit', '--pest' => true], $command->getDefinition());
+
+        set_error_handler(function (int $severity, string $message) {
+            throw new \ErrorException($message, 0, $severity);
+        });
+
+        try {
+            $command->installPestPublic($directory, $input);
+        } finally {
+            restore_error_handler();
+        }
+
+        $this->assertFileDoesNotExist($directory.'/.github/workflows/tests.yml');
+        $this->assertStringContainsString('    ->use(RefreshDatabase::class)', file_get_contents($directory.'/tests/Pest.php'));
+    }
+
     public function test_it_does_not_prompt_to_update_again_once_an_update_was_already_attempted()
     {
         $command = new class extends NewCommand

@@ -1111,11 +1111,15 @@ class NewCommand extends Command
         );
 
         if ($this->usingStarterKit($input)) {
-            $this->replaceInFile(
-                './vendor/bin/phpunit',
-                './vendor/bin/pest',
-                $directory.'/.github/workflows/tests.yml',
-            );
+            $workflow = $directory.'/.github/workflows/tests.yml';
+
+            if (file_exists($workflow)) {
+                $this->replaceInFile(
+                    './vendor/bin/phpunit',
+                    './vendor/bin/pest',
+                    $workflow,
+                );
+            }
 
             $contents = file_get_contents("$directory/tests/Pest.php");
 
